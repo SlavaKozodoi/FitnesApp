@@ -1,0 +1,340 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ui.home.HomeFragment">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginStart="1dp"
+        android:layout_marginTop="1dp"
+        android:layout_marginEnd="1dp"
+        android:layout_marginBottom="1dp"
+        android:contentDescription="@string/app_name"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            >
+
+            <TextView
+                android:id="@+id/textView3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignTop="@+id/imageView3"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="50dp"
+                android:layout_toEndOf="@+id/imageView3"
+                android:text="Secondname"
+                android:textColor="@color/text_smuf"
+                android:textSize="20sp" />
+
+            <androidx.cardview.widget.CardView
+                android:id="@+id/cardView"
+                android:layout_width="match_parent"
+                android:layout_height="795dp"
+                android:layout_alignParentTop="true"
+                android:layout_marginLeft="23dp"
+                android:layout_marginTop="220dp"
+                android:layout_marginRight="23dp"
+                android:layout_marginBottom="100dp"
+                app:cardBackgroundColor="@android:color/transparent"
+                app:cardCornerRadius="20dp"
+                >
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/bg_element">
+
+                    <androidx.cardview.widget.CardView
+                        android:id="@+id/cardView4"
+                        android:layout_width="166dp"
+                        android:layout_height="120dp"
+                        android:layout_marginTop="12dp"
+                        android:layout_marginEnd="10dp"
+                        android:background="@color/secondary"
+                        app:cardBackgroundColor="@color/secondary"
+                        app:cardCornerRadius="10dp"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/cardView3" />
+
+                    <androidx.cardview.widget.CardView
+                        android:layout_width="166dp"
+                        android:layout_height="120dp"
+                        android:layout_marginTop="14dp"
+                        android:layout_marginEnd="10dp"
+                        android:background="@color/secondary"
+                        app:cardBackgroundColor="@color/secondary"
+                        app:cardCornerRadius="10dp"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/cardView4" />
+
+                    <androidx.cardview.widget.CardView
+                        android:layout_width="166dp"
+                        android:layout_height="120dp"
+                        android:layout_marginStart="10dp"
+                        android:layout_marginTop="14dp"
+                        android:background="@color/secondary"
+                        app:cardBackgroundColor="@color/secondary"
+                        app:cardCornerRadius="10dp"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/cardView5" />
+
+                    <androidx.cardview.widget.CardView
+                        android:id="@+id/cardView3"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="10dp"
+                        android:layout_marginRight="10dp"
+                        app:cardBackgroundColor="@color/secondary"
+                        app:cardCornerRadius="10dp"
+                        app:cardElevation="10dp"
+                        app:cardMaxElevation="12dp"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/chartContainer">
+
+                        <LinearLayout
+                            android:id="@+id/statsContainer"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:background="@android:color/transparent"
+                            android:baselineAligned="false"
+                            android:orientation="horizontal"
+                            android:paddingStart="16dp"
+                            android:paddingEnd="16dp">
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:gravity="center"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:fontFamily="sans-serif-medium"
+                                    android:shadowColor="#80000000"
+                                    android:shadowDx="2"
+                                    android:shadowDy="2"
+                                    android:shadowRadius="4"
+                                    android:text="Calories"
+                                    android:textColor="@color/white"
+                                    android:textSize="18sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:id="@+id/tvCaloriesValue"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="4dp"
+                                    android:text="0"
+                                    android:textColor="@color/orange_start"
+                                    android:textSize="22sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:id="@+id/tvCaloriesGoal"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="/2000 kkal"
+                                    android:textColor="#E0E0E0"
+                                    android:textSize="14sp" />
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:gravity="center"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:fontFamily="sans-serif-medium"
+                                    android:shadowColor="#80000000"
+                                    android:shadowDx="2"
+                                    android:shadowDy="2"
+                                    android:shadowRadius="4"
+                                    android:text="Steps"
+                                    android:textColor="@color/white"
+                                    android:textSize="18sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:id="@+id/tvStepsValue"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="4dp"
+                                    android:text="0"
+                                    android:textColor="@color/yellow_start"
+                                    android:textSize="22sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:id="@+id/tvStepsGoal"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="/10000 steps"
+                                    android:textColor="#E0E0E0"
+                                    android:textSize="14sp" />
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:gravity="center"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:fontFamily="sans-serif-medium"
+                                    android:shadowColor="#80000000"
+                                    android:shadowDx="2"
+                                    android:shadowDy="2"
+                                    android:shadowRadius="4"
+                                    android:text="Nutrition"
+                                    android:textColor="@color/white"
+                                    android:textSize="18sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:id="@+id/tvNutritionValue"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="4dp"
+                                    android:text="0"
+                                    android:textColor="@color/blue_start"
+                                    android:textSize="22sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:id="@+id/tvNutritionGoal"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="/2000 kkal"
+                                    android:textColor="#E0E0E0"
+                                    android:textSize="14sp" />
+                            </LinearLayout>
+                        </LinearLayout>
+                    </androidx.cardview.widget.CardView>
+
+                    <FrameLayout
+                        android:id="@+id/chartContainer"
+                        android:layout_width="match_parent"
+                        android:layout_height="150dp"
+                        android:paddingStart="16dp"
+                        android:paddingEnd="16dp"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent">
+
+                        <com.mikhaellopez.circularprogressbar.CircularProgressBar
+                            android:id="@+id/progressCalories"
+
+                            android:layout_width="match_parent"
+                            android:layout_height="260dp"
+                            android:layout_margin="30dp"
+                            android:layout_gravity="center_horizontal"
+                            app:cpb_background_progressbar_color="@color/orange_end"
+                            app:cpb_background_progressbar_width="15dp"
+                            app:cpb_progressbar_color_end="@color/orange_start"
+                            app:cpb_progressbar_color_start="@color/orange_start"
+                            app:cpb_progressbar_width="15dp"
+                            app:cpb_round_border="true"
+                            app:cpb_start_angle="180" />
+
+                        <com.mikhaellopez.circularprogressbar.CircularProgressBar
+                            android:id="@+id/progressSteps"
+                            android:layout_width="match_parent"
+                            android:layout_height="260dp"
+                            android:layout_gravity="center_horizontal"
+                            android:layout_margin="45dp"
+                            app:cpb_background_progressbar_width="15dp"
+                            app:cpb_background_progressbar_color="@color/yellow_end"
+                            app:cpb_progressbar_color_start="@color/yellow_start"
+                            app:cpb_progressbar_color_end="@color/yellow_start"
+
+                            app:cpb_progressbar_width="15dp"
+                            app:cpb_round_border="true"
+                            app:cpb_start_angle="180" />
+
+                        <com.mikhaellopez.circularprogressbar.CircularProgressBar
+                            android:id="@+id/progressNutrition"
+                            android:layout_width="match_parent"
+                            android:layout_height="260dp"
+                            android:layout_margin="60dp"
+                            app:cpb_background_progressbar_color="@color/blue_end"
+                            app:cpb_background_progressbar_width="15dp"
+                            app:cpb_progressbar_color_start="@color/blue_start"
+                            app:cpb_progressbar_color_end="@color/blue_start"
+                            app:cpb_progressbar_width="15dp"
+                            app:cpb_round_border="true"
+                            app:cpb_start_angle="180"
+                            android:layout_gravity="center_horizontal" />
+                    </FrameLayout>
+
+                    <androidx.cardview.widget.CardView
+                        android:id="@+id/cardView5"
+                        android:layout_width="166dp"
+                        android:layout_height="120dp"
+                        android:layout_marginStart="10dp"
+                        android:layout_marginTop="12dp"
+                        android:background="@color/secondary"
+                        app:cardBackgroundColor="@color/secondary"
+                        app:cardCornerRadius="10dp"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/cardView3" />
+
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+            </androidx.cardview.widget.CardView>
+
+            <ImageView
+                android:id="@+id/imageView3"
+                android:layout_width="82dp"
+                android:layout_height="82dp"
+                android:layout_alignParentStart="true"
+                android:layout_alignParentTop="true"
+                android:layout_marginStart="23dp"
+                android:layout_marginTop="129dp"
+                android:layout_marginBottom="0dp"
+                android:src="@drawable/ic_profile_icon" />
+
+            <TextView
+                android:id="@+id/textView2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignTop="@+id/imageView3"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="21dp"
+                android:layout_toEndOf="@+id/imageView3"
+                android:text="Name"
+                android:textColor="@color/text_smuf"
+                android:textSize="20sp" />
+
+            <ImageButton
+                android:id="@+id/imageButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentTop="true"
+                android:layout_alignParentEnd="true"
+                android:layout_marginTop="135dp"
+                android:layout_marginEnd="23dp"
+                android:background="@android:color/transparent"
+                android:src="@drawable/ic_active_training" />
+        </RelativeLayout>
+    </ScrollView>
+</androidx.constraintlayout.widget.ConstraintLayout>

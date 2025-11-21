@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name" translatable="false">FitnesApp</string>
+    <string name="title_home">Profile</string>
+    <string name="title_progress">Progress</string>
+    <string name="title_achievements">Achievements</string>
+</resources>
