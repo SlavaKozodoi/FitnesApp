@@ -3,4 +3,15 @@
     <string name="title_home">Profile</string>
     <string name="title_progress">Progress</string>
     <string name="title_achievements">Achievements</string>
+    <string name="text_calories">Calories</string>
+    <string name="short_text_calories">kcal</string>
+    <string name="text_steps">Steps</string>
+    <string name="short_text_steps">steps</string>
+    <string name="text_nutrition">Nutrition</string>
+    <string name="text_sleep">Sleep</string>
+    <string name="text_weight">Weight</string>
+    <string name="text_pulse">Pulse</string>
+    <string name="text_oxygenLvl">Blood oxygen lvl</string>
+
+
 </resources>

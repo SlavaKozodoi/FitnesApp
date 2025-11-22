@@ -3,4 +3,13 @@
     <string name="title_home">Профіль</string>
     <string name="title_progress">Прогрес</string>
     <string name="title_achievements">Досягнення</string>
+    <string name="text_calories">Калорії</string>
+    <string name="short_text_calories">ккал</string>
+    <string name="text_steps">Кроки</string>
+    <string name="short_text_steps">кроків</string>
+    <string name="text_nutrition">Харчування</string>
+    <string name="text_sleep">Сон</string>
+    <string name="text_weight">Вага</string>
+    <string name="text_pulse">Пульс</string>
+    <string name="text_oxygenLvl">Рівень кисню</string>
 </resources>
