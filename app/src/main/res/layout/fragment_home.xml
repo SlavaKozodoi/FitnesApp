@@ -50,17 +50,17 @@
                         android:paddingRight="5dp"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/cardView3">
+                        app:layout_constraintTop_toBottomOf="@+id/cvDayActivity">
 
                         <androidx.cardview.widget.CardView
-                            android:id="@+id/cardView5"
+                            android:id="@+id/cvSleep"
                             android:layout_width="0dp"
                             android:layout_height="130dp"
                             android:layout_margin="5dp"
                             app:cardBackgroundColor="@color/secondary"
                             app:cardCornerRadius="10dp"
-                            app:layout_constraintBottom_toTopOf="@+id/cardView6"
-                            app:layout_constraintEnd_toStartOf="@+id/cardView4"
+                            app:layout_constraintBottom_toTopOf="@+id/cvWeight"
+                            app:layout_constraintEnd_toStartOf="@+id/cvPulse"
                             app:layout_constraintStart_toStartOf="parent"
                             app:layout_constraintTop_toTopOf="parent">
 
@@ -81,6 +81,7 @@
                                     android:layout_height="wrap_content"
                                     android:layout_marginLeft="7dp"
                                     android:layout_marginTop="42dp"
+                                    android:fontFamily="@font/nobile_bold"
                                     android:text="@string/text_sleep"
                                     android:textColor="@color/text"
                                     android:textSize="16sp" />
@@ -134,7 +135,7 @@
                                         <TextView
                                             android:layout_width="wrap_content"
                                             android:layout_height="wrap_content"
-                                            android:text="Bad"
+                                            android:text="@string/text_bad"
                                             android:textColor="#E0E0E0"
                                             android:textSize="10sp" />
 
@@ -142,7 +143,7 @@
                                             android:layout_width="wrap_content"
                                             android:layout_height="wrap_content"
                                             android:layout_alignParentEnd="true"
-                                            android:text="Good"
+                                            android:text="@string/text_good"
                                             android:textColor="#E0E0E0"
                                             android:textSize="10sp" />
                                     </RelativeLayout>
@@ -151,15 +152,15 @@
                         </androidx.cardview.widget.CardView>
 
                         <androidx.cardview.widget.CardView
-                            android:id="@+id/cardView4"
+                            android:id="@+id/cvPulse"
                             android:layout_width="0dp"
                             android:layout_height="130dp"
                             android:layout_margin="5dp"
                             app:cardBackgroundColor="@color/secondary"
                             app:cardCornerRadius="10dp"
-                            app:layout_constraintBottom_toTopOf="@+id/cardView2"
+                            app:layout_constraintBottom_toTopOf="@+id/cvOxygen"
                             app:layout_constraintEnd_toEndOf="parent"
-                            app:layout_constraintStart_toEndOf="@+id/cardView5"
+                            app:layout_constraintStart_toEndOf="@+id/cvSleep"
                             app:layout_constraintTop_toTopOf="parent">
 
                             <ImageView
@@ -175,6 +176,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginLeft="7dp"
                                 android:layout_marginTop="42dp"
+                                android:fontFamily="@font/nobile_bold"
                                 android:text="@string/text_pulse"
                                 android:textColor="@color/text"
                                 android:textSize="16sp" />
@@ -221,15 +223,15 @@
                         </androidx.cardview.widget.CardView>
 
                         <androidx.cardview.widget.CardView
-                            android:id="@+id/cardView6"
+                            android:id="@+id/cvWeight"
                             android:layout_width="0dp"
                             android:layout_height="130dp"
                             android:layout_margin="5dp"
                             app:cardBackgroundColor="@color/secondary"
                             app:cardCornerRadius="10dp"
-                            app:layout_constraintEnd_toStartOf="@+id/cardView2"
+                            app:layout_constraintEnd_toStartOf="@+id/cvOxygen"
                             app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toBottomOf="@+id/cardView5">
+                            app:layout_constraintTop_toBottomOf="@+id/cvSleep">
 
                             <ImageView
                                 android:id="@+id/imageView2"
@@ -244,6 +246,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginLeft="7dp"
                                 android:layout_marginTop="42dp"
+                                android:fontFamily="@font/nobile_bold"
                                 android:text="@string/text_weight"
                                 android:textColor="@color/text"
                                 android:textSize="16sp" />
@@ -291,15 +294,15 @@
                         </androidx.cardview.widget.CardView>
 
                         <androidx.cardview.widget.CardView
-                            android:id="@+id/cardView2"
+                            android:id="@+id/cvOxygen"
                             android:layout_width="0dp"
                             android:layout_height="130dp"
                             android:layout_margin="5dp"
                             app:cardBackgroundColor="@color/secondary"
                             app:cardCornerRadius="10dp"
                             app:layout_constraintEnd_toEndOf="parent"
-                            app:layout_constraintStart_toEndOf="@+id/cardView6"
-                            app:layout_constraintTop_toBottomOf="@+id/cardView4">
+                            app:layout_constraintStart_toEndOf="@+id/cvWeight"
+                            app:layout_constraintTop_toBottomOf="@+id/cvPulse">
 
                             <ImageView
                                 android:id="@+id/imageView4"
@@ -314,6 +317,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginLeft="7dp"
                                 android:layout_marginTop="42dp"
+                                android:fontFamily="@font/nobile_bold"
                                 android:text="@string/text_oxygenLvl"
                                 android:textColor="@color/text"
                                 android:textSize="16sp" />
@@ -369,7 +373,7 @@
                             app:cardElevation="0dp"
                             app:layout_constraintEnd_toEndOf="parent"
                             app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toBottomOf="@+id/cardView6"
+                            app:layout_constraintTop_toBottomOf="@+id/cvWeight"
                             tools:ignore="MissingConstraints">
 
                             <LinearLayout
@@ -390,8 +394,8 @@
                                         android:gravity="center_vertical">
 
                                         <ImageView
-                                            android:layout_width="24dp"
-                                            android:layout_height="24dp"
+                                            android:layout_width="30dp"
+                                            android:layout_height="30dp"
                                             android:src="@drawable/ic_history_icon" />
 
                                         <TextView
@@ -423,6 +427,7 @@
                                             android:layout_width="wrap_content"
                                             android:layout_height="wrap_content"
                                             android:layout_marginHorizontal="8dp"
+                                            android:fontFamily="@font/nobile_bold"
                                             android:text="September"
                                             android:textColor="@color/white"
                                             android:textSize="16sp"
@@ -450,7 +455,7 @@
                     </androidx.constraintlayout.widget.ConstraintLayout>
 
                     <androidx.cardview.widget.CardView
-                        android:id="@+id/cardView3"
+                        android:id="@+id/cvDayActivity"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginLeft="10dp"
@@ -483,7 +488,7 @@
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:fontFamily="sans-serif-medium"
+                                    android:fontFamily="@font/nobile_bold"
                                     android:shadowColor="#80000000"
                                     android:shadowDx="2"
                                     android:shadowDy="2"
@@ -522,7 +527,7 @@
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:fontFamily="sans-serif-medium"
+                                    android:fontFamily="@font/nobile_bold"
                                     android:shadowColor="#80000000"
                                     android:shadowDx="2"
                                     android:shadowDy="2"
@@ -561,7 +566,7 @@
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:fontFamily="sans-serif-medium"
+                                    android:fontFamily="@font/nobile_bold"
                                     android:shadowColor="#80000000"
                                     android:shadowDx="2"
                                     android:shadowDy="2"

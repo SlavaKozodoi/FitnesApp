@@ -9,6 +9,7 @@
         android:id="@+id/navigation_notifications"
         android:icon="@drawable/ic_menu_achievements"
         android:title="@string/title_achievements"
+        
     />
     <item
         android:id="@+id/navigation_dashboard"

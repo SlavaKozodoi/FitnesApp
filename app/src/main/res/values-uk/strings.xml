@@ -12,4 +12,13 @@
     <string name="text_weight">Вага</string>
     <string name="text_pulse">Пульс</string>
     <string name="text_oxygenLvl">Рівень кисню</string>
+    <string name="text_good">добре</string>
+    <string name="text_bad">погано</string>
+    <string name="text_training">Тренування</string>
+    <string name="text_advice_history">Історія порад</string>
+    <string name="text_day_activity">Дена активність</string>
+    <string name="text_total">Всього</string>
+    <string name="text_carbs">Вуглеводи</string>
+    <string name="text_proteins">Білки</string>
+    <string name="text_fats">Жири</string>
 </resources>

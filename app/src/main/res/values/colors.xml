@@ -28,6 +28,35 @@
         <color name="blue_start">#51CBEA</color>
         <color name="blue_end">#A7DDEA</color>
 
+        <color name="pulse_red">#FF4F4F</color>
+        <color name="oxygen_red">#F54C6D</color>
+        <color name="weight_green">#3CB544</color>
+        <color name="temp_orange">#FBAB00</color>
+
+    //Charts
+        <color name="pulse_end">#992F2F</color>
+        <color name="pulse_start">#FF4F4F</color>
+
+        <color name="oxygen_start">#FF4F72</color>
+        <color name="oxygen_end">#BD3853</color>
+
+        <color name="temp_start">#FBAB00</color>
+        <color name="temp_end">#BD3853</color>
+
+        <color name="sleep_start">#1787C3</color>
+        <color name="sleep_end">#0E507C</color>
+
+        <color name="weight_start">#3EBC46</color>
+        <color name="weight_end">#1C5620</color>
+
+        <color name="calories_start">#F87C00</color>
+        <color name="calories_end">#8F4800</color>
+
+        <color name="steps_start">#FBD100</color>
+        <color name="steps_end">#9E8300</color>
+
+
+
 
 
 

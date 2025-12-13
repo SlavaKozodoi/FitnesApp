@@ -12,6 +12,16 @@
     <string name="text_weight">Weight</string>
     <string name="text_pulse">Pulse</string>
     <string name="text_oxygenLvl">Blood oxygen lvl</string>
+    <string name="text_good">good</string>
+    <string name="text_bad">bad</string>
+    <string name="text_training">Training</string>
+    <string name="text_advice_history">Advice history</string>
+    <string name="text_day_activity">Day activity</string>
+    <string name="text_total">Total</string>
+    <string name="text_carbs">Carbs</string>
+    <string name="text_proteins">Proteins</string>
+    <string name="text_fats">Fats</string>
+
 
 
 </resources>

@@ -14,12 +14,42 @@
     <fragment
         android:id="@+id/navigation_dashboard"
         android:name="com.example.fitnesapp.ui.achievements.DashboardFragment"
-        android:label="@string/title_achievements"
+        android:label="@string/title_progress"
         tools:layout="@layout/fragment_dashboard" />
 
     <fragment
         android:id="@+id/navigation_notifications"
         android:name="com.example.fitnesapp.ui.progress.NotificationsFragment"
-        android:label="@string/title_progress"
+        android:label="@string/title_achievements"
         tools:layout="@layout/fragment_notifications" />
+    <fragment
+        android:id="@+id/sleepFragment"
+        android:name="com.example.fitnesapp.ui.sleep.SleepFragment"
+        android:label="@string/text_sleep"
+        tools:layout="@layout/fragment_sleep" />
+    <fragment
+        android:id="@+id/pulseFragment"
+        android:name="com.example.fitnesapp.ui.pulse.PulseFragment"
+        android:label="@string/text_pulse"
+        tools:layout="@layout/fragment_pulse" />
+    <fragment
+        android:id="@+id/weightFragment"
+        android:name="com.example.fitnesapp.ui.weight.WeightFragment"
+        android:label="@string/text_weight"
+        tools:layout="@layout/fragment_weight" />
+    <fragment
+        android:id="@+id/oxygenFragment"
+        android:name="com.example.fitnesapp.ui.oxygenlevel.OxygenFragment"
+        android:label="@string/text_oxygenLvl"
+        tools:layout="@layout/fragment_oxygen" />
+    <fragment
+        android:id="@+id/activeTrenFragment"
+        android:name="com.example.fitnesapp.ui.activetren.ActiveTrenFragment"
+        android:label="@string/text_training"
+        tools:layout="@layout/fragment_active_tren" />
+    <fragment
+        android:id="@+id/dayActivityFragment"
+        android:name="com.example.fitnesapp.ui.dayactivity.DayActivityFragment"
+        android:label="@string/text_day_activity"
+        tools:layout="@layout/fragment_day_activity" />
 </navigation>

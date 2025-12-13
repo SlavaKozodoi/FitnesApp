@@ -5,13 +5,15 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
+import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -19,7 +21,6 @@ import com.example.fitnesapp.Adapters.CalendarAdapter;
 import com.example.fitnesapp.R;
 import com.example.fitnesapp.databinding.FragmentHomeBinding;
 import com.github.mikephil.charting.charts.BarChart;
-import com.github.mikephil.charting.charts.HorizontalBarChart;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.data.BarData;
 import com.github.mikephil.charting.data.BarDataSet;
@@ -31,14 +32,16 @@ import com.github.mikephil.charting.data.LineDataSet;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
 public class HomeFragment extends Fragment {
 
     private FragmentHomeBinding binding;
+
+    private CardView cvSleep,cvPulse,cvWeight,cvOxygen,cvDayActivity;
     private Calendar currentCalendar = Calendar.getInstance();
+    private ImageButton activeTrenImageBTN;
     private CalendarAdapter calendarAdapter;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -48,13 +51,59 @@ public class HomeFragment extends Fragment {
 
         binding = FragmentHomeBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
+        cvSleep = binding.cvSleep;
+        cvPulse = binding.cvPulse;
+        cvWeight = binding.cvWeight;
+        cvOxygen = binding.cvOxygen;
+        cvDayActivity = binding.cvDayActivity;
+        activeTrenImageBTN = binding.imageButton;
+        cvSleep.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Navigation.findNavController(v).navigate(R.id.sleepFragment);
+            }
+        });
+        cvPulse.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Navigation.findNavController(v).navigate(R.id.pulseFragment);
+            }
+        });
+        cvWeight.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Navigation.findNavController(v).navigate(R.id.weightFragment);
+            }
+        });
+        cvOxygen.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Navigation.findNavController(v).navigate(R.id.oxygenFragment);
+            }
+        });
+        activeTrenImageBTN.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Navigation.findNavController(v).navigate(R.id.activeTrenFragment);
+            }
+        });
+        cvDayActivity.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Navigation.findNavController(v).navigate(R.id.dayActivityFragment);
+            }
+        });
+        //todo обработать переходы на другие окна
+
 
         // Запускаем настройку данных и анимацию
         setupDashboard();
         setupMiniCharts();
         setupHistoryCalendar();
         return root;
+
     }
+
 
     private void setupDashboard() {
         // === 1. ЗАДАЕМ ЦЕЛИ И ТЕКУЩИЕ ЗНАЧЕНИЯ ===
@@ -342,4 +391,6 @@ public class HomeFragment extends Fragment {
         super.onDestroyView();
         binding = null;
     }
+
+
 }
