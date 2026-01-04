@@ -33,7 +33,7 @@
             android:layout_height="wrap_content"
             android:fontFamily="@font/nobile_bold"
             android:text="Fats: 9g"
-            android:textColor="@color/text"
+            android:textColor="@color/yellow_start"
             android:textSize="18sp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -58,7 +58,7 @@
             android:layout_marginStart="22dp"
             android:fontFamily="@font/nobile_bold"
             android:text="Carbs: 220g"
-            android:textColor="@color/text"
+            android:textColor="@color/temp_orange"
             android:textSize="18sp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/tvTimeNut" />
@@ -70,7 +70,7 @@
             android:layout_marginEnd="22dp"
             android:fontFamily="@font/nobile_bold"
             android:text="Protein: 36g"
-            android:textColor="@color/text"
+            android:textColor="@color/blue_end"
             android:textSize="18sp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/tvTimeNut" />

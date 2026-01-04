@@ -51,10 +51,10 @@ public class CalendarAdapter extends RecyclerView.Adapter<CalendarAdapter.DayVie
 
         // Проверяем, активный ли день (стилизация)
         if (isActive) {
-            holder.tvDayNumber.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(context, R.color.accent_color)));
+            holder.viewBackground.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(context, R.color.calendar_active)));
             holder.tvDayNumber.setTextColor(ContextCompat.getColor(context, R.color.white));
         } else {
-            holder.tvDayNumber.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(context, R.color.background)));
+            holder.viewBackground.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(context, R.color.background)));
             holder.tvDayNumber.setTextColor(ContextCompat.getColor(context, R.color.white));
         }
 
@@ -80,10 +80,12 @@ public class CalendarAdapter extends RecyclerView.Adapter<CalendarAdapter.DayVie
 
     public static class DayViewHolder extends RecyclerView.ViewHolder {
         TextView tvDayNumber;
+        View viewBackground;
 
         public DayViewHolder(@NonNull View itemView) {
             super(itemView);
             tvDayNumber = itemView.findViewById(R.id.tvDayNumber);
+            viewBackground = itemView.findViewById(R.id.viewBackground);
         }
     }
 }

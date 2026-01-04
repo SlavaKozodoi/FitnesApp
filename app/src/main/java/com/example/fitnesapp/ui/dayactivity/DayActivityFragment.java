@@ -13,12 +13,14 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.example.fitnesapp.Adapters.NutritionAdapter;
 import com.example.fitnesapp.R;
 import com.example.fitnesapp.databinding.FragmentDayActivityBinding;
 import com.example.fitnesapp.models.Nutrition;
 import com.example.fitnesapp.utils.ChartHelper;
+import com.example.fitnesapp.utils.DateHelper;
 import com.github.mikephil.charting.data.Entry;
 
 import java.util.ArrayList;
@@ -47,6 +49,7 @@ public class DayActivityFragment extends Fragment {
         setupNutList();;
         setupCaloriesHistoryChart();
         setupStepsHistoryChart();
+        setupCalendar();
 
     }
 
@@ -63,6 +66,18 @@ public class DayActivityFragment extends Fragment {
         NutritionAdapter adapter = new NutritionAdapter(getContext(),nutritionList);
         recyclerView.setAdapter(adapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false));
+    }
+
+    private void setupCalendar() {
+        DateHelper.setupHistoryCalendar(
+                requireContext(),
+                binding.recyclerViewDayActivity,
+                date -> {
+                    // Логика клика именно для СНА
+                    Toast.makeText(getContext(), "Данные за: " + date.getDayNumber(), Toast.LENGTH_SHORT).show();
+                    // TODO: 03.01.2026 Добавить обновление єкрана
+                }
+        );
     }
 
     private void setupCaloriesHistoryChart() {

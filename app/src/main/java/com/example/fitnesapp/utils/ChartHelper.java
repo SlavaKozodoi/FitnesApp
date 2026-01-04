@@ -48,10 +48,6 @@ public class ChartHelper {
             );
             // Применяем градиент к DataSet
             dataSet.setFillDrawable(drawable);
-        } else {
-            // Фолбэк для очень старых версий Android (просто сплошной цвет)
-            dataSet.setFillColor(startColor);
-            dataSet.setFillAlpha(150);
         }
 
         LineData data = new LineData(dataSet);
@@ -126,23 +122,21 @@ public class ChartHelper {
         // 6. ФОН
         chart.setDrawGridBackground(false); // Отключаем встроенный квадратный фон
 
-        if (showBackground) {
+
             // Для больших графиков истории (темный скругленный фон)
-            chart.setBackgroundResource(R.drawable.bg_chart_dark);
-        } else {
             // Для маленьких графиков в карусели (прозрачный фон)
             chart.setBackgroundColor(Color.TRANSPARENT);
-        }
+
 
         // 7. ОТСТУПЫ (VIEW PORT OFFSETS)
         // Рассчитываем отступы в пикселях, чтобы текст точно влезал
 
         // Нижний отступ под текст
-        float bottomOffsetDp = showBackground ? 7f : 0f;
+        float bottomOffsetDp = showBackground ? 0f : 0f;
         float bottomOffsetPx = bottomOffsetDp * density;
 
         // Боковой отступ, чтобы текст не прилипал к краям экрана
-        float sideOffsetDp = 14f;
+        float sideOffsetDp = 1f;
         float sideOffsetPx = sideOffsetDp * density;
 
         // Применяем: (Слева, Сверху, Справа, Снизу)

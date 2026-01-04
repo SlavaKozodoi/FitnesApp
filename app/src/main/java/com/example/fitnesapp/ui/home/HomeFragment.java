@@ -106,56 +106,66 @@ public class HomeFragment extends Fragment {
 
 
     private void setupDashboard() {
-        // === 1. ЗАДАЕМ ЦЕЛИ И ТЕКУЩИЕ ЗНАЧЕНИЯ ===
-        // (В будущем берите их из ViewModel или базы данных)
         float caloriesGoal = 2000f;
-        float caloriesCurrent = 1000f;
-
         float stepsGoal = 10000f;
-        float stepsCurrent = 5000f;
-
         float nutritionGoal = 2000f;
-        float nutritionCurrent = 1000f;
 
-        // === 2. НАСТРАИВАЕМ ГРАФИКИ (АРКИ) ===
-        // Хитрость: так как мы видим только половину круга (верхнюю),
-        // мы должны умножить цель на 2. Тогда 50% круга будет выглядеть как 100% шкалы.
+        // В реальном приложении эти данные придут из базы/SharedPrefs
+        float caloriesCurrent = 2000f;
+        float stepsCurrent = 5000f;
+        float nutritionCurrent = 2000f;
 
-        // Калории
-        binding.progressCalories.setProgressMax(caloriesGoal );
-        binding.progressCalories.setProgressWithAnimation(caloriesCurrent, 1000L); // 1 сек анимация
+        // --- ЛОГИКА РАСЧЕТА ОБЩЕГО ПРОЦЕНТА ---
 
-        // Шаги
-        binding.progressSteps.setProgressMax(stepsGoal );
-        binding.progressSteps.setProgressWithAnimation(stepsCurrent, 1000L);
+        // 1. Считаем процент выполнения для КАЖДОГО показателя отдельно (от 0.0 до 1.0)
+        // Добавляем проверку (goal > 0), чтобы избежать деления на ноль
+        float calP = (caloriesGoal > 0) ? (caloriesCurrent / caloriesGoal) : 0f;
+        float stepP = (stepsGoal > 0) ? (stepsCurrent / stepsGoal) : 0f;
+        float nutP = (nutritionGoal > 0) ? (nutritionCurrent / nutritionGoal) : 0f;
 
-        // Питание
-        binding.progressNutrition.setProgressMax(nutritionGoal );
-        binding.progressNutrition.setProgressWithAnimation(nutritionCurrent, 1000L);
+        // 2. (Опционально) Ограничиваем каждый показатель до 100% (1.0)
+        // Это нужно, чтобы перевыполнение шагов (например 200%) не перекрывало
+        // невыполнение калорий. Если хотите учитывать перевыполнение — уберите эти строки.
+        if (calP > 1f) calP = 1f;
+        if (stepP > 1f) stepP = 1f;
+        if (nutP > 1f) nutP = 1f;
 
-        // === 3. ОБНОВЛЯЕМ ЦИФРЫ ВНИЗУ ===
-        // Здесь показываем реальные значения, без умножения
+        // 3. Считаем среднее арифметическое трех показателей
+        // Складываем и делим на 3, затем умножаем на 100 для получения процентов
+        float totalPercentVal = ((calP + stepP + nutP) / 3f) * 100f;
+
+        // 4. Финальная проверка границ (на всякий случай)
+        if (totalPercentVal < 0f) totalPercentVal = 0f;
+        if (totalPercentVal > 100f) totalPercentVal = 100f;
+
+        // --- ПРИМЕНЕНИЕ К UI ---
+
+        // Кольцевой прогресс
+        binding.progressCalories.setProgressMax(100f);
+        binding.progressCalories.setProgressWithAnimation(totalPercentVal, 900L);
+
+        // Текст в центре кольца
+        binding.tvGoalPercent.setText(Math.round(totalPercentVal) + "%");
+        binding.tvGoalLabel.setText("Completed");
+
+        // === 3. ОБНОВЛЯЕМ ЦИФРЫ ВНИЗУ (Ваш код без изменений) ===
         if (binding.tvCaloriesValue != null) {
             binding.tvCaloriesValue.setText(String.valueOf((int) caloriesCurrent));
         }
-        binding.tvCaloriesGoal.setText("/" + (int) caloriesGoal + getString(R.string.short_text_calories) );
+        binding.tvCaloriesGoal.setText("/" + (int) caloriesGoal + getString(R.string.short_text_calories));
 
         if (binding.tvStepsValue != null) {
             binding.tvStepsValue.setText(String.valueOf((int) stepsCurrent));
         }
-        binding.tvStepsGoal.setText("/" + (int) stepsGoal + getString(R.string.short_text_steps) );
+        binding.tvStepsGoal.setText("/" + (int) stepsGoal + getString(R.string.short_text_steps));
+
         if (binding.tvNutritionValue != null) {
             binding.tvNutritionValue.setText(String.valueOf((int) nutritionCurrent));
         }
-        binding.tvNutritionGoal.setText("/" + (int) nutritionGoal + getString(R.string.short_text_calories) );
-
+        binding.tvNutritionGoal.setText("/" + (int) nutritionGoal + getString(R.string.short_text_calories));
     }
-
     // Здесь мы готовим данные (в будущем они придут из БД) и передаем в методы настройки
     private void setupMiniCharts() {
-        // 1. Сон (Одно целое число 0-100)
-        int sleepScore = 90;
-        updateSleepScore(sleepScore);
 
         // 2. Пульс (Список целых чисел)
         List<Integer> pulseData = new ArrayList<>();
@@ -172,34 +182,10 @@ public class HomeFragment extends Fragment {
 
         setupWeightChart(weightData);
 
-        // 4. Кислород (Список целых чисел)
-        List<Integer> oxygenData = new ArrayList<>();
-        for (int i = 0; i < 24; i++) {
-            oxygenData.add((int) (95 + Math.random() * 4));
-        }
-        setupOxygenChart(oxygenData);
     }
 
     // --- 1. ГРАФИК СНА (Принимает одно число - оценку) ---
-    private void updateSleepScore(int score) {
-        if (score < 0) score = 0;
-        if (score > 100) score = 100;
 
-        View viewProgress = binding.viewSleepBad;
-        View viewEmpty = binding.viewSleepGood;
-
-        if (viewProgress == null || viewEmpty == null) return;
-
-        LinearLayout.LayoutParams progressParams = (LinearLayout.LayoutParams) viewProgress.getLayoutParams();
-        LinearLayout.LayoutParams emptyParams = (LinearLayout.LayoutParams) viewEmpty.getLayoutParams();
-
-        // Распределяем вес пропорционально оценке
-        progressParams.weight = score;
-        emptyParams.weight = 100 - score;
-
-        viewProgress.setLayoutParams(progressParams);
-        viewEmpty.setLayoutParams(emptyParams);
-    }
 
     // --- 2. ГРАФИК ПУЛЬСА (Принимает список значений) ---
     private void setupPulseChart(List<Integer> dataValues) {
@@ -236,53 +222,20 @@ public class HomeFragment extends Fragment {
         dataSet.setMode(LineDataSet.Mode.CUBIC_BEZIER);
         dataSet.setDrawCircles(false);
         dataSet.setDrawValues(false);
-        dataSet.setLineWidth(2f);
+        dataSet.setLineWidth(3f);
         dataSet.setColor(Color.parseColor("#4CAF50"));
 
-        dataSet.setDrawFilled(true);
-        dataSet.setFillColor(Color.parseColor("#4CAF50"));
-        dataSet.setFillAlpha(100);
+        dataSet.setDrawFilled(false);
 
         LineData data = new LineData(dataSet);
-        // 1. Создаем формат даты (день.месяц, например "22.11")
-        SimpleDateFormat sdf = new SimpleDateFormat("dd.MM", Locale.getDefault());
-        Calendar calendar = Calendar.getInstance();
-
-// 2. Получаем сегодняшнюю дату (для End)
-        String endDate = sdf.format(calendar.getTime());
-
-// 3. Отнимаем 1 месяц назад (для Start)
-        calendar.add(Calendar.MONTH, -1);
-        String startDate = sdf.format(calendar.getTime());
-
+        ;
 // 4. Устанавливаем текст
-        binding.tvStartWeight.setText(startDate);
-        binding.tvEndWeight.setText(endDate);
+
         chart.setData(data);
         simplifyChart(chart);
         chart.invalidate();
     }
 
-    // --- 4. ГРАФИК КИСЛОРОДА (Принимает список значений) ---
-    private void setupOxygenChart(List<Integer> dataValues) {
-        BarChart chart = binding.chartOxygen;
-        if (chart == null || dataValues == null || dataValues.isEmpty()) return;
-
-        ArrayList<BarEntry> entries = new ArrayList<>();
-        for (int i = 0; i < dataValues.size(); i++) {
-            entries.add(new BarEntry(i, dataValues.get(i)));
-        }
-
-        BarDataSet dataSet = new BarDataSet(entries, "");
-        dataSet.setColor(Color.parseColor("#FF5252"));
-        dataSet.setDrawValues(false);
-
-        BarData data = new BarData(dataSet);
-        chart.setData(data);
-        simplifyChart(chart);
-        chart.invalidate();
-
-    }
 
     // Вспомогательный метод для очистки стиля (убирает сетку и цифры)
     private void simplifyChart(com.github.mikephil.charting.charts.Chart<?> chart) {
@@ -369,7 +322,7 @@ public class HomeFragment extends Fragment {
         for (int i = 1; i <= daysInMonth; i++) {
             daysList.add(i);
         }
-
+        // TODO: 03.01.2026 Поменять заполнение данными
         // 4. Имитация активных дней (Здесь нужно брать реальные данные из БД)
         // Например, пусть активными будут 5, 9, 12, 18, 27 числа
         List<Integer> activeDays = new ArrayList<>();

@@ -12,10 +12,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.SeekBar;
+import android.widget.Toast;
 
 import com.example.fitnesapp.R;
 import com.example.fitnesapp.databinding.FragmentOxygenBinding;
 import com.example.fitnesapp.utils.ChartHelper;
+import com.example.fitnesapp.utils.DateHelper;
 import com.github.mikephil.charting.data.Entry;
 
 import java.util.ArrayList;
@@ -53,6 +55,19 @@ public class OxygenFragment extends Fragment {
         int statusValue = 25;
         statusBar.setProgress(statusValue);
         setupOxygenChart();
+        setupCalendar();
+    }
+
+    private void setupCalendar() {
+        DateHelper.setupHistoryCalendar(
+                requireContext(),
+                binding.recyclerViewOxygen,
+                date -> {
+                    // Логика клика именно для СНА
+                    Toast.makeText(getContext(), "Данные за: " + date.getDayNumber(), Toast.LENGTH_SHORT).show();
+                    // TODO: 03.01.2026 Добавить обновление єкрана
+                }
+        );
     }
 
     private void setupOxygenChart() {

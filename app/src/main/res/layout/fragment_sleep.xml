@@ -42,7 +42,7 @@
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:background="@drawable/bg_element"
+                    android:background="@color/background_50"
                     android:paddingBottom="10dp">
 
                     <TextView
@@ -284,12 +284,13 @@
                     </androidx.cardview.widget.CardView>
 
                     <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/recyclerView"
+                        android:id="@+id/recyclerViewSleep"
                         android:layout_width="match_parent"
                         android:layout_height="50dp"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"/>
 
                     <TextView
                         android:id="@+id/tvPulseScore"
@@ -301,7 +302,7 @@
                         android:textColor="@color/text"
                         android:textSize="64sp"
                         app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/recyclerView" />
+                        app:layout_constraintTop_toBottomOf="@+id/recyclerViewSleep" />
 
                     <TextView
                         android:id="@+id/textView8"
@@ -315,7 +316,7 @@
                         android:textSize="16sp"
                         app:layout_constraintBottom_toTopOf="@+id/tvSleepQuality"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/recyclerView" />
+                        app:layout_constraintTop_toBottomOf="@+id/recyclerViewSleep" />
 
                     <TextView
                         android:id="@+id/tvSleepQuality"
@@ -328,15 +329,14 @@
                         android:textSize="20sp"
                         app:layout_constraintBottom_toTopOf="@+id/chartSleepInfo"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/recyclerView" />
+                        app:layout_constraintTop_toBottomOf="@+id/recyclerViewSleep" />
 
                     <com.github.mikephil.charting.charts.LineChart
                         android:id="@+id/chartSleepInfo"
                         android:layout_width="match_parent"
                         android:layout_height="126dp"
                         android:layout_gravity="bottom"
-                        android:layout_marginStart="14dp"
-                        android:layout_marginEnd="14dp"
+                        android:layout_marginTop="-14dp"
                         android:foregroundGravity="bottom"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
@@ -369,7 +369,7 @@
                                 android:textColor="@color/text"
                                 android:textSize="16sp"
                                 app:layout_constraintStart_toStartOf="@+id/guideline3"
-                                app:layout_constraintTop_toBottomOf="@+id/textView17" />
+                                app:layout_constraintTop_toBottomOf="@+id/tvLowestWeight" />
 
                             <TextView
                                 android:id="@+id/textView21"
@@ -396,10 +396,10 @@
                                 android:textColor="@color/text"
                                 android:textSize="16sp"
                                 app:layout_constraintStart_toStartOf="parent"
-                                app:layout_constraintTop_toBottomOf="@+id/textView19" />
+                                app:layout_constraintTop_toBottomOf="@+id/tvHighestWeight" />
 
                             <TextView
-                                android:id="@+id/textView19"
+                                android:id="@+id/tvHighestWeight"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="14dp"
@@ -411,7 +411,7 @@
                                 app:layout_constraintTop_toBottomOf="@+id/textView13" />
 
                             <TextView
-                                android:id="@+id/textView17"
+                                android:id="@+id/tvLowestWeight"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:fontFamily="@font/nobile"
@@ -449,12 +449,12 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="14dp"
                                 android:layout_marginTop="14dp"
+                                android:fontFamily="@font/nobile_bold"
                                 android:text="Falling asleep"
                                 android:textColor="@color/text"
                                 android:textSize="16sp"
                                 app:layout_constraintStart_toStartOf="parent"
-                                app:layout_constraintTop_toTopOf="parent"
-                                android:fontFamily="@font/nobile_bold" />
+                                app:layout_constraintTop_toTopOf="parent" />
 
                             <androidx.constraintlayout.widget.Guideline
                                 android:id="@+id/guideline3"

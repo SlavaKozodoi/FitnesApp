@@ -47,7 +47,7 @@ public class NutritionAdapter extends RecyclerView.Adapter<NutritionAdapter.Nutr
         return nutList.size();
     }
 
-    public class NutritionViewHolder extends RecyclerView.ViewHolder{
+    public static class NutritionViewHolder extends RecyclerView.ViewHolder{
 
         TextView tvTime,tvCarbs,tvProteins,tvFats,tvCalories;
         public NutritionViewHolder(@NonNull View itemView) {

@@ -13,11 +13,13 @@ import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.example.fitnesapp.R;
 import com.example.fitnesapp.databinding.FragmentPulseBinding;
 import com.example.fitnesapp.ui.sleep.SleepViewModel;
 import com.example.fitnesapp.utils.ChartHelper;
+import com.example.fitnesapp.utils.DateHelper;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.Entry;
@@ -48,6 +50,19 @@ public class PulseFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         mViewModel = new ViewModelProvider(this).get(PulseViewModel.class);
         setupPulseHistoryChart();
+        setupCalendar();
+    }
+
+    private void setupCalendar() {
+        DateHelper.setupHistoryCalendar(
+                requireContext(),
+                binding.recyclerViewPulse,
+                date -> {
+                    // Логика клика именно для СНА
+                    Toast.makeText(getContext(), "Данные за: " + date.getDayNumber(), Toast.LENGTH_SHORT).show();
+                    // TODO: 03.01.2026 Добавить обновление єкрана
+                }
+        );
     }
 
 

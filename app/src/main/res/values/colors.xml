@@ -8,52 +8,54 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
-    <color name="background">#243B3E</color>
-    <color name="accent_color">#81EDA0</color>
-    <color name="secondary">#3E8069</color>
+    <color name="background">#142A3E</color>
+    <color name="background_50">#80142A3E</color>
+    <color name="accent_color">#6DD1AA</color>
+    <color name="secondary">#0C151C</color>
     <color name="second_accept">#539980</color>
     <color name="text">#F4F5FC</color>
     <color name="text_smuf" >#99F4F5FC</color>
 
+    <color name="bg2">#040B11</color>
+    <color name="bg2_start">#243B3E</color>
+    <color name="appbar_start">#FF468D89</color>
+    <color name="bg2_end">#72DBB1</color>
 
-        <color name="bg2_start">#243B3E</color>
-        <color name="appbar_start">#FF468D89</color>
-        <color name="bg2_end">#72DBB1</color>
 
-
-        <color name="orange_start">#F87C00</color>
+        <color name="orange_start">#FF7900</color>
         <color name="orange_end">#FFB163</color>
-        <color name="yellow_start">#FBD100</color>
+        <color name="yellow_start">#F2C600</color>
         <color name="yellow_end">#FBE888</color>
-        <color name="blue_start">#51CBEA</color>
+        <color name="blue_start">#4BC9E6</color>
         <color name="blue_end">#A7DDEA</color>
 
         <color name="pulse_red">#FF4F4F</color>
         <color name="oxygen_red">#F54C6D</color>
         <color name="weight_green">#3CB544</color>
         <color name="temp_orange">#FBAB00</color>
+        <color name="calendar_active">#5E3397</color>
 
     //Charts
-        <color name="pulse_end">#992F2F</color>
+        <color name="pulse_end">#3A1111</color>
         <color name="pulse_start">#FF4F4F</color>
 
-        <color name="oxygen_start">#FF4F72</color>
-        <color name="oxygen_end">#BD3853</color>
+        <color name="oxygen_start">#26CCE2</color>
+        <color name="oxygen_end">#093337</color>
 
         <color name="temp_start">#FBAB00</color>
-        <color name="temp_end">#BD3853</color>
+        <color name="temp_end">#571922</color>
 
         <color name="sleep_start">#1787C3</color>
-        <color name="sleep_end">#0E507C</color>
+        <color name="sleep_end">#072D42</color>
 
         <color name="weight_start">#3EBC46</color>
-        <color name="weight_end">#1C5620</color>
+        <color name="weight_end">#113313</color>
 
         <color name="calories_start">#F87C00</color>
-        <color name="calories_end">#8F4800</color>
+        <color name="calories_end">#2E0000</color>
 
         <color name="steps_start">#FBD100</color>
-        <color name="steps_end">#9E8300</color>
+        <color name="steps_end">#453A00</color>
 
 
 

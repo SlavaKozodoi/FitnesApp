@@ -11,7 +11,7 @@
     <string name="text_sleep">Sleep</string>
     <string name="text_weight">Weight</string>
     <string name="text_pulse">Pulse</string>
-    <string name="text_oxygenLvl">Blood oxygen lvl</string>
+    <string name="text_oxygenLvl">Oxygen lvl</string>
     <string name="text_good">good</string>
     <string name="text_bad">bad</string>
     <string name="text_training">Training</string>

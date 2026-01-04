@@ -13,9 +13,12 @@ import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.TextView;
 
 import com.example.fitnesapp.R;
 import com.example.fitnesapp.databinding.FragmentWeightBinding;
+import com.example.fitnesapp.models.WeightRecord;
 import com.example.fitnesapp.utils.ChartHelper;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.YAxis;
@@ -23,12 +26,18 @@ import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
 
 public class WeightFragment extends Fragment {
 
     private WeightViewModel mViewModel;
     private FragmentWeightBinding binding;
+    private List<WeightRecord> allWeightHistory = new ArrayList<>();
 
     public static WeightFragment newInstance() {
         return new WeightFragment();
@@ -46,6 +55,126 @@ public class WeightFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         mViewModel = new ViewModelProvider(this).get(WeightViewModel.class);
         setupWeightHistoryChart();
+
+        generateMockData();
+
+        // 2. Настраиваем кнопки
+        setupTimeFilters();
+
+        // 3. По умолчанию показываем 1 месяц
+        updateChartForPeriod(1);
+        updateButtonVisuals(binding.button);
+    }
+    private void setupTimeFilters() {
+        // Кнопка "1 month"
+        binding.button.setOnClickListener(v -> {
+            updateChartForPeriod(1);
+            updateButtonVisuals(binding.button);
+        });
+
+        // Кнопка "3 month"
+        binding.button3.setOnClickListener(v -> {
+            updateChartForPeriod(3);
+            updateButtonVisuals(binding.button3);
+        });
+
+        // Кнопка "6 month"
+        binding.button2.setOnClickListener(v -> {
+            updateChartForPeriod(6);
+            updateButtonVisuals(binding.button2);
+        });
+    }
+
+
+    private void updateChartForPeriod(int months) {
+        // 1. Вычисляем дату отсечения (сегодня минус N месяцев)
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.MONTH, -months);
+        long cutoffTime = cal.getTimeInMillis();
+
+        // 2. Фильтруем данные
+        ArrayList<Entry> entries = new ArrayList<>();
+        ArrayList<String> labelsList = new ArrayList<>();
+
+
+        // Формат даты для оси X (день.месяц)
+        SimpleDateFormat sdf = new SimpleDateFormat("dd.MM", Locale.getDefault());
+        float max = 0;
+        float min = 200;
+        int index = 0;
+        for (WeightRecord record : allWeightHistory) {
+            // Если дата записи больше (позже), чем дата отсечения
+            if (record.timestamp >= cutoffTime) {
+                if (record.weight > max) max = record.weight;
+                if (record.weight < min) min = record.weight;
+                entries.add(new Entry(index, record.weight));
+                labelsList.add(sdf.format(new Date(record.timestamp)));
+                index++;
+            }
+        }
+
+        // Преобразуем список меток в массив
+        String[] labels = labelsList.toArray(new String[0]);
+
+        // 3. Рисуем график через ваш ChartHelper
+        // Используем цвета, которые у вас уже настроены
+        ChartHelper.setupUnifiedChart(
+                requireContext(),
+                binding.chartWeightInfo,
+                entries,
+                labels,
+                R.color.weight_start, // Или любой другой цвет для линии веса
+                R.color.weight_end,
+                true // showBackground
+        );
+
+        binding.tvHighestWeight.setText(String.format(Locale.getDefault(), "%.1f",max));
+        binding.tvLowestWeight.setText(String.format(Locale.getDefault(), "%.1f", min));
+
+        // Дополнительно: Обновляем текущий вес (берем последнюю запись)
+        if (!entries.isEmpty()) {
+            float lastWeight = entries.get(entries.size() - 1).getY();
+            binding.tvWeightScore.setText(String.valueOf((int)lastWeight));
+        }
+
+
+
+    }
+
+
+    private void updateButtonVisuals(Button activeButton) {
+        // Сброс всех кнопок в дефолтное состояние (серый фон, черный текст)
+        resetButtonStyle(binding.button);
+        resetButtonStyle(binding.button3);
+        resetButtonStyle(binding.button2);
+
+        // Активация нажатой кнопки (Акцентный цвет фона, белый текст)
+        activeButton.setBackgroundTintList(ContextCompat.getColorStateList(requireContext(), R.color.accent_color));
+        activeButton.setTextColor(Color.BLACK);
+    }
+
+    private void resetButtonStyle(Button btn) {
+        // Цвет неактивной кнопки (например, белый фон или прозрачный)
+        btn.setBackgroundTintList(ContextCompat.getColorStateList(requireContext(), R.color.background));
+        btn.setTextColor(Color.WHITE);
+    }
+
+    private void generateMockData() {
+        allWeightHistory.clear();
+        Calendar cal = Calendar.getInstance();
+
+        // Отматываем на 6 месяцев назад
+        cal.add(Calendar.MONTH, -6);
+
+        // Генерируем данные каждые 3 дня в течение 6 месяцев
+        for (int i = 0; i < 60; i++) {
+            cal.add(Calendar.DAY_OF_YEAR, 3);
+
+            // Имитация изменения веса (вокруг 80 кг)
+            float randomWeight = 75f + (float)(Math.random() * 10 - 5);
+
+            allWeightHistory.add(new WeightRecord(cal.getTimeInMillis(), randomWeight));
+        }
     }
 
     private void setupWeightHistoryChart() {
@@ -83,99 +212,5 @@ public class WeightFragment extends Fragment {
                 true
         );
     }
-
-//    private void setupWeightHistoryChart() {
-//        LineChart chart = binding.chartWeightInfo;
-//        if (chart == null) return;
-//
-//        // 1. ГЕНЕРАЦИЯ ДАННЫХ
-//        ArrayList<Entry> entries = new ArrayList<>();
-//        entries.add(new Entry(0, 2f));
-//        entries.add(new Entry(1, 1f));
-//        entries.add(new Entry(2, 0f));
-//        entries.add(new Entry(3, 0f));
-//        entries.add(new Entry(4, 1f));
-//        entries.add(new Entry(5, 0f));
-//        entries.add(new Entry(6, 1f));
-//        entries.add(new Entry(7, 2f));
-//        entries.add(new Entry(8, 1f));
-//        entries.add(new Entry(9, 0f));
-//        entries.add(new Entry(10, 1f));
-//        entries.add(new Entry(11, 2f));
-//
-//        // Массив подписей времени, соответствующий точкам выше (с шагом 30 мин)
-//        final String[] timeLabels = new String[]{
-//                "4.11", "6.11", "9.11", "13.11",
-//                "14.11", "16.11", "20.11", "23.11",
-//                "26.11", "29.11", "30.11", "4.12"
-//        };
-//
-//        // 2. НАСТРОЙКА ЛИНИИ
-//        LineDataSet dataSet = new LineDataSet(entries, "Sleep Stages");
-//        dataSet.setMode(LineDataSet.Mode.CUBIC_BEZIER);
-//        dataSet.setCubicIntensity(0.2f);
-//        dataSet.setDrawCircles(false);
-//        dataSet.setDrawValues(false);
-//        dataSet.setLineWidth(2f);
-//
-//        int sleepColor = ContextCompat.getColor(requireContext(), R.color.weight_green);
-//        dataSet.setColor(sleepColor);
-//        dataSet.setDrawFilled(true);
-//        dataSet.setFillColor(sleepColor);
-//        dataSet.setFillAlpha(100);
-//
-//        LineData data = new LineData(dataSet);
-//        chart.setData(data);
-//
-//        // 3. НАСТРОЙКА ОСЕЙ Y (Вертикальная)
-//        YAxis leftAxis = chart.getAxisLeft();
-//        leftAxis.setAxisMinimum(0f);
-//        leftAxis.setAxisMaximum(2.5f);
-//        leftAxis.setDrawGridLines(false);
-//        leftAxis.setDrawAxisLine(false);
-//        leftAxis.setDrawLabels(false); // Скрываем цифры слева
-//
-//        chart.getAxisRight().setEnabled(false);
-//
-//        // 4. НАСТРОЙКА ОСИ X (ВРЕМЯ СНИЗУ)
-//        com.github.mikephil.charting.components.XAxis xAxis = chart.getXAxis();
-//        xAxis.setEnabled(true); // Включаем ось!
-//        xAxis.setPosition(com.github.mikephil.charting.components.XAxis.XAxisPosition.BOTTOM); // Позиция снизу
-//        xAxis.setDrawGridLines(false); // Без сетки
-//        xAxis.setDrawAxisLine(false);  // Без линии оси
-//        xAxis.setTextColor(Color.parseColor("#E0E0E0")); // Цвет текста (светло-серый)
-//        xAxis.setTextSize(10f);
-//        xAxis.setGranularity(1f); // Чтобы метки не дублировались
-//
-//        // Форматтер: превращает число 0 в "23:00", 1 в "23:30" и т.д.
-//        xAxis.setValueFormatter(new com.github.mikephil.charting.formatter.ValueFormatter() {
-//            @Override
-//            public String getAxisLabel(float value, com.github.mikephil.charting.components.AxisBase axis) {
-//                int index = (int) value;
-//                if (index >= 0 && index < timeLabels.length) {
-//                    return timeLabels[index];
-//                }
-//                return "";
-//            }
-//        });
-//
-//        // Общие настройки
-//        chart.getLegend().setEnabled(false);
-//        chart.getDescription().setEnabled(false);
-//        chart.setTouchEnabled(false);
-//
-//        /// === ИЗМЕНЕНИЕ ФОНА ===
-//
-//        // 1. ОТКЛЮЧАЕМ встроенный прямоугольный фон (если был включен)
-//        chart.setDrawGridBackground(false);
-//
-//        // 2. ВКЛЮЧАЕМ наш скругленный фон
-//        chart.setBackgroundResource(R.drawable.bg_chart_dark);
-//
-//
-//        chart.invalidate();
-//    }
-
-
 
 }

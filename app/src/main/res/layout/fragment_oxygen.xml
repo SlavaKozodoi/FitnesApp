@@ -77,12 +77,12 @@
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:background="@drawable/bg_element"
+                    android:background="@color/background_50"
                     android:paddingBottom="10dp">
 
 
                     <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/recyclerView"
+                        android:id="@+id/recyclerViewOxygen"
                         android:layout_width="match_parent"
                         android:layout_height="50dp"
                         app:layout_constraintEnd_toEndOf="parent"
@@ -99,7 +99,7 @@
                         android:textColor="@color/text"
                         android:textSize="64sp"
                         app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/recyclerView" />
+                        app:layout_constraintTop_toBottomOf="@+id/recyclerViewOxygen" />
 
                     <TextView
                         android:id="@+id/textView8"
@@ -113,7 +113,7 @@
                         android:textSize="16sp"
                         app:layout_constraintBottom_toTopOf="@+id/tvOxygenQuality"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/recyclerView" />
+                        app:layout_constraintTop_toBottomOf="@+id/recyclerViewSleep" />
 
                     <TextView
                         android:id="@+id/tvOxygenQuality"
@@ -126,15 +126,14 @@
                         android:textSize="20sp"
                         app:layout_constraintBottom_toTopOf="@+id/chartOxygenInfo"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/recyclerView" />
+                        app:layout_constraintTop_toBottomOf="@+id/recyclerViewSleep" />
 
                     <com.github.mikephil.charting.charts.LineChart
                         android:id="@+id/chartOxygenInfo"
                         android:layout_width="match_parent"
                         android:layout_height="126dp"
                         android:layout_gravity="bottom"
-                        android:layout_marginStart="14dp"
-                        android:layout_marginEnd="14dp"
+                        android:layout_marginTop="-15dp"
                         android:foregroundGravity="bottom"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
@@ -182,10 +181,10 @@
                                 android:textColor="@color/text"
                                 android:textSize="16sp"
                                 app:layout_constraintStart_toStartOf="parent"
-                                app:layout_constraintTop_toBottomOf="@+id/textView19" />
+                                app:layout_constraintTop_toBottomOf="@+id/tvHighestWeight" />
 
                             <TextView
-                                android:id="@+id/textView19"
+                                android:id="@+id/tvHighestWeight"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="14dp"
@@ -197,7 +196,7 @@
                                 app:layout_constraintTop_toBottomOf="@+id/textView13" />
 
                             <TextView
-                                android:id="@+id/textView17"
+                                android:id="@+id/tvLowestWeight"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:fontFamily="@font/nobile"
@@ -213,7 +212,7 @@
                                 android:layout_marginTop="14dp"
                                 android:orientation="vertical"
                                 app:layout_constraintStart_toStartOf="@+id/guideline3"
-                                app:layout_constraintTop_toBottomOf="@+id/textView17">
+                                app:layout_constraintTop_toBottomOf="@+id/tvLowestWeight">
 
                                 <TextView
                                     android:layout_width="wrap_content"

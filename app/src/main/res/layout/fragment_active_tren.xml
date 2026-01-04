@@ -42,7 +42,7 @@
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:background="@drawable/bg_element"
+                    android:background="@color/background_50"
                     android:paddingBottom="10dp">
 
 
@@ -183,7 +183,7 @@
                         <androidx.constraintlayout.widget.ConstraintLayout
                             android:layout_width="match_parent"
                             android:layout_height="100dp"
-                            android:background="@drawable/bg_element">
+                            android:background="@drawable/app_bar">
 
                             <TextView
                                 android:id="@+id/textView29"

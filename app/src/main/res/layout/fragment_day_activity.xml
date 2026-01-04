@@ -41,7 +41,7 @@
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:background="@drawable/bg_element"
+                    android:background="@color/background_50"
                     android:paddingBottom="10dp">
 
 
@@ -106,7 +106,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="14dp"
-                        android:layout_marginTop="62dp"
+                        android:layout_marginTop="31dp"
                         android:fontFamily="@font/nobile"
                         android:text="@string/text_nutrition"
                         android:textColor="@color/text"
@@ -129,7 +129,7 @@
                         android:id="@+id/tvStepsScore3"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="50dp"
+                        android:layout_marginTop="25dp"
                         android:layout_marginEnd="14dp"
                         android:fontFamily="@font/nobile_bold"
                         android:text="2450"
@@ -163,9 +163,7 @@
                             android:layout_width="0dp"
                             android:layout_height="126dp"
                             android:layout_gravity="bottom"
-                            android:layout_marginStart="14dp"
                             android:layout_marginTop="1dp"
-                            android:layout_marginEnd="14dp"
                             android:foregroundGravity="bottom"
                             app:layout_constraintBottom_toBottomOf="parent"
                             app:layout_constraintEnd_toEndOf="parent"
@@ -176,7 +174,7 @@
                             android:id="@+id/tvStepsScore"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="50dp"
+                            android:layout_marginTop="25dp"
                             android:layout_marginEnd="14dp"
                             android:fontFamily="@font/nobile_bold"
                             android:text="13300"
@@ -190,7 +188,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="14dp"
-                            android:layout_marginTop="62dp"
+                            android:layout_marginTop="31dp"
                             android:fontFamily="@font/nobile"
                             android:text="@string/text_steps"
                             android:textColor="@color/text"
@@ -200,7 +198,7 @@
                     </androidx.constraintlayout.widget.ConstraintLayout>
 
                     <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/recyclerView"
+                        android:id="@+id/recyclerViewDayActivity"
                         android:layout_width="match_parent"
                         android:layout_height="50dp"
                         app:layout_constraintEnd_toEndOf="parent"
@@ -213,7 +211,7 @@
                         android:layout_height="match_parent"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/recyclerView">
+                        app:layout_constraintTop_toBottomOf="@+id/recyclerViewDayActivity">
 
                         <TextView
                             android:id="@+id/tvCaloriesGoal"
@@ -221,7 +219,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="20dp"
                             android:fontFamily="@font/nobile_bold"
-                            android:text="Goal: 2000kcal"
+                            android:text="Goal: 2000"
                             android:textColor="@color/text"
                             android:textSize="20sp"
                             app:layout_constraintStart_toStartOf="@+id/textView8"
@@ -232,9 +230,7 @@
                             android:layout_width="0dp"
                             android:layout_height="126dp"
                             android:layout_gravity="bottom"
-                            android:layout_marginStart="14dp"
                             android:layout_marginTop="1dp"
-                            android:layout_marginEnd="14dp"
                             android:foregroundGravity="bottom"
                             app:layout_constraintBottom_toBottomOf="parent"
                             app:layout_constraintEnd_toEndOf="parent"
@@ -245,7 +241,7 @@
                             android:id="@+id/tvCaloriesScore"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="50dp"
+                            android:layout_marginTop="25dp"
                             android:layout_marginEnd="14dp"
                             android:fontFamily="@font/nobile_bold"
                             android:text="1000"
@@ -259,7 +255,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="14dp"
-                            android:layout_marginTop="62dp"
+                            android:layout_marginTop="31dp"
                             android:fontFamily="@font/nobile"
                             android:text="@string/text_calories"
                             android:textColor="@color/text"
