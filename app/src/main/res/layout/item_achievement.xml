@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="110dp"
+    app:cardBackgroundColor="@color/background_50"
+    app:cardCornerRadius="10dp">
+
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <ImageView
+            android:id="@+id/achievementIcon"
+            android:layout_width="85dp"
+            android:layout_height="85dp"
+            android:layout_marginStart="12dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/ic_active_training" />
+
+        <TextView
+            android:id="@+id/achievementTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/inter_bold"
+            android:text="Walker`s Path"
+            android:textColor="@color/text"
+            android:textSize="20sp"
+            app:layout_constraintStart_toEndOf="@+id/achievementIcon"
+            app:layout_constraintTop_toTopOf="@+id/achievementIcon" />
+
+        <TextView
+            android:id="@+id/achievementLevel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/inter_medium"
+            android:text="Tier 1/5"
+            android:textColor="@color/text"
+            android:textSize="16sp"
+            app:layout_constraintStart_toEndOf="@+id/achievementIcon"
+            app:layout_constraintTop_toBottomOf="@+id/achievementTitle" />
+
+        <TextView
+            android:id="@+id/achievementGoal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/inter_medium"
+            android:text="2000 steps"
+            android:textColor="@color/text"
+            android:textSize="14sp"
+            app:layout_constraintBottom_toBottomOf="@id/achievementIcon"
+            app:layout_constraintStart_toEndOf="@+id/achievementIcon" />
+
+        <TextView
+            android:id="@+id/achievementDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="12dp"
+            android:fontFamily="@font/inter_medium"
+            android:text="18.12.25"
+            android:textColor="@color/text_smuf"
+            android:textSize="14sp"
+            app:layout_constraintBottom_toBottomOf="@id/achievementIcon"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <TextView
+            android:id="@+id/achievementPrise"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="12dp"
+            android:fontFamily="@font/inter_bold"
+            android:text="+200xp"
+            android:textColor="@color/accent_color"
+            android:textSize="14sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/achievementIcon" />
+
+        <ProgressBar
+            android:id="@+id/achievementProgressBar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintEnd_toEndOf="@+id/achievementDate"
+            app:layout_constraintStart_toEndOf="@+id/achievementIcon"
+            app:layout_constraintTop_toBottomOf="@+id/achievementLevel" />
+
+        <Button
+            android:id="@+id/achievementButton"
+            android:layout_width="wrap_content"
+            android:layout_height="45dp"
+            android:text="Collect"
+            app:layout_constraintBottom_toTopOf="@+id/achievementDate"
+            app:layout_constraintEnd_toEndOf="@+id/achievementPrise"
+            app:layout_constraintTop_toBottomOf="@+id/achievementPrise" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.cardview.widget.CardView>

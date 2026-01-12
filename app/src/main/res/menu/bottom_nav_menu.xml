@@ -12,7 +12,7 @@
         
     />
     <item
-        android:id="@+id/navigation_dashboard"
+        android:id="@+id/achievementFragment"
         android:icon="@drawable/ic_menu_progress"
         android:title="@string/title_progress" />
     <item

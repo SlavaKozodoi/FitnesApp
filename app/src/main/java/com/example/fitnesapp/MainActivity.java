@@ -15,6 +15,7 @@ import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
 import com.example.fitnesapp.databinding.ActivityMainBinding;
+import com.google.firebase.database.FirebaseDatabase;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -43,7 +44,7 @@ public class MainActivity extends AppCompatActivity {
         ImageButton btnSettings = findViewById(R.id.ibSettings);
 
         AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
-                R.id.navigation_home, R.id.navigation_dashboard, R.id.navigation_notifications)
+                R.id.navigation_home, R.id.achievementFragment, R.id.navigation_notifications)
                 .build();
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_activity_main);
 
@@ -64,8 +65,13 @@ public class MainActivity extends AppCompatActivity {
             }
             else if (destination.getId() == R.id.weightFragment) {
                 // На Весе -> Иконка плюсика
-                btnSettings.setImageResource(R.drawable.ic_add_new_weight); // Используйте setImageResource
+                btnSettings.setImageResource(R.drawable.ic_add_new_weight);
                 btnSettings.setVisibility(View.VISIBLE);
+            }
+            else if (destination.getId() == R.id.navigation_notifications) {
+                btnSettings.setImageResource(R.drawable.ic_achievement);
+                btnSettings.setVisibility(View.VISIBLE);
+
             }
             else {
                 // В других местах -> Прячем
@@ -85,6 +91,12 @@ public class MainActivity extends AppCompatActivity {
             else if (currentDestinationId[0] == R.id.weightFragment) {
                 // Логика для добавления веса
                 Toast.makeText(MainActivity.this, "Add Weight Clicked", Toast.LENGTH_SHORT).show();
+                // Открыть диалог добавления веса
+            }
+            else if (currentDestinationId[0] == R.id.navigation_notifications) {
+                // Логика для добавления веса
+                Toast.makeText(MainActivity.this, "Achievement window Clicked", Toast.LENGTH_SHORT).show();
+                Navigation.findNavController(this,R.id.nav_host_fragment_activity_main).navigate(R.id.historyAchievementsFragment);
                 // Открыть диалог добавления веса
             }
         });

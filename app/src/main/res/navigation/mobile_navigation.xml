@@ -12,7 +12,7 @@
         tools:layout="@layout/fragment_home" />
 
     <fragment
-        android:id="@+id/navigation_dashboard"
+        android:id="@+id/achievementFragment"
         android:name="com.example.fitnesapp.ui.achievements.DashboardFragment"
         android:label="@string/title_progress"
         tools:layout="@layout/fragment_dashboard" />
@@ -52,4 +52,9 @@
         android:name="com.example.fitnesapp.ui.dayactivity.DayActivityFragment"
         android:label="@string/text_day_activity"
         tools:layout="@layout/fragment_day_activity" />
+    <fragment
+        android:id="@+id/historyAchievementsFragment"
+        android:name="com.example.fitnesapp.ui.historyachievements.historyAchievementsFragment"
+        android:label="fragment_history_achievements"
+        tools:layout="@layout/fragment_history_achievements" />
 </navigation>

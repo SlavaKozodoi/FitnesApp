@@ -1,5 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
+    // Подключаем плагин Google Services
+    alias(libs.plugins.google.gms.google.services)
 }
 
 android {
@@ -38,6 +40,12 @@ dependencies {
     implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
     implementation("com.mikhaellopez:circularprogressbar:3.1.0")
 
+    // === FIREBASE ===
+    // Используем BOM для управления версиями
+    implementation(platform("com.google.firebase:firebase-bom:32.7.0"))
+    // Сама база данных (версию не пишем, её дает BOM)
+    implementation("com.google.firebase:firebase-database")
+
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.constraintlayout)
@@ -48,6 +56,11 @@ dependencies {
     implementation(libs.cardview)
     implementation(libs.legacy.support.v4)
     implementation(libs.recyclerview)
+    implementation(libs.firebase.auth)
+
+    // ВАЖНО: Я удалил строку implementation(libs.firebase.database)
+    // потому что она дублировала подключение базы данных выше.
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)

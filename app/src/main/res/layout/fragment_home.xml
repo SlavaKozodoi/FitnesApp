@@ -85,7 +85,7 @@
                                 app:layout_constraintTop_toTopOf="@+id/imageView6" />
 
                             <TextView
-                                android:id="@+id/textView23"
+                                android:id="@+id/tvSleepTime"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="7dp"
@@ -97,7 +97,7 @@
                                 app:layout_constraintTop_toBottomOf="@+id/textView5" />
 
                             <TextView
-                                android:id="@+id/textView25"
+                                android:id="@+id/tvSleepStatus"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="7dp"
@@ -136,7 +136,7 @@
                                 app:layout_constraintStart_toStartOf="parent" />
 
                             <TextView
-                                android:id="@+id/textView36"
+                                android:id="@+id/tvPulse"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="7dp"
@@ -200,7 +200,7 @@
                                 app:layout_constraintStart_toStartOf="parent" />
 
                             <TextView
-                                android:id="@+id/textView37"
+                                android:id="@+id/tvWeight"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="7dp"
@@ -254,7 +254,7 @@
                             android:layout_height="match_parent">
 
                             <TextView
-                                android:id="@+id/textView39"
+                                android:id="@+id/tvOxygenStatus"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_alignParentBottom="true"
@@ -267,7 +267,7 @@
                                 app:layout_constraintStart_toStartOf="parent" />
 
                             <TextView
-                                android:id="@+id/textView38"
+                                android:id="@+id/tvOxygen"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="7dp"
@@ -609,7 +609,7 @@
                 android:src="@drawable/ic_profile_icon" />
 
             <TextView
-                android:id="@+id/textView2"
+                android:id="@+id/tvName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignTop="@+id/imageView3"
@@ -621,7 +621,7 @@
                 android:textSize="20sp" />
 
             <TextView
-                android:id="@+id/textView3"
+                android:id="@+id/tvSecondName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignTop="@+id/imageView3"

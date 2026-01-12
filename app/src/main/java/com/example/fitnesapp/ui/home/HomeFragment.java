@@ -5,22 +5,23 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageButton;
-import android.widget.LinearLayout;
-import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.GridLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.fitnesapp.Adapters.CalendarAdapter;
 import com.example.fitnesapp.R;
 import com.example.fitnesapp.databinding.FragmentHomeBinding;
+import com.example.fitnesapp.models.firebase.DailyData;
+import com.example.fitnesapp.models.firebase.HealthLogItem;
+import com.example.fitnesapp.models.firebase.UserProfile;
+import com.example.fitnesapp.models.firebase.WeightHistoryItem;
 import com.github.mikephil.charting.charts.BarChart;
+import com.github.mikephil.charting.charts.Chart;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.data.BarData;
 import com.github.mikephil.charting.data.BarDataSet;
@@ -38,164 +39,165 @@ import java.util.Locale;
 public class HomeFragment extends Fragment {
 
     private FragmentHomeBinding binding;
-
-    private CardView cvSleep,cvPulse,cvWeight,cvOxygen,cvDayActivity;
-    private Calendar currentCalendar = Calendar.getInstance();
-    private ImageButton activeTrenImageBTN;
+    private HomeViewModel homeViewModel;
     private CalendarAdapter calendarAdapter;
 
+    // Календарь
+    private final Calendar currentCalendar = Calendar.getInstance();
+    // Храним загруженные даты ("2026-01-22"), чтобы фильтровать их при смене месяца
+    private List<String> cachedActiveDates = new ArrayList<>();
+
+    @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        HomeViewModel homeViewModel =
-                new ViewModelProvider(this).get(HomeViewModel.class);
 
+        homeViewModel = new ViewModelProvider(this).get(HomeViewModel.class);
         binding = FragmentHomeBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
-        cvSleep = binding.cvSleep;
-        cvPulse = binding.cvPulse;
-        cvWeight = binding.cvWeight;
-        cvOxygen = binding.cvOxygen;
-        cvDayActivity = binding.cvDayActivity;
-        activeTrenImageBTN = binding.imageButton;
-        cvSleep.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Navigation.findNavController(v).navigate(R.id.sleepFragment);
-            }
-        });
-        cvPulse.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Navigation.findNavController(v).navigate(R.id.pulseFragment);
-            }
-        });
-        cvWeight.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Navigation.findNavController(v).navigate(R.id.weightFragment);
-            }
-        });
-        cvOxygen.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Navigation.findNavController(v).navigate(R.id.oxygenFragment);
-            }
-        });
-        activeTrenImageBTN.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Navigation.findNavController(v).navigate(R.id.activeTrenFragment);
-            }
-        });
-        cvDayActivity.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Navigation.findNavController(v).navigate(R.id.dayActivityFragment);
-            }
-        });
-        //todo обработать переходы на другие окна
 
+        // 1. Настройка навигации
+        setupNavigation();
 
-        // Запускаем настройку данных и анимацию
-        setupDashboard();
-        setupMiniCharts();
+        // 2. Настройка UI компонентов (пустые графики и календарь)
         setupHistoryCalendar();
-        return root;
 
+        // 3. ПОДПИСКА НА ДАННЫЕ (OBSERVERS)
+
+        // --- Дневная статистика (ВСЕ ЦИФРЫ) ---
+        homeViewModel.getDailyData().observe(getViewLifecycleOwner(), dailyData -> {
+            if (dailyData != null) {
+                updateDashboardWithRealData(dailyData);
+            }
+        });
+
+        // --- Профиль (Имя и Фамилия) ---
+        homeViewModel.getUserProfile().observe(getViewLifecycleOwner(), profile -> {
+            if (profile != null) {
+                if (binding.tvName != null) binding.tvName.setText(profile.firstName);
+                if (binding.tvSecondName != null) binding.tvSecondName.setText(profile.secondName);
+            }
+        });
+
+        // --- График Пульса ---
+        homeViewModel.getPulseHistory().observe(getViewLifecycleOwner(), pulseList -> {
+            if (pulseList != null && !pulseList.isEmpty()) setupPulseChart(pulseList);
+        });
+
+        // --- График Веса ---
+        homeViewModel.getWeightHistory().observe(getViewLifecycleOwner(), weightList -> {
+            if (weightList != null && !weightList.isEmpty()) setupWeightChart(weightList);
+        });
+
+        // --- Календарь (Активные дни) ---
+        homeViewModel.getActiveDays().observe(getViewLifecycleOwner(), dateStrings -> {
+            if (dateStrings != null) {
+                cachedActiveDates = dateStrings; // Сохраняем в память
+                updateCalendarDisplay(); // Перерисовываем календарь с новыми данными
+            }
+        });
+
+        return root;
     }
 
+    // === ГЛАВНЫЙ МЕТОД ОБНОВЛЕНИЯ UI ===
+    private void updateDashboardWithRealData(DailyData data) {
+        // --- ЧАСТЬ 1: ВЕРХНИЙ КРУГ И ЦЕЛИ ---
+        float caloriesGoal = (data.caloriesGoal > 0) ? data.caloriesGoal : 2000f;
+        float stepsGoal = (data.stepsGoal > 0) ? data.stepsGoal : 10000f;
+        float nutritionGoal = (data.nutrition != null && data.nutrition.maxCalories > 0)
+                ? data.nutrition.maxCalories : 2000f;
 
-    private void setupDashboard() {
-        float caloriesGoal = 2000f;
-        float stepsGoal = 10000f;
-        float nutritionGoal = 2000f;
+        float caloriesCurrent = data.caloriesBurned;
+        float stepsCurrent = data.steps;
+        float nutritionCurrent = (data.nutrition != null) ? data.nutrition.totalCalories : 0;
 
-        // В реальном приложении эти данные придут из базы/SharedPrefs
-        float caloriesCurrent = 2000f;
-        float stepsCurrent = 5000f;
-        float nutritionCurrent = 2000f;
-
-        // --- ЛОГИКА РАСЧЕТА ОБЩЕГО ПРОЦЕНТА ---
-
-        // 1. Считаем процент выполнения для КАЖДОГО показателя отдельно (от 0.0 до 1.0)
-        // Добавляем проверку (goal > 0), чтобы избежать деления на ноль
+        // Расчет процентов
         float calP = (caloriesGoal > 0) ? (caloriesCurrent / caloriesGoal) : 0f;
         float stepP = (stepsGoal > 0) ? (stepsCurrent / stepsGoal) : 0f;
         float nutP = (nutritionGoal > 0) ? (nutritionCurrent / nutritionGoal) : 0f;
 
-        // 2. (Опционально) Ограничиваем каждый показатель до 100% (1.0)
-        // Это нужно, чтобы перевыполнение шагов (например 200%) не перекрывало
-        // невыполнение калорий. Если хотите учитывать перевыполнение — уберите эти строки.
         if (calP > 1f) calP = 1f;
         if (stepP > 1f) stepP = 1f;
         if (nutP > 1f) nutP = 1f;
 
-        // 3. Считаем среднее арифметическое трех показателей
-        // Складываем и делим на 3, затем умножаем на 100 для получения процентов
         float totalPercentVal = ((calP + stepP + nutP) / 3f) * 100f;
 
-        // 4. Финальная проверка границ (на всякий случай)
-        if (totalPercentVal < 0f) totalPercentVal = 0f;
-        if (totalPercentVal > 100f) totalPercentVal = 100f;
-
-        // --- ПРИМЕНЕНИЕ К UI ---
-
-        // Кольцевой прогресс
+        // Обновление Круга
         binding.progressCalories.setProgressMax(100f);
         binding.progressCalories.setProgressWithAnimation(totalPercentVal, 900L);
-
-        // Текст в центре кольца
         binding.tvGoalPercent.setText(Math.round(totalPercentVal) + "%");
-        binding.tvGoalLabel.setText("Completed");
 
-        // === 3. ОБНОВЛЯЕМ ЦИФРЫ ВНИЗУ (Ваш код без изменений) ===
-        if (binding.tvCaloriesValue != null) {
-            binding.tvCaloriesValue.setText(String.valueOf((int) caloriesCurrent));
-        }
-        binding.tvCaloriesGoal.setText("/" + (int) caloriesGoal + getString(R.string.short_text_calories));
+        // Обновление Текста под кругом (Шаги, Калории, Питание)
+        if (binding.tvCaloriesValue != null) binding.tvCaloriesValue.setText(String.valueOf((int) caloriesCurrent));
+        if (binding.tvCaloriesGoal != null) binding.tvCaloriesGoal.setText("/" + (int) caloriesGoal + getString(R.string.short_text_calories));
 
-        if (binding.tvStepsValue != null) {
-            binding.tvStepsValue.setText(String.valueOf((int) stepsCurrent));
-        }
-        binding.tvStepsGoal.setText("/" + (int) stepsGoal + getString(R.string.short_text_steps));
+        if (binding.tvStepsValue != null) binding.tvStepsValue.setText(String.valueOf((int) stepsCurrent));
+        if (binding.tvStepsGoal != null) binding.tvStepsGoal.setText("/" + (int) stepsGoal + getString(R.string.short_text_steps));
 
-        if (binding.tvNutritionValue != null) {
-            binding.tvNutritionValue.setText(String.valueOf((int) nutritionCurrent));
+        if (binding.tvNutritionValue != null) binding.tvNutritionValue.setText(String.valueOf((int) nutritionCurrent));
+        if (binding.tvNutritionGoal != null) binding.tvNutritionGoal.setText("/" + (int) nutritionGoal + getString(R.string.short_text_calories));
+
+
+        // --- ЧАСТЬ 2: НИЖНИЕ КАРТОЧКИ (Сон, Пульс, Вес, Кислород) ---
+
+        // 1. ПУЛЬС (Карточка cvPulse)
+        if (data.vitals_summary != null && data.vitals_summary.pulse_avg > 0) {
+            // ID из твоего XML: tvPulse
+            binding.tvPulse.setText(data.vitals_summary.pulse_avg + " bpm");
+        } else {
+            binding.tvPulse.setText("-- bpm");
         }
-        binding.tvNutritionGoal.setText("/" + (int) nutritionGoal + getString(R.string.short_text_calories));
+
+        // 2. ВЕС (Карточка cvWeight)
+        if (data.vitals_summary != null && data.vitals_summary.weight_today > 0) {
+            // ID из твоего XML: tvWeight
+            binding.tvWeight.setText(data.vitals_summary.weight_today + " kg");
+        } else {
+            binding.tvWeight.setText("-- kg");
+        }
+
+        // 3. КИСЛОРОД (Карточка cvOxygen)
+        if (data.vitals_summary != null && data.vitals_summary.spo2_avg > 0) {
+            // ID из твоего XML: tvOxygen
+            binding.tvOxygen.setText(data.vitals_summary.spo2_avg + "%");
+
+            // Статус (Good/Low). ID из XML: textView39
+            if (data.vitals_summary.spo2_avg >= 95) {
+                binding.tvOxygenStatus.setText("Good");
+                binding.tvOxygenStatus.setTextColor(Color.parseColor("#4CAF50")); // Зеленый
+            } else {
+                binding.tvOxygenStatus.setText("Low");
+                binding.tvOxygenStatus.setTextColor(Color.RED); // Красный
+            }
+        } else {
+            binding.tvOxygen.setText("-- %");
+        }
+
+        // 4. СОН (Карточка cvSleep)
+        if (data.sleep != null && data.sleep.durationMinutes > 0) {
+            int hours = data.sleep.durationMinutes / 60;
+            int mins = data.sleep.durationMinutes % 60;
+
+            // ID из твоего XML: tvSleepTime
+            binding.tvSleepTime.setText(hours + "h " + mins + "m");
+
+            // Качество сна. ID из XML: textView25
+            if (data.sleep.quality != null && !data.sleep.quality.isEmpty()) {
+                binding.tvSleepStatus.setText(data.sleep.quality);
+            }
+        } else {
+            binding.tvSleepTime.setText("-- h -- m");
+        }
     }
-    // Здесь мы готовим данные (в будущем они придут из БД) и передаем в методы настройки
-    private void setupMiniCharts() {
 
-        // 2. Пульс (Список целых чисел)
-        List<Integer> pulseData = new ArrayList<>();
-        for (int i = 0; i < 24; i++) {
-            pulseData.add((int) (60 + Math.random() * 40));
-        }
-        setupPulseChart(pulseData);
-
-        // 3. Вес (Список дробных чисел)
-        List<Float> weightData = new ArrayList<>();
-        for (int i = 0; i < 30; i++) {
-            weightData.add((float) (60 + Math.random() * 40));
-        }
-
-        setupWeightChart(weightData);
-
-    }
-
-    // --- 1. ГРАФИК СНА (Принимает одно число - оценку) ---
-
-
-    // --- 2. ГРАФИК ПУЛЬСА (Принимает список значений) ---
-    private void setupPulseChart(List<Integer> dataValues) {
+    // === ГРАФИКИ ===
+    private void setupPulseChart(List<HealthLogItem> dataValues) {
         BarChart chart = binding.chartPulse;
-        if (chart == null || dataValues == null || dataValues.isEmpty()) return;
+        if (chart == null) return;
 
         ArrayList<BarEntry> entries = new ArrayList<>();
         for (int i = 0; i < dataValues.size(); i++) {
-            // i - это позиция по оси X, dataValues.get(i) - значение по оси Y
-            entries.add(new BarEntry(i, dataValues.get(i)));
+            entries.add(new BarEntry(i, dataValues.get(i).val));
         }
 
         BarDataSet dataSet = new BarDataSet(entries, "");
@@ -208,14 +210,13 @@ public class HomeFragment extends Fragment {
         chart.invalidate();
     }
 
-    // --- 3. ГРАФИК ВЕСА (Принимает список значений) ---
-    private void setupWeightChart(List<Float> dataValues) {
+    private void setupWeightChart(List<WeightHistoryItem> dataValues) {
         LineChart chart = binding.chartWeight;
-        if (chart == null || dataValues == null || dataValues.isEmpty()) return;
+        if (chart == null) return;
 
         ArrayList<Entry> entries = new ArrayList<>();
         for (int i = 0; i < dataValues.size(); i++) {
-            entries.add(new Entry(i, dataValues.get(i)));
+            entries.add(new Entry(i, (float) dataValues.get(i).val));
         }
 
         LineDataSet dataSet = new LineDataSet(entries, "");
@@ -224,26 +225,19 @@ public class HomeFragment extends Fragment {
         dataSet.setDrawValues(false);
         dataSet.setLineWidth(3f);
         dataSet.setColor(Color.parseColor("#4CAF50"));
-
         dataSet.setDrawFilled(false);
 
         LineData data = new LineData(dataSet);
-        ;
-// 4. Устанавливаем текст
-
         chart.setData(data);
         simplifyChart(chart);
         chart.invalidate();
     }
 
-
-    // Вспомогательный метод для очистки стиля (убирает сетку и цифры)
-    private void simplifyChart(com.github.mikephil.charting.charts.Chart<?> chart) {
+    private void simplifyChart(Chart<?> chart) {
         chart.setTouchEnabled(false);
         chart.getDescription().setEnabled(false);
         chart.getLegend().setEnabled(false);
         chart.getXAxis().setEnabled(false);
-
         if (chart instanceof BarChart) {
             ((BarChart) chart).getAxisLeft().setEnabled(false);
             ((BarChart) chart).getAxisRight().setEnabled(false);
@@ -251,99 +245,78 @@ public class HomeFragment extends Fragment {
             ((LineChart) chart).getAxisLeft().setEnabled(false);
             ((LineChart) chart).getAxisRight().setEnabled(false);
         }
-
     }
 
+    // === КАЛЕНДАРЬ ===
     private void setupHistoryCalendar() {
-        // 1. Находим Views (лучше использовать binding)
-        RecyclerView recyclerCalendar = binding.recyclerCalendar;
-        TextView tvMonthName = binding.tvMonthName;
-        View btnPrev = binding.btnPrevMonth;
-        View btnNext = binding.btnNextMonth;
+        binding.recyclerCalendar.setLayoutManager(new GridLayoutManager(getContext(), 7));
 
-        // 2. Настраиваем RecyclerView (Сетка из 7 столбцов)
-        recyclerCalendar.setLayoutManager(new GridLayoutManager(getContext(), 7));
-
-        // Начальные пустые данные
         calendarAdapter = new CalendarAdapter(getContext(), new ArrayList<>(), new ArrayList<>(), (day, isActive) -> {
-
-            // ЭТОТ КОД СРАБОТАЕТ ПРИ НАЖАТИИ НА ДЕНЬ
-            openDayDetails(day);
-
+            Toast.makeText(getContext(), "Selected day: " + day, Toast.LENGTH_SHORT).show();
+            // Тут можно открыть детали дня
         });
 
-        recyclerCalendar.setAdapter(calendarAdapter);
-
-        // 3. Отображаем текущий месяц
+        binding.recyclerCalendar.setAdapter(calendarAdapter);
         updateCalendarDisplay();
 
-        // 4. Обработчики кнопок
-        btnPrev.setOnClickListener(v -> {
+        binding.btnPrevMonth.setOnClickListener(v -> {
             currentCalendar.add(Calendar.MONTH, -1);
             updateCalendarDisplay();
         });
 
-        btnNext.setOnClickListener(v -> {
+        binding.btnNextMonth.setOnClickListener(v -> {
             currentCalendar.add(Calendar.MONTH, 1);
             updateCalendarDisplay();
         });
     }
-    // Метод для открытия нового экрана
-    private void openDayDetails(int day) {
-        // Вариант 1: Если используете Activity
-    /*
-    Intent intent = new Intent(getContext(), DayDetailsActivity.class);
-    intent.putExtra("SELECTED_DAY", day);
-    intent.putExtra("CURRENT_MONTH", currentCalendar.get(Calendar.MONTH));
-    startActivity(intent);
-    */
 
-        // Вариант 2: Если используете Navigation Component (Фрагменты) - РЕКОМЕНДУЮ
-    /*
-    Bundle bundle = new Bundle();
-    bundle.putInt("day", day);
-    Navigation.findNavController(requireView()).navigate(R.id.action_home_to_details, bundle);
-    */
-
-        // Для теста пока можно просто вывести Тост:
-        android.widget.Toast.makeText(getContext(), "Нажат день: " + day, android.widget.Toast.LENGTH_SHORT).show();
-    }
-
+    // Фильтрует cachedActiveDates для текущего отображаемого месяца
     private void updateCalendarDisplay() {
-        // 1. Обновляем заголовок (Например: "September")
-        SimpleDateFormat sdf = new SimpleDateFormat("MMMM", Locale.ENGLISH); // Или Locale.getDefault()
-        binding.tvMonthName.setText(sdf.format(currentCalendar.getTime()));
+        SimpleDateFormat sdfTitle = new SimpleDateFormat("MMMM", Locale.ENGLISH);
+        binding.tvMonthName.setText(sdfTitle.format(currentCalendar.getTime()));
 
-        // 2. Вычисляем количество дней в месяце
-        int daysInMonth = currentCalendar.getActualMaximum(Calendar.DAY_OF_MONTH);
+        // 1. Фильтруем активные дни
+        List<Integer> activeDaysInThisMonth = new ArrayList<>();
+        SimpleDateFormat sdfParse = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
 
-        // 3. Создаем список дней [1, 2, 3 ... 30]
-        List<Integer> daysList = new ArrayList<>();
-        for (int i = 1; i <= daysInMonth; i++) {
-            daysList.add(i);
+        int currentMonth = currentCalendar.get(Calendar.MONTH);
+        int currentYear = currentCalendar.get(Calendar.YEAR);
+
+        for (String dateStr : cachedActiveDates) {
+            try {
+                Calendar dateCal = Calendar.getInstance();
+                dateCal.setTime(sdfParse.parse(dateStr));
+
+                if (dateCal.get(Calendar.YEAR) == currentYear &&
+                        dateCal.get(Calendar.MONTH) == currentMonth) {
+                    activeDaysInThisMonth.add(dateCal.get(Calendar.DAY_OF_MONTH));
+                }
+            } catch (Exception e) { e.printStackTrace(); }
         }
-        // TODO: 03.01.2026 Поменять заполнение данными
-        // 4. Имитация активных дней (Здесь нужно брать реальные данные из БД)
-        // Например, пусть активными будут 5, 9, 12, 18, 27 числа
-        List<Integer> activeDays = new ArrayList<>();
-        activeDays.add(5);
-        activeDays.add(9);
-        activeDays.add(12);
-        activeDays.add(14);
-        activeDays.add(16);
-        activeDays.add(18);
-        activeDays.add(27);
 
-        // В реальности вы будете делать запрос: getActiveDaysForMonth(currentCalendar.getTime())
+        // 2. Создаем список дней месяца (1..30/31)
+        int daysInMonth = currentCalendar.getActualMaximum(Calendar.DAY_OF_MONTH);
+        List<Integer> daysList = new ArrayList<>();
+        for (int i = 1; i <= daysInMonth; i++) daysList.add(i);
 
-        // 5. Обновляем адаптер
-        calendarAdapter.updateData(daysList, activeDays);
+        // 3. Обновляем адаптер
+        if (calendarAdapter != null) {
+            calendarAdapter.updateData(daysList, activeDaysInThisMonth);
+        }
     }
+
+    private void setupNavigation() {
+        binding.cvSleep.setOnClickListener(v -> Navigation.findNavController(v).navigate(R.id.sleepFragment));
+        binding.cvPulse.setOnClickListener(v -> Navigation.findNavController(v).navigate(R.id.pulseFragment));
+        binding.cvWeight.setOnClickListener(v -> Navigation.findNavController(v).navigate(R.id.weightFragment));
+        binding.cvOxygen.setOnClickListener(v -> Navigation.findNavController(v).navigate(R.id.oxygenFragment));
+        binding.cvDayActivity.setOnClickListener(v -> Navigation.findNavController(v).navigate(R.id.dayActivityFragment));
+        binding.imageButton.setOnClickListener(v -> Navigation.findNavController(v).navigate(R.id.activeTrenFragment));
+    }
+
     @Override
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
     }
-
-
 }
