@@ -45,6 +45,9 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:32.7.0"))
     // Сама база данных (версию не пишем, её дает BOM)
     implementation("com.google.firebase:firebase-database")
+    implementation("com.google.firebase:firebase-auth:22.3.1")
+// Google Sign In (ОБЯЗАТЕЛЬНО для кнопки Google)
+    implementation("com.google.android.gms:play-services-auth:20.7.0")
 
     implementation(libs.appcompat)
     implementation(libs.material)
@@ -57,6 +60,8 @@ dependencies {
     implementation(libs.legacy.support.v4)
     implementation(libs.recyclerview)
     implementation(libs.firebase.auth)
+    implementation(libs.activity)
+    implementation(libs.androidx.constraintlayout)
 
     // ВАЖНО: Я удалил строку implementation(libs.firebase.database)
     // потому что она дублировала подключение базы данных выше.
