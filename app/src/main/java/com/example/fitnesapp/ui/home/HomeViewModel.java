@@ -9,6 +9,7 @@ import com.example.fitnesapp.models.firebase.DailyData;
 import com.example.fitnesapp.models.firebase.HealthLogItem;
 import com.example.fitnesapp.models.firebase.UserProfile;
 import com.example.fitnesapp.models.firebase.WeightHistoryItem;
+import com.example.fitnesapp.models.firebase.WorkoutItem;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -35,6 +36,9 @@ public class HomeViewModel extends ViewModel {
     private final MutableLiveData<List<WeightHistoryItem>> weightHistory = new MutableLiveData<>();
     private final MutableLiveData<List<String>> activeDays = new MutableLiveData<>();
 
+    private final MutableLiveData<Boolean> requireLogin = new MutableLiveData<>();
+    public LiveData<Boolean> getRequireLogin() { return requireLogin; }
+
     private DatabaseReference userRef;
 
     public HomeViewModel() {
@@ -45,7 +49,9 @@ public class HomeViewModel extends ViewModel {
         if (user != null) {
             uid = user.getUid();
         } else {
-            uid = "BxO2XB5Lm6gtRWAHa5JjGaqr4qG2";
+            requireLogin.setValue(true);
+
+
         }
 
         if (uid != null) {
@@ -55,7 +61,7 @@ public class HomeViewModel extends ViewModel {
             loadProfile();
             loadTodayStats();
             loadChartsHistory();
-            loadCalendarDays();
+            loadActiveDays();
         }
     }
 
@@ -133,21 +139,69 @@ public class HomeViewModel extends ViewModel {
                 });
     }
 
-    // --- Загрузка Активных Дней (для календаря) ---
-    private void loadCalendarDays() {
-        // Читаем ключи из папки daily_data (это и есть даты активности)
-        userRef.child("daily_data").limitToLast(60)
-                .addValueEventListener(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        List<String> dates = new ArrayList<>();
-                        for (DataSnapshot child : snapshot.getChildren()) {
-                            dates.add(child.getKey()); // Добавляем "2026-01-22"
+    private void loadActiveDays() {
+        if (userRef == null) return;
+
+        userRef.child("daily_data").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                List<String> validDays = new ArrayList<>();
+
+                for (DataSnapshot daySnap : snapshot.getChildren()) {
+                    DailyData dayData = daySnap.getValue(DailyData.class);
+
+                    if (dayData != null) {
+                        // === СТРОГИЙ ФИЛЬТР ===
+                        // День считается активным ТОЛЬКО если есть список тренировок
+                        // и он не пустой.
+
+                        boolean hasWorkouts = (dayData.workouts != null && !dayData.workouts.isEmpty());
+
+                        if (hasWorkouts) {
+                            validDays.add(daySnap.getKey()); // Добавляем дату "2026-01-15"
                         }
-                        activeDays.setValue(dates);
                     }
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {}
-                });
+                }
+                activeDays.setValue(validDays);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        });
+    }
+    // Метод для получения данных конкретного дня по клику
+    public void getWorkoutForDate(String dateKey, OnWorkoutCheckListener listener) {
+        if (userRef == null) return;
+
+        userRef.child("daily_data").child(dateKey).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    DailyData data = snapshot.getValue(DailyData.class);
+                    // Проверяем, есть ли тренировки
+                    if (data != null && data.workouts != null && !data.workouts.isEmpty()) {
+                        // Берем первую попавшуюся тренировку (или можно сделать список выбора)
+                        // values().iterator().next() берет первый элемент из Map
+                        WorkoutItem workout = data.workouts.values().iterator().next();
+                        listener.onWorkoutFound(workout);
+                    } else {
+                        listener.onNoWorkout();
+                    }
+                } else {
+                    listener.onNoWorkout();
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                listener.onNoWorkout();
+            }
+        });
+    }
+
+    // Интерфейс для обратного вызова (Callback)
+    public interface OnWorkoutCheckListener {
+        void onWorkoutFound(WorkoutItem workout);
+        void onNoWorkout();
     }
 }

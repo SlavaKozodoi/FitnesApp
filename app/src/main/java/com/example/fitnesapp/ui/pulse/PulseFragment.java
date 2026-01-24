@@ -1,96 +1,120 @@
 package com.example.fitnesapp.ui.pulse;
 
-import androidx.core.content.ContextCompat;
-import androidx.lifecycle.ViewModelProvider;
-
-import android.graphics.Color;
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
+
 import com.example.fitnesapp.R;
 import com.example.fitnesapp.databinding.FragmentPulseBinding;
-import com.example.fitnesapp.ui.sleep.SleepViewModel;
+import com.example.fitnesapp.models.firebase.HealthLogItem;
 import com.example.fitnesapp.utils.ChartHelper;
 import com.example.fitnesapp.utils.DateHelper;
-import com.github.mikephil.charting.charts.LineChart;
-import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.Entry;
-import com.github.mikephil.charting.data.LineData;
-import com.github.mikephil.charting.data.LineDataSet;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
 
 public class PulseFragment extends Fragment {
 
     private PulseViewModel mViewModel;
     private FragmentPulseBinding binding;
 
-    public static PulseFragment newInstance() {
-        return new PulseFragment();
-    }
-
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        binding= FragmentPulseBinding.inflate(inflater, container, false);
+        binding = FragmentPulseBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-
         super.onViewCreated(view, savedInstanceState);
+
         mViewModel = new ViewModelProvider(this).get(PulseViewModel.class);
-        setupPulseHistoryChart();
+
+        // 1. Настройка календаря
         setupCalendar();
+
+        // 2. Имя пользователя
+        mViewModel.getUserProfile().observe(getViewLifecycleOwner(), profile -> {
+            if (profile != null) {
+                binding.tvName.setText(profile.firstName);
+                binding.tvSecondName.setText(profile.secondName);
+            }
+        });
+
+        // 4. Подписка на Историю (График + ТЕКСТ ПОСЛЕДНЕГО ЗНАЧЕНИЯ)
+        mViewModel.getPulseHistory().observe(getViewLifecycleOwner(), logs -> {
+            // 1. Рисуем график (как и было)
+            updateChartUI(logs);
+
+            // 2. НОВАЯ ЛОГИКА: Обновляем цифру пульса последним значением
+            if (logs != null && !logs.isEmpty()) {
+                // Берем последний элемент списка (самый свежий по времени)
+                HealthLogItem lastItem = logs.get(logs.size() - 1);
+
+                // Обновляем большую цифру
+                binding.tvPulseScore.setText(String.valueOf((int) lastItem.val));
+
+                // Обновляем статус (Very well / High и т.д.)
+                binding.tvPulseQuality.setText(getPulseStatus((int) lastItem.val));
+            } else {
+                // Если истории нет, ставим прочерки
+                binding.tvPulseScore.setText("--");
+                binding.tvPulseQuality.setText("--");
+            }
+        });
+
+
+
+        // 5. ВЫЧИСЛЕННЫЕ ДАННЫЕ (Мин, Макс, Периоды)
+        mViewModel.getAnalysisData().observe(getViewLifecycleOwner(), analysis -> {
+            if (analysis != null) {
+                // Максимальный и минимальный
+                binding.tvHighestPulse.setText(analysis.maxPulse > 0 ? analysis.maxPulse + " bpm" : "--");
+                binding.tvLowestPulse.setText(analysis.minPulse > 0 ? analysis.minPulse + " bpm" : "--");
+
+                // Периоды
+                binding.tvActivePeriod.setText(analysis.activePeriod);
+                binding.tvRestPeriod.setText(analysis.restPeriod);
+            }
+        });
     }
 
-    private void setupCalendar() {
-        DateHelper.setupHistoryCalendar(
-                requireContext(),
-                binding.recyclerViewPulse,
-                date -> {
-                    // Логика клика именно для СНА
-                    Toast.makeText(getContext(), "Данные за: " + date.getDayNumber(), Toast.LENGTH_SHORT).show();
-                    // TODO: 03.01.2026 Добавить обновление єкрана
-                }
-        );
-    }
+    private void updateChartUI(List<HealthLogItem> logs) {
+        if (logs == null || logs.isEmpty()) {
+            binding.chartPulseInfo.clear();
+            return;
+        }
 
-
-    private void setupPulseHistoryChart() {
-        // 1. Готовим данные
         ArrayList<Entry> entries = new ArrayList<>();
-        entries.add(new Entry(0, 2f));
-        entries.add(new Entry(1, 1f));
-        entries.add(new Entry(2, 0f));
-        entries.add(new Entry(3, 0f));
-        entries.add(new Entry(4, 1f));
-        entries.add(new Entry(5, 0f));
-        entries.add(new Entry(6, 1f));
-        entries.add(new Entry(7, 2f));
-        entries.add(new Entry(8, 1f));
-        entries.add(new Entry(9, 0f));
-        entries.add(new Entry(10, 1f));
-        entries.add(new Entry(11, 2f));
-        // ... заполнение ...
+        ArrayList<String> labelsList = new ArrayList<>();
+        SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm", Locale.getDefault());
 
-        final String[] labels = new String[]{
-                "23:00", "23:30", "00:00", "00:30",
-                "01:00", "01:30", "02:00", "02:30",
-                "03:00", "04:00", "05:00", "07:00"
-        };
+        for (int i = 0; i < logs.size(); i++) {
+            HealthLogItem item = logs.get(i);
+            entries.add(new Entry(i, (float) item.val));
 
-        // 2. ВЫЗЫВАЕМ УТИЛИТУ (Всего одна строка!)
-        // requireContext() передает контекст, нужный для получения цветов
+            // Используем реальное время из timestamp
+            try {
+                labelsList.add(timeFormat.format(new Date(item.time)));
+            } catch (Exception e) {
+                labelsList.add("");
+            }
+        }
+
+        String[] labels = labelsList.toArray(new String[0]);
+
         ChartHelper.setupUnifiedChart(
                 requireContext(),
                 binding.chartPulseInfo,
@@ -102,4 +126,32 @@ public class PulseFragment extends Fragment {
         );
     }
 
+    private void setupCalendar() {
+        DateHelper.setupHistoryCalendar(
+                requireContext(),
+                binding.recyclerViewPulse,
+                calendarDate -> {
+                    // При клике обновляем ViewModel
+                    // calendarDate.getDate() возвращает объект Date
+                    mViewModel.loadDataForDate(calendarDate.getDate());
+
+                    Toast.makeText(getContext(), "Date selected: " + calendarDate.getDayNumber(), Toast.LENGTH_SHORT).show();
+                }
+        );
+    }
+
+    // TODO: 13.01.2026 сделать лучшую оценку
+    private String getPulseStatus(int pulse) {
+        if (pulse == 0) return "--";
+        if (pulse < 60) return "Low";
+        if (pulse < 85) return "Normal";
+        if (pulse < 100) return "Elevated";
+        return "High";
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        binding = null;
+    }
 }

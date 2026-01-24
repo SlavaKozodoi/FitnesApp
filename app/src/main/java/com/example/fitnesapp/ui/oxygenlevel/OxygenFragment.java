@@ -1,26 +1,31 @@
 package com.example.fitnesapp.ui.oxygenlevel;
 
-import androidx.lifecycle.ViewModelProvider;
-
+import android.graphics.Color;
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.SeekBar;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
+
 import com.example.fitnesapp.R;
 import com.example.fitnesapp.databinding.FragmentOxygenBinding;
+import com.example.fitnesapp.models.firebase.HealthLogItem;
 import com.example.fitnesapp.utils.ChartHelper;
 import com.example.fitnesapp.utils.DateHelper;
 import com.github.mikephil.charting.data.Entry;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
 
 public class OxygenFragment extends Fragment {
 
@@ -41,60 +46,87 @@ public class OxygenFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
         mViewModel = new ViewModelProvider(this).get(OxygenViewModel.class);
-        // Находим SeekBar
-        SeekBar statusBar = binding.getRoot().findViewById(R.id.statusBar);
 
-        // Чтобы пользователь не мог двигать его пальцем (если это только отображение),
-        // отключаем touch listener:
-        statusBar.setOnTouchListener((v, event) -> true);
+        // Отключаем ручное управление SeekBar (чтобы он был только индикатором)
+        binding.statusBarOxygenScore.setOnTouchListener((v, event) -> true);
 
-        // Установка значения (0 - 100)
-        // Например, если статус "Норма" (зеленая зона), ставим 15-20
-        // Если "Плохо" (красная зона), ставим 90
-        int statusValue = 25;
-        statusBar.setProgress(statusValue);
-        setupOxygenChart();
+        // 1. Календарь
         setupCalendar();
+
+        // 2. Имя пользователя
+        mViewModel.getUserProfile().observe(getViewLifecycleOwner(), profile -> {
+            if (profile != null) {
+                binding.tvName.setText(profile.firstName);
+                binding.tvSecondName.setText(profile.secondName);
+            }
+        });
+
+        // 3. История (График)
+        mViewModel.getOxygenHistory().observe(getViewLifecycleOwner(), this::updateChartUI);
+
+        // 4. Аналитика (Цифры + SeekBar)
+        mViewModel.getAnalysisData().observe(getViewLifecycleOwner(), this::updateAnalysisUI);
     }
 
-    private void setupCalendar() {
-        DateHelper.setupHistoryCalendar(
-                requireContext(),
-                binding.recyclerViewOxygen,
-                date -> {
-                    // Логика клика именно для СНА
-                    Toast.makeText(getContext(), "Данные за: " + date.getDayNumber(), Toast.LENGTH_SHORT).show();
-                    // TODO: 03.01.2026 Добавить обновление єкрана
-                }
-        );
+    private void updateAnalysisUI(OxygenViewModel.OxygenAnalysis analysis) {
+        if (analysis == null || analysis.avg == 0) {
+            binding.tvOxygenScore.setText("--");
+            binding.tvScoreOfOxygenStat.setText("--");
+            binding.tvHighestOxygen.setText("--");
+            binding.tvLowestOxygen.setText("--");
+            binding.statusBarOxygenScore.setProgress(0);
+            return;
+        }
+
+        // Основные цифры
+        binding.tvOxygenScore.setText(String.valueOf(analysis.avg));
+        binding.tvScoreOfOxygenStat.setText(String.valueOf(analysis.avg));
+        binding.tvOxygenQuality.setText(analysis.status);
+
+        binding.tvHighestOxygen.setText(String.valueOf(analysis.max));
+        binding.tvLowestOxygen.setText(String.valueOf(analysis.min));
+
+        // --- ЛОГИКА SEEKBAR ---
+        // Зеленый слева (0), Красный справа (100).
+        // SpO2: 100% -> Идеально (0 на шкале)
+        // SpO2: 90% -> Плохо (100 на шкале)
+
+        int oxygen = analysis.avg;
+        int progress;
+
+        if (oxygen >= 100) progress = 5; // Самый левый край
+        else if (oxygen <= 85) progress = 95; // Самый правый край
+        else {
+            // Формула: чем меньше кислород, тем больше прогресс
+            // Диапазон кислорода 100..85 (разница 15)
+            // Диапазон шкалы 0..100
+            progress = (int) ((100 - oxygen) * (100.0f / 15.0f));
+        }
+
+        // Плавная анимация шкалы
+        binding.statusBarOxygenScore.setProgress(progress, true);
     }
 
-    private void setupOxygenChart() {
-        // 1. Готовим данные
+    private void updateChartUI(List<HealthLogItem> logs) {
+        if (logs == null || logs.isEmpty()) {
+            binding.chartOxygenInfo.clear();
+            return;
+        }
+
         ArrayList<Entry> entries = new ArrayList<>();
-        entries.add(new Entry(0, 2f));
-        entries.add(new Entry(1, 1f));
-        entries.add(new Entry(2, 0f));
-        entries.add(new Entry(3, 0f));
-        entries.add(new Entry(4, 1f));
-        entries.add(new Entry(5, 0f));
-        entries.add(new Entry(6, 1f));
-        entries.add(new Entry(7, 2f));
-        entries.add(new Entry(8, 1f));
-        entries.add(new Entry(9, 0f));
-        entries.add(new Entry(10, 1f));
-        entries.add(new Entry(11, 2f));
-        // ... заполнение ...
+        ArrayList<String> labelsList = new ArrayList<>();
+        SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm", Locale.getDefault());
 
-        final String[] labels = new String[]{
-                "23:00", "23:30", "00:00", "00:30",
-                "01:00", "01:30", "02:00", "02:30",
-                "03:00", "04:00", "05:00", "07:00"
-        };
+        for (int i = 0; i < logs.size(); i++) {
+            HealthLogItem item = logs.get(i);
+            entries.add(new Entry(i, item.val));
+            labelsList.add(timeFormat.format(new Date(item.time)));
+        }
 
-        // 2. ВЫЗЫВАЕМ УТИЛИТУ (Всего одна строка!)
-        // requireContext() передает контекст, нужный для получения цветов
+        String[] labels = labelsList.toArray(new String[0]);
+
         ChartHelper.setupUnifiedChart(
                 requireContext(),
                 binding.chartOxygenInfo,
@@ -106,4 +138,21 @@ public class OxygenFragment extends Fragment {
         );
     }
 
+    private void setupCalendar() {
+        DateHelper.setupHistoryCalendar(
+                requireContext(),
+                binding.recyclerViewOxygen,
+                date -> {
+                    Toast.makeText(getContext(), "Selected: " + date.getDayNumber(), Toast.LENGTH_SHORT).show();
+                    // Загружаем данные за выбранную дату
+                    mViewModel.loadDataForDate(date.getDate());
+                }
+        );
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        binding = null;
+    }
 }

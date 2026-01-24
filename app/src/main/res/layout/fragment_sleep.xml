@@ -293,7 +293,7 @@
                         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"/>
 
                     <TextView
-                        android:id="@+id/tvPulseScore"
+                        android:id="@+id/tvSleepScore"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="14dp"
@@ -340,7 +340,7 @@
                         android:foregroundGravity="bottom"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/tvPulseScore" />
+                        app:layout_constraintTop_toBottomOf="@+id/tvSleepScore" />
 
                     <androidx.cardview.widget.CardView
                         android:id="@+id/cardView2"
@@ -369,10 +369,10 @@
                                 android:textColor="@color/text"
                                 android:textSize="16sp"
                                 app:layout_constraintStart_toStartOf="@+id/guideline3"
-                                app:layout_constraintTop_toBottomOf="@+id/tvLowestWeight" />
+                                app:layout_constraintTop_toBottomOf="@+id/tvSleepTime" />
 
                             <TextView
-                                android:id="@+id/textView21"
+                                android:id="@+id/tvGettingIntoBed"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="14dp"
@@ -396,10 +396,10 @@
                                 android:textColor="@color/text"
                                 android:textSize="16sp"
                                 app:layout_constraintStart_toStartOf="parent"
-                                app:layout_constraintTop_toBottomOf="@+id/tvHighestWeight" />
+                                app:layout_constraintTop_toBottomOf="@+id/tvFallAsleep" />
 
                             <TextView
-                                android:id="@+id/tvHighestWeight"
+                                android:id="@+id/tvFallAsleep"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="14dp"
@@ -411,7 +411,7 @@
                                 app:layout_constraintTop_toBottomOf="@+id/textView13" />
 
                             <TextView
-                                android:id="@+id/tvLowestWeight"
+                                android:id="@+id/tvSleepTime"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:fontFamily="@font/nobile"
@@ -422,7 +422,7 @@
                                 app:layout_constraintTop_toBottomOf="@+id/textView14" />
 
                             <TextView
-                                android:id="@+id/textView15"
+                                android:id="@+id/tvAwaking"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:fontFamily="@font/nobile"

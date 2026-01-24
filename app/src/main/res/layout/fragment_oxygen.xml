@@ -95,7 +95,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="14dp"
                         android:fontFamily="@font/nobile_bold"
-                        android:text="98"
+                        android:text="--"
                         android:textColor="@color/text"
                         android:textSize="64sp"
                         app:layout_constraintEnd_toEndOf="parent"
@@ -113,7 +113,7 @@
                         android:textSize="16sp"
                         app:layout_constraintBottom_toTopOf="@+id/tvOxygenQuality"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/recyclerViewSleep" />
+                         />
 
                     <TextView
                         android:id="@+id/tvOxygenQuality"
@@ -121,12 +121,11 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="14dp"
                         android:fontFamily="@font/nobile_bold"
-                        android:text="Very well"
+                        android:text="--"
                         android:textColor="@color/text"
                         android:textSize="20sp"
                         app:layout_constraintBottom_toTopOf="@+id/chartOxygenInfo"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/recyclerViewSleep" />
+                        app:layout_constraintStart_toStartOf="parent" />
 
                     <com.github.mikephil.charting.charts.LineChart
                         android:id="@+id/chartOxygenInfo"
@@ -157,13 +156,13 @@
                             android:layout_height="wrap_content">
 
                             <TextView
-                                android:id="@+id/textView21"
+                                android:id="@+id/tvScoreOfOxygenStat"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="14dp"
                                 android:layout_marginBottom="14dp"
                                 android:fontFamily="@font/nobile"
-                                android:text="98"
+                                android:text="--"
                                 android:textColor="@color/weight_green"
                                 android:textSize="20sp"
                                 app:layout_constraintBottom_toBottomOf="parent"
@@ -181,26 +180,26 @@
                                 android:textColor="@color/text"
                                 android:textSize="16sp"
                                 app:layout_constraintStart_toStartOf="parent"
-                                app:layout_constraintTop_toBottomOf="@+id/tvHighestWeight" />
+                                app:layout_constraintTop_toBottomOf="@+id/tvHighestOxygen" />
 
                             <TextView
-                                android:id="@+id/tvHighestWeight"
+                                android:id="@+id/tvHighestOxygen"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="14dp"
                                 android:fontFamily="@font/nobile"
-                                android:text="98"
+                                android:text="--"
                                 android:textColor="@color/text"
                                 android:textSize="20sp"
                                 app:layout_constraintStart_toStartOf="parent"
                                 app:layout_constraintTop_toBottomOf="@+id/textView13" />
 
                             <TextView
-                                android:id="@+id/tvLowestWeight"
+                                android:id="@+id/tvLowestOxygen"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:fontFamily="@font/nobile"
-                                android:text="97"
+                                android:text="--"
                                 android:textColor="@color/text"
                                 android:textSize="20sp"
                                 app:layout_constraintStart_toStartOf="@+id/guideline3"
@@ -212,7 +211,7 @@
                                 android:layout_marginTop="14dp"
                                 android:orientation="vertical"
                                 app:layout_constraintStart_toStartOf="@+id/guideline3"
-                                app:layout_constraintTop_toBottomOf="@+id/tvLowestWeight">
+                                app:layout_constraintTop_toBottomOf="@+id/tvLowestOxygen">
 
                                 <TextView
                                     android:layout_width="wrap_content"
@@ -225,12 +224,15 @@
 
                                 <FrameLayout
                                     android:layout_width="match_parent"
-                                    android:layout_height="wrap_content">
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginLeft="-10dp">
 
                                     <androidx.cardview.widget.CardView
                                         android:layout_width="match_parent"
                                         android:layout_height="12dp"
                                         android:layout_gravity="center_vertical"
+                                        android:layout_marginStart="10dp"
+                                        android:paddingStart="-10dp"
                                         app:cardBackgroundColor="@android:color/transparent"
                                         app:cardCornerRadius="6dp"
                                         app:cardElevation="0dp">
@@ -274,12 +276,13 @@
                                     </androidx.cardview.widget.CardView>
 
                                     <SeekBar
-                                        android:id="@+id/statusBar"
+                                        android:id="@+id/statusBarOxygenScore"
                                         android:layout_width="match_parent"
                                         android:layout_height="wrap_content"
                                         android:layout_gravity="center_vertical"
+                                        android:layout_marginLeft="10dp"
                                         android:max="100"
-                                        android:paddingStart="0dp"
+                                        android:paddingStart="6dp"
                                         android:paddingEnd="0dp"
                                         android:progress="20"
                                         android:progressDrawable="@android:color/transparent"

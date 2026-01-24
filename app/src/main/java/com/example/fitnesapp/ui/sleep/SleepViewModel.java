@@ -1,47 +1,94 @@
 package com.example.fitnesapp.ui.sleep;
 
+import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
+import com.example.fitnesapp.models.firebase.DailyData;
+import com.example.fitnesapp.models.firebase.UserProfile;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
 public class SleepViewModel extends ViewModel {
 
-    // Основные данные о сне
-    private final MutableLiveData<String> sleepQuality = new MutableLiveData<>();
-    private final MutableLiveData<String> totalSleepTime = new MutableLiveData<>();
-    private final MutableLiveData<String> fallAsleepTime = new MutableLiveData<>();
-    private final MutableLiveData<String> wakeUpTime = new MutableLiveData<>();
-    private final MutableLiveData<String> bedTime = new MutableLiveData<>();
+    private final MutableLiveData<UserProfile> userProfile = new MutableLiveData<>();
+    private final MutableLiveData<DailyData.Sleep> sleepData = new MutableLiveData<>();
 
-    // Фазы сна (Проценты)
-    private final MutableLiveData<Integer> deepSleepPercent = new MutableLiveData<>();
-    private final MutableLiveData<Integer> surfaceSleepPercent = new MutableLiveData<>();
-    private final MutableLiveData<Integer> fastSleepPercent = new MutableLiveData<>();
-    private final MutableLiveData<Integer> awakeSleepPercent = new MutableLiveData<>();
+    private DatabaseReference userRef;
+    private String selectedDateKey;
+    private ValueEventListener sleepListener;
 
     public SleepViewModel() {
-        // Имитация загрузки данных (в будущем замените на запрос к БД)
-        sleepQuality.setValue("Very well");
-        totalSleepTime.setValue("10h 02 min");
-        fallAsleepTime.setValue("15 min");
-        wakeUpTime.setValue("09:02");
-        bedTime.setValue("23:00");
+        String uid = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : null;
 
-        deepSleepPercent.setValue(20);
-        surfaceSleepPercent.setValue(51);
-        fastSleepPercent.setValue(17);
-        awakeSleepPercent.setValue(12);
+        if (uid != null) {
+            userRef = FirebaseDatabase.getInstance().getReference("users").child(uid);
+            loadProfile();
+            loadSleepData(new Date()); // Загружаем сегодня
+        }
     }
 
-    // Геттеры для наблюдения
-    public LiveData<String> getSleepQuality() { return sleepQuality; }
-    public LiveData<String> getTotalSleepTime() { return totalSleepTime; }
-    public LiveData<String> getFallAsleepTime() { return fallAsleepTime; }
-    public LiveData<String> getWakeUpTime() { return wakeUpTime; }
-    public LiveData<String> getBedTime() { return bedTime; }
+    public LiveData<UserProfile> getUserProfile() { return userProfile; }
+    public LiveData<DailyData.Sleep> getSleepData() { return sleepData; }
 
-    public LiveData<Integer> getDeepSleepPercent() { return deepSleepPercent; }
-    public LiveData<Integer> getSurfaceSleepPercent() { return surfaceSleepPercent; }
-    public LiveData<Integer> getFastSleepPercent() { return fastSleepPercent; }
-    public LiveData<Integer> getAwakeSleepPercent() { return awakeSleepPercent; }
+    private void loadProfile() {
+        if (userRef == null) return;
+        userRef.child("profile").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    userProfile.setValue(snapshot.getValue(UserProfile.class));
+                }
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        });
+    }
+
+    public void loadSleepData(Date date) {
+        if (userRef == null) return;
+
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
+        String newDateKey = sdf.format(date);
+
+        if (newDateKey.equals(selectedDateKey)) return;
+        selectedDateKey = newDateKey;
+
+        // Удаляем старый слушатель, если был
+        if (sleepListener != null) {
+            userRef.child("daily_data").removeEventListener(sleepListener); // Удаляем грубо, лучше хранить ref точнее
+            // Но проще создать новый путь:
+        }
+
+        // Путь к конкретной дате
+        DatabaseReference sleepRef = userRef.child("daily_data").child(selectedDateKey).child("sleep");
+
+        sleepListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    sleepData.setValue(snapshot.getValue(DailyData.Sleep.class));
+                } else {
+                    // Если данных нет, отправляем null, чтобы очистить UI
+                    sleepData.setValue(null);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        };
+
+        sleepRef.addValueEventListener(sleepListener);
+    }
 }

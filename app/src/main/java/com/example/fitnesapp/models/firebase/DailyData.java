@@ -1,5 +1,7 @@
 package com.example.fitnesapp.models.firebase;
 
+import java.util.Map;
+
 public class DailyData {
     // --- Основная активность ---
     public int steps;
@@ -11,6 +13,15 @@ public class DailyData {
     public Nutrition nutrition;
     public Sleep sleep;
     public VitalsSummary vitals_summary;
+    public Map<String, HealthLogItem> pulse;
+    public Map<String, HealthLogItem> oxygen;
+
+    // А Вес использует ВАШУ модель (double val, String date)
+    public Map<String, WeightHistoryItem> weight_history;
+
+    public java.util.Map<String, MealItem> meals;
+    public java.util.Map<String, HourlyActivityItem> hourly_activity;
+    public Map<String, WorkoutItem> workouts;
 
     public DailyData() {}
 
@@ -23,19 +34,6 @@ public class DailyData {
         public int fat;
 
         public Nutrition() {}
-    }
-
-    // === Вложенный класс: Сон ===
-    public static class Sleep {
-        public int score;               // 68
-        public String quality;          // "Very well"
-        public int durationMinutes;     // 602
-        public String bedTime;          // "23:40"
-        public String wakeTime;         // "09:02"
-        public int fallingAsleepMin;
-        public SleepPhases phases;      // Фазы сна
-
-        public Sleep() {}
     }
 
     // === Вложенный класс: Фазы сна ===
@@ -55,5 +53,21 @@ public class DailyData {
         public double weight_today;
 
         public VitalsSummary() {}
+    }
+
+
+    public static class Sleep {
+        public int score;
+        public String quality;
+        public int durationMinutes;
+        public String bedTime;
+        public String wakeTime;
+        public int fallingAsleepMin;
+        public SleepPhases phases;
+
+        // НОВОЕ ПОЛЕ: Список точек для графика
+        public java.util.Map<String, SleepStageItem> hypnogram;
+
+        public Sleep() {}
     }
 }

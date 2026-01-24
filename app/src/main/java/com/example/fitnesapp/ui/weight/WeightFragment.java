@@ -1,31 +1,25 @@
 package com.example.fitnesapp.ui.weight;
 
-import androidx.core.content.ContextCompat;
-import androidx.lifecycle.ViewModelProvider;
-
 import android.graphics.Color;
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.example.fitnesapp.R;
 import com.example.fitnesapp.databinding.FragmentWeightBinding;
-import com.example.fitnesapp.models.WeightRecord;
+import com.example.fitnesapp.models.firebase.WeightHistoryItem; // Ваша модель
 import com.example.fitnesapp.utils.ChartHelper;
-import com.github.mikephil.charting.charts.LineChart;
-import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.Entry;
-import com.github.mikephil.charting.data.LineData;
-import com.github.mikephil.charting.data.LineDataSet;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -37,11 +31,11 @@ public class WeightFragment extends Fragment {
 
     private WeightViewModel mViewModel;
     private FragmentWeightBinding binding;
-    private List<WeightRecord> allWeightHistory = new ArrayList<>();
 
-    public static WeightFragment newInstance() {
-        return new WeightFragment();
-    }
+    // Список вашей модели
+    private List<WeightHistoryItem> allWeightHistory = new ArrayList<>();
+
+    private double userHeightMeters = 0;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -53,155 +47,128 @@ public class WeightFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
         mViewModel = new ViewModelProvider(this).get(WeightViewModel.class);
-        setupWeightHistoryChart();
 
-        generateMockData();
-
-        // 2. Настраиваем кнопки
         setupTimeFilters();
 
-        // 3. По умолчанию показываем 1 месяц
-        updateChartForPeriod(1);
-        updateButtonVisuals(binding.button);
+        // 1. Профиль (для BMI)
+        mViewModel.getUserProfile().observe(getViewLifecycleOwner(), profile -> {
+            if (profile != null) {
+                binding.tvName.setText(profile.firstName);
+                binding.tvSecondName.setText(profile.secondName);
+                if (profile.height > 0) {
+                    userHeightMeters = profile.height / 100.0;
+                    recalculateBMI();
+                }
+            }
+        });
+
+        // 2. Текущий вес
+        mViewModel.getCurrentWeight().observe(getViewLifecycleOwner(), weight -> {
+            if (weight != null) {
+                binding.tvWeightScore.setText(String.format(Locale.US, "%.1f", weight));
+                recalculateBMI();
+            }
+        });
+
+        // 3. История веса
+        mViewModel.getWeightHistory().observe(getViewLifecycleOwner(), list -> {
+            if (list != null) {
+                allWeightHistory = list;
+                updateChartForPeriod(1); // По умолчанию 1 месяц
+                updateButtonVisuals(binding.button);
+            }
+        });
     }
+
+    private void recalculateBMI() {
+        try {
+            String wStr = binding.tvWeightScore.getText().toString().replace(",", ".");
+            double weight = Double.parseDouble(wStr);
+
+            if (weight > 0 && userHeightMeters > 0) {
+                double bmi = weight / (userHeightMeters * userHeightMeters);
+                binding.tvBMI.setText(String.format(Locale.US, "%.1f", bmi));
+
+                String status = "Normal";
+                if (bmi < 18.5) status = "Underweight";
+                else if (bmi >= 25 && bmi < 30) status = "Overweight";
+                else if (bmi >= 30) status = "Obese";
+
+                binding.tvWeightStat.setText(status);
+            }
+        } catch (NumberFormatException e) { }
+    }
+
     private void setupTimeFilters() {
-        // Кнопка "1 month"
         binding.button.setOnClickListener(v -> {
             updateChartForPeriod(1);
             updateButtonVisuals(binding.button);
         });
-
-        // Кнопка "3 month"
         binding.button3.setOnClickListener(v -> {
             updateChartForPeriod(3);
             updateButtonVisuals(binding.button3);
         });
-
-        // Кнопка "6 month"
         binding.button2.setOnClickListener(v -> {
             updateChartForPeriod(6);
             updateButtonVisuals(binding.button2);
         });
     }
 
-
     private void updateChartForPeriod(int months) {
-        // 1. Вычисляем дату отсечения (сегодня минус N месяцев)
+        if (allWeightHistory.isEmpty()) {
+            binding.chartWeightInfo.clear();
+            return;
+        }
+
+        // 1. Вычисляем дату отсечения
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.MONTH, -months);
         long cutoffTime = cal.getTimeInMillis();
 
-        // 2. Фильтруем данные
         ArrayList<Entry> entries = new ArrayList<>();
         ArrayList<String> labelsList = new ArrayList<>();
 
+        // Формат даты в базе данных: "2026-01-22"
+        SimpleDateFormat dbFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
+        // Формат даты для графика: "22.01"
+        SimpleDateFormat chartFormat = new SimpleDateFormat("dd.MM", Locale.getDefault());
 
-        // Формат даты для оси X (день.месяц)
-        SimpleDateFormat sdf = new SimpleDateFormat("dd.MM", Locale.getDefault());
-        float max = 0;
-        float min = 200;
+        float max = Float.MIN_VALUE;
+        float min = Float.MAX_VALUE;
         int index = 0;
-        for (WeightRecord record : allWeightHistory) {
-            // Если дата записи больше (позже), чем дата отсечения
-            if (record.timestamp >= cutoffTime) {
-                if (record.weight > max) max = record.weight;
-                if (record.weight < min) min = record.weight;
-                entries.add(new Entry(index, record.weight));
-                labelsList.add(sdf.format(new Date(record.timestamp)));
-                index++;
+
+        for (WeightHistoryItem record : allWeightHistory) {
+            try {
+                // ПАРСИНГ: Превращаем строку из базы в дату
+                Date dateObj = dbFormat.parse(record.date);
+
+                if (dateObj != null && dateObj.getTime() >= cutoffTime) {
+                    float val = (float) record.val;
+
+                    if (val > max) max = val;
+                    if (val < min) min = val;
+
+                    entries.add(new Entry(index, val));
+                    // Форматируем для оси X
+                    labelsList.add(chartFormat.format(dateObj));
+                    index++;
+                }
+            } catch (ParseException e) {
+                e.printStackTrace();
             }
         }
 
-        // Преобразуем список меток в массив
+        if (entries.isEmpty()) {
+            binding.chartWeightInfo.clear();
+            binding.tvHighestWeight.setText("--");
+            binding.tvLowestWeight.setText("--");
+            return;
+        }
+
         String[] labels = labelsList.toArray(new String[0]);
 
-        // 3. Рисуем график через ваш ChartHelper
-        // Используем цвета, которые у вас уже настроены
-        ChartHelper.setupUnifiedChart(
-                requireContext(),
-                binding.chartWeightInfo,
-                entries,
-                labels,
-                R.color.weight_start, // Или любой другой цвет для линии веса
-                R.color.weight_end,
-                true // showBackground
-        );
-
-        binding.tvHighestWeight.setText(String.format(Locale.getDefault(), "%.1f",max));
-        binding.tvLowestWeight.setText(String.format(Locale.getDefault(), "%.1f", min));
-
-        // Дополнительно: Обновляем текущий вес (берем последнюю запись)
-        if (!entries.isEmpty()) {
-            float lastWeight = entries.get(entries.size() - 1).getY();
-            binding.tvWeightScore.setText(String.valueOf((int)lastWeight));
-        }
-
-
-
-    }
-
-
-    private void updateButtonVisuals(Button activeButton) {
-        // Сброс всех кнопок в дефолтное состояние (серый фон, черный текст)
-        resetButtonStyle(binding.button);
-        resetButtonStyle(binding.button3);
-        resetButtonStyle(binding.button2);
-
-        // Активация нажатой кнопки (Акцентный цвет фона, белый текст)
-        activeButton.setBackgroundTintList(ContextCompat.getColorStateList(requireContext(), R.color.accent_color));
-        activeButton.setTextColor(Color.BLACK);
-    }
-
-    private void resetButtonStyle(Button btn) {
-        // Цвет неактивной кнопки (например, белый фон или прозрачный)
-        btn.setBackgroundTintList(ContextCompat.getColorStateList(requireContext(), R.color.background));
-        btn.setTextColor(Color.WHITE);
-    }
-
-    private void generateMockData() {
-        allWeightHistory.clear();
-        Calendar cal = Calendar.getInstance();
-
-        // Отматываем на 6 месяцев назад
-        cal.add(Calendar.MONTH, -6);
-
-        // Генерируем данные каждые 3 дня в течение 6 месяцев
-        for (int i = 0; i < 60; i++) {
-            cal.add(Calendar.DAY_OF_YEAR, 3);
-
-            // Имитация изменения веса (вокруг 80 кг)
-            float randomWeight = 75f + (float)(Math.random() * 10 - 5);
-
-            allWeightHistory.add(new WeightRecord(cal.getTimeInMillis(), randomWeight));
-        }
-    }
-
-    private void setupWeightHistoryChart() {
-        // 1. Готовим данные
-        ArrayList<Entry> entries = new ArrayList<>();
-        entries.add(new Entry(0, 80f));
-        entries.add(new Entry(1, 81f));
-        entries.add(new Entry(2, 78f));
-        entries.add(new Entry(3, 79f));
-        entries.add(new Entry(4, 83f));
-        entries.add(new Entry(5, 80f));
-        entries.add(new Entry(6, 82f));
-        entries.add(new Entry(7, 84f));
-        entries.add(new Entry(8, 85f));
-        entries.add(new Entry(9, 82f));
-        entries.add(new Entry(10, 78f));
-        entries.add(new Entry(11, 76f));
-        // ... заполнение ...
-
-        final String[] labels = new String[]{
-                "4.11", "6.11", "9.11", "13.11",
-                "14.11", "16.11", "20.11", "23.11",
-                "26.11", "29.11", "30.11", "4.12"
-        };
-
-        // 2. ВЫЗЫВАЕМ УТИЛИТУ (Всего одна строка!)
-        // requireContext() передает контекст, нужный для получения цветов
         ChartHelper.setupUnifiedChart(
                 requireContext(),
                 binding.chartWeightInfo,
@@ -211,6 +178,27 @@ public class WeightFragment extends Fragment {
                 R.color.weight_end,
                 true
         );
+
+        binding.tvHighestWeight.setText(String.format(Locale.US, "%.1f kg", max));
+        binding.tvLowestWeight.setText(String.format(Locale.US, "%.1f kg", min));
     }
 
+    private void updateButtonVisuals(Button activeButton) {
+        resetButtonStyle(binding.button);
+        resetButtonStyle(binding.button3);
+        resetButtonStyle(binding.button2);
+        activeButton.setBackgroundTintList(ContextCompat.getColorStateList(requireContext(), R.color.accent_color));
+        activeButton.setTextColor(Color.BLACK);
+    }
+
+    private void resetButtonStyle(Button btn) {
+        btn.setBackgroundTintList(ContextCompat.getColorStateList(requireContext(), R.color.background));
+        btn.setTextColor(Color.WHITE);
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        binding = null;
+    }
 }

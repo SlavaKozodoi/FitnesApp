@@ -46,7 +46,7 @@
 
 
                     <TextView
-                        android:id="@+id/textView32"
+                        android:id="@+id/tvNutritionAllProteins"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="14dp"
@@ -55,10 +55,10 @@
                         android:textColor="@color/text"
                         android:textSize="20sp"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/textView34" />
+                        app:layout_constraintTop_toBottomOf="@+id/tvNutritionAllCarbs" />
 
                     <TextView
-                        android:id="@+id/textView34"
+                        android:id="@+id/tvNutritionAllCarbs"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="14dp"
@@ -70,7 +70,7 @@
                         app:layout_constraintTop_toBottomOf="@+id/textView31" />
 
                     <TextView
-                        android:id="@+id/textView33"
+                        android:id="@+id/tvNutritionAllFats"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="14dp"
@@ -79,7 +79,7 @@
                         android:textColor="@color/text"
                         android:textSize="20sp"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/textView32" />
+                        app:layout_constraintTop_toBottomOf="@+id/tvNutritionAllProteins" />
 
                     <TextView
                         android:id="@+id/textView31"
@@ -99,7 +99,7 @@
                         android:layout_height="match_parent"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/tvStepsScore3" />
+                        app:layout_constraintTop_toBottomOf="@+id/tvNutritionScore" />
 
                     <TextView
                         android:id="@+id/textView30"
@@ -115,7 +115,7 @@
                         app:layout_constraintTop_toBottomOf="@+id/constraintLayout4" />
 
                     <TextView
-                        android:id="@+id/tvStepsGoal3"
+                        android:id="@+id/tvNutritionMax"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:fontFamily="@font/nobile_bold"
@@ -126,7 +126,7 @@
                         app:layout_constraintTop_toBottomOf="@+id/textView30" />
 
                     <TextView
-                        android:id="@+id/tvStepsScore3"
+                        android:id="@+id/tvNutritionScore"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="25dp"
@@ -155,8 +155,8 @@
                             android:text="Goal 10000"
                             android:textColor="@color/text"
                             android:textSize="20sp"
-                            app:layout_constraintStart_toStartOf="@+id/textView9"
-                            app:layout_constraintTop_toTopOf="@+id/textView9" />
+                            app:layout_constraintStart_toStartOf="@+id/tvDuration"
+                            app:layout_constraintTop_toTopOf="@+id/tvDuration" />
 
                         <com.github.mikephil.charting.charts.LineChart
                             android:id="@+id/chartStepsinfo"
@@ -184,7 +184,7 @@
                             app:layout_constraintTop_toTopOf="parent" />
 
                         <TextView
-                            android:id="@+id/textView9"
+                            android:id="@+id/tvDuration"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="14dp"

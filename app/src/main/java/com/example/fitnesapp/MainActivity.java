@@ -84,9 +84,7 @@ public class MainActivity extends AppCompatActivity {
 
             // Проверяем сохраненный ID
             if (currentDestinationId[0] == R.id.navigation_home) {
-                // Логика для настроек
-                Toast.makeText(MainActivity.this, "Settings Clicked", Toast.LENGTH_SHORT).show();
-                // Navigation.findNavController(this, R.id.nav_host...).navigate(R.id.action_home_to_settings);
+                Navigation.findNavController(this,R.id.nav_host_fragment_activity_main).navigate(R.id.settingsFragment);
             }
             else if (currentDestinationId[0] == R.id.weightFragment) {
                 // Логика для добавления веса

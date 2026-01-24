@@ -140,7 +140,7 @@
                             android:layout_height="wrap_content">
 
                             <TextView
-                                android:id="@+id/textView20"
+                                android:id="@+id/tvWeightStat"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="24dp"
@@ -152,7 +152,7 @@
                                 app:layout_constraintTop_toBottomOf="@+id/tvLowestWeight" />
 
                             <TextView
-                                android:id="@+id/textView21"
+                                android:id="@+id/tvBMI"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="14dp"
