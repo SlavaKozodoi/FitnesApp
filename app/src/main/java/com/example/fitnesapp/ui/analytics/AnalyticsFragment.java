@@ -1,27 +1,26 @@
-package com.example.fitnesapp.ui.achievements;
+package com.example.fitnesapp.ui.analytics;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.example.fitnesapp.databinding.FragmentDashboardBinding;
+import com.example.fitnesapp.databinding.FragmentAnalyticsBinding;
 
-public class DashboardFragment extends Fragment {
+public class AnalyticsFragment extends Fragment {
 
-    private FragmentDashboardBinding binding;
+    private FragmentAnalyticsBinding binding;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        DashboardViewModel dashboardViewModel =
-                new ViewModelProvider(this).get(DashboardViewModel.class);
+        AnalyticsViewModel analyticsViewModel =
+                new ViewModelProvider(this).get(AnalyticsViewModel.class);
 
-        binding = FragmentDashboardBinding.inflate(inflater, container, false);
+        binding = FragmentAnalyticsBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
         return root;
     }

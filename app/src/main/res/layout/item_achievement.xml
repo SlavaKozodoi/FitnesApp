@@ -4,13 +4,15 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="110dp"
-    app:cardBackgroundColor="@color/background_50"
+    android:layout_marginBottom="8dp"
+    app:cardBackgroundColor="@android:color/transparent"
     app:cardCornerRadius="10dp">
 
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:background="@color/background_50">
 
         <ImageView
             android:id="@+id/achievementIcon"
@@ -37,6 +39,7 @@
             android:id="@+id/achievementLevel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
             android:fontFamily="@font/inter_medium"
             android:text="Tier 1/5"
             android:textColor="@color/text"
@@ -48,6 +51,7 @@
             android:id="@+id/achievementGoal"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
             android:fontFamily="@font/inter_medium"
             android:text="2000 steps"
             android:textColor="@color/text"
@@ -84,7 +88,9 @@
             style="?android:attr/progressBarStyleHorizontal"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            app:layout_constraintEnd_toEndOf="@+id/achievementDate"
+            android:layout_marginStart="5dp"
+            android:layout_marginEnd="12dp"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@+id/achievementIcon"
             app:layout_constraintTop_toBottomOf="@+id/achievementLevel" />
 

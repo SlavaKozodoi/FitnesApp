@@ -13,15 +13,15 @@
 
     <fragment
         android:id="@+id/achievementFragment"
-        android:name="com.example.fitnesapp.ui.achievements.DashboardFragment"
+        android:name="com.example.fitnesapp.ui.analytics.AnalyticsFragment"
         android:label="@string/title_progress"
-        tools:layout="@layout/fragment_dashboard" />
+        tools:layout="@layout/fragment_analytics" />
 
     <fragment
         android:id="@+id/navigation_notifications"
-        android:name="com.example.fitnesapp.ui.progress.NotificationsFragment"
+        android:name="com.example.fitnesapp.ui.achievements.AchievementsFragment"
         android:label="@string/title_achievements"
-        tools:layout="@layout/fragment_notifications" />
+        tools:layout="@layout/fragment_achievement" />
     <fragment
         android:id="@+id/sleepFragment"
         android:name="com.example.fitnesapp.ui.sleep.SleepFragment"
@@ -55,7 +55,7 @@
     <fragment
         android:id="@+id/historyAchievementsFragment"
         android:name="com.example.fitnesapp.ui.historyachievements.historyAchievementsFragment"
-        android:label="fragment_history_achievements"
+        android:label="@string/title_profile"
         tools:layout="@layout/fragment_history_achievements" />
     <fragment
         android:id="@+id/settingsFragment"

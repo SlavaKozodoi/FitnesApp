@@ -3,6 +3,7 @@
     <string name="title_home">Profile</string>
     <string name="title_progress">Progress</string>
     <string name="title_achievements">Achievements</string>
+    <string name="title_profile">Profile achievements</string>
     <string name="text_calories">Calories</string>
     <string name="short_text_calories">kcal</string>
     <string name="text_steps">Steps</string>
