@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     // Подключаем плагин Google Services
     alias(libs.plugins.google.gms.google.services)
+    alias(libs.plugins.kotlin.android)
 }
 
 android {
@@ -10,7 +11,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.fitnesapp"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
@@ -27,26 +28,43 @@ android {
             )
         }
     }
+
+    // ВАЖНОЕ ИЗМЕНЕНИЕ: Включаем Desugaring и ставим Java 1.8
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        isCoreLibraryDesugaringEnabled = true // <--- Включает поддержку Instant/Duration
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
     }
+
     buildFeatures {
         viewBinding = true
+    }
+
+    kotlinOptions {
+        jvmTarget = "1.8" // <--- Тоже меняем на 1.8
     }
 }
 
 dependencies {
+    // ВАЖНОЕ ИЗМЕНЕНИЕ: Библиотека для поддержки времени (Instant, Duration)
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
+
+    implementation("androidx.health.connect:connect-client:1.1.0-alpha07")
+
+    // Для работы Kotlin
+    implementation("org.jetbrains.kotlin:kotlin-stdlib:1.9.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-guava:1.7.3")
+
     implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
     implementation("com.mikhaellopez:circularprogressbar:3.1.0")
 
     // === FIREBASE ===
-    // Используем BOM для управления версиями
     implementation(platform("com.google.firebase:firebase-bom:32.7.0"))
-    // Сама база данных (версию не пишем, её дает BOM)
     implementation("com.google.firebase:firebase-database")
-    implementation("com.google.firebase:firebase-auth:22.3.1")
-// Google Sign In (ОБЯЗАТЕЛЬНО для кнопки Google)
+    implementation("com.google.firebase:firebase-auth") // Версию убрал, её контролирует BOM
+
+    // Google Sign In
     implementation("com.google.android.gms:play-services-auth:20.7.0")
 
     implementation(libs.appcompat)
@@ -59,12 +77,10 @@ dependencies {
     implementation(libs.cardview)
     implementation(libs.legacy.support.v4)
     implementation(libs.recyclerview)
-    implementation(libs.firebase.auth)
+    // implementation(libs.firebase.auth) // Убрал дубль, он уже есть выше через BOM
     implementation(libs.activity)
     implementation(libs.androidx.constraintlayout)
-
-    // ВАЖНО: Я удалил строку implementation(libs.firebase.database)
-    // потому что она дублировала подключение базы данных выше.
+    implementation(libs.androidx.core.ktx)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)

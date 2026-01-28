@@ -1,5 +1,10 @@
 package com.example.fitnesapp.models.firebase;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
+
 public class UserProfile {
     public String firstName;
     public String secondName;
@@ -26,5 +31,36 @@ public class UserProfile {
         this.totalXP = totalXP;
         this.maxXp = maxXp;
         this.notificationsEnabled = notificationsEnabled;
+    }
+    public int getAge() {
+        if (birthDate == null || birthDate.isEmpty()) {
+            return 25; // Возраст по умолчанию, если дата не указана
+        }
+
+        // ВАЖНО: Убедитесь, что формат здесь совпадает с тем, как вы сохраняете дату
+        SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy", Locale.US);
+
+        try {
+            Date date = sdf.parse(birthDate);
+            if (date == null) return 25;
+
+            Calendar dob = Calendar.getInstance();
+            dob.setTime(date);
+
+            Calendar today = Calendar.getInstance();
+
+            int age = today.get(Calendar.YEAR) - dob.get(Calendar.YEAR);
+
+            // Если день рождения в этом году еще не наступил — вычитаем 1 год
+            if (today.get(Calendar.DAY_OF_YEAR) < dob.get(Calendar.DAY_OF_YEAR)) {
+                age--;
+            }
+
+            return age;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return 25; // Если формат даты неверный, возвращаем дефолт
+        }
     }
 }

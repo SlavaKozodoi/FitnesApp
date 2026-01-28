@@ -122,9 +122,14 @@
                         android:text="Max: 3500"
                         android:textColor="@color/text"
                         android:textSize="20sp"
+
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:background="?attr/selectableItemBackground"
+                        android:padding="4dp"
+
                         app:layout_constraintStart_toStartOf="@+id/textView30"
                         app:layout_constraintTop_toBottomOf="@+id/textView30" />
-
                     <TextView
                         android:id="@+id/tvNutritionScore"
                         android:layout_width="wrap_content"
@@ -155,9 +160,14 @@
                             android:text="Goal 10000"
                             android:textColor="@color/text"
                             android:textSize="20sp"
+
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:background="?attr/selectableItemBackground"
+                            android:padding="4dp"
+
                             app:layout_constraintStart_toStartOf="@+id/tvDuration"
                             app:layout_constraintTop_toTopOf="@+id/tvDuration" />
-
                         <com.github.mikephil.charting.charts.LineChart
                             android:id="@+id/chartStepsinfo"
                             android:layout_width="0dp"
@@ -222,9 +232,14 @@
                             android:text="Goal: 2000"
                             android:textColor="@color/text"
                             android:textSize="20sp"
+
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:background="?attr/selectableItemBackground"
+                            android:padding="4dp"
+
                             app:layout_constraintStart_toStartOf="@+id/textView8"
                             app:layout_constraintTop_toTopOf="@+id/textView8" />
-
                         <com.github.mikephil.charting.charts.LineChart
                             android:id="@+id/chartCaloriesnfo"
                             android:layout_width="0dp"
