@@ -45,6 +45,11 @@ public class SettingsFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         mViewModel = new ViewModelProvider(this).get(SettingsViewModel.class);
+        mViewModel.getCurrentWeight().observe(getViewLifecycleOwner(), weight -> {
+            if (weight != null && weight > 0) {
+                binding.etWeight.setText(String.valueOf(weight));
+            }
+        });
 
         setupSpinners();
         setupObservers();

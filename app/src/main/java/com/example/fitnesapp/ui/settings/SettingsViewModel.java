@@ -5,7 +5,6 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-import com.example.fitnesapp.models.firebase.DailyData;
 import com.example.fitnesapp.models.firebase.UserGoals;
 import com.example.fitnesapp.models.firebase.UserProfile;
 import com.google.firebase.auth.FirebaseAuth;
@@ -17,15 +16,20 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
 public class SettingsViewModel extends ViewModel {
 
     private DatabaseReference userRef;
 
-    // LiveData для отображения данных в UI
     private final MutableLiveData<UserProfile> userProfile = new MutableLiveData<>();
     private final MutableLiveData<UserGoals> userGoals = new MutableLiveData<>();
+
+    // LiveData для отображения текущего веса в поле ввода
+    private final MutableLiveData<Double> currentWeight = new MutableLiveData<>();
+
     private final MutableLiveData<Boolean> saveSuccess = new MutableLiveData<>();
 
     public SettingsViewModel() {
@@ -41,13 +45,14 @@ public class SettingsViewModel extends ViewModel {
 
     public LiveData<UserProfile> getUserProfile() { return userProfile; }
     public LiveData<UserGoals> getUserGoals() { return userGoals; }
+    public LiveData<Double> getCurrentWeight() { return currentWeight; }
     public LiveData<Boolean> getSaveSuccess() { return saveSuccess; }
 
     // --- ЗАГРУЗКА ДАННЫХ ---
     private void loadData() {
         if (userRef == null) return;
 
-        // Грузим профиль
+        // 1. Грузим профиль (Имя, рост, дата рождения...)
         userRef.child("profile").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -59,7 +64,7 @@ public class SettingsViewModel extends ViewModel {
             public void onCancelled(@NonNull DatabaseError error) {}
         });
 
-        // Грузим цели
+        // 2. Грузим цели
         userRef.child("goals").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -70,6 +75,28 @@ public class SettingsViewModel extends ViewModel {
             @Override
             public void onCancelled(@NonNull DatabaseError error) {}
         });
+
+        // 3. Грузим ПОСЛЕДНИЙ ВЕС из истории (чтобы показать в поле ввода)
+        // limitToLast(1) возьмет самую свежую запись
+        userRef.child("health_logs").child("weight_history").orderByKey().limitToLast(1)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        if (snapshot.exists()) {
+                            for (DataSnapshot child : snapshot.getChildren()) {
+                                // Ищем поле "val" (значение веса)
+                                Double w = child.child("val").getValue(Double.class);
+                                if (w != null) {
+                                    currentWeight.setValue(w);
+                                }
+                            }
+                        } else {
+                            currentWeight.setValue(0.0); // Веса еще нет
+                        }
+                    }
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {}
+                });
     }
 
     // --- СОХРАНЕНИЕ ДАННЫХ ---
@@ -79,49 +106,66 @@ public class SettingsViewModel extends ViewModel {
 
         if (userRef == null) return;
 
-        // 1. Обновляем профиль
-        UserProfile profile = new UserProfile(name, surname, gender, birthDate, height, weight, 0, 0, notif);
-        // Сохраняем поля профиля (лучше обновлять конкретные поля, чтобы не затереть XP, но для простоты перезапишем объект, если XP хранятся там же)
-        // ВАЖНО: Если XP хранятся в profile, их нужно сохранить.
-        // В идеале лучше делать userRef.child("profile").updateChildren(map);
-        // Но сейчас просто обновим основные поля:
-        userRef.child("profile").child("firstName").setValue(name);
-        userRef.child("profile").child("secondName").setValue(surname);
-        userRef.child("profile").child("birthDate").setValue(birthDate);
-        userRef.child("profile").child("height").setValue(height);
-        userRef.child("profile").child("weight").setValue(weight);
-        userRef.child("profile").child("gender").setValue(gender);
-        userRef.child("profile").child("notificationsEnabled").setValue(notif);
+        // 1. Обновляем профиль (БЕЗ ВЕСА)
+        // Используем Map, чтобы обновить только нужные поля и не затереть ничего лишнего
+        Map<String, Object> profileUpdates = new HashMap<>();
+        profileUpdates.put("firstName", name);
+        profileUpdates.put("secondName", surname);
+        profileUpdates.put("birthDate", birthDate);
+        profileUpdates.put("height", height);
+        profileUpdates.put("gender", gender);
+        profileUpdates.put("notificationsEnabled", notif);
+        // weight отсюда убрали!
 
-        // 2. Рассчитываем новые калории и шаги (Умная аналитика!)
+        userRef.child("profile").updateChildren(profileUpdates);
+
+        // 2. Сохраняем вес в ИСТОРИЮ (Новая логика)
+        // Проверяем, изменился ли вес или это первая запись, чтобы не спамить в историю
+        Double oldWeight = currentWeight.getValue();
+        if (oldWeight == null || Math.abs(oldWeight - weight) > 0.1) {
+            saveWeightToHistory(weight);
+        }
+
+        // 3. Рассчитываем новые калории и шаги (используем новый вес)
         int calculatedCalories = calculateCalories(weight, height, gender, activityLevel, mainGoal);
         int calculatedSteps = calculateSteps(activityLevel);
 
-        // 3. Сохраняем цели
+        // 4. Сохраняем цели
         UserGoals goals = new UserGoals(mainGoal, targetWeight, activityLevel, calculatedCalories, calculatedSteps);
         userRef.child("goals").setValue(goals)
-                .addOnSuccessListener(aVoid -> {
-                    // Также обновляем daily_data на сегодня, чтобы пользователь сразу увидел новые цели
-                    updateTodayGoals(calculatedCalories, calculatedSteps);
-                    saveSuccess.setValue(true);
-                })
+                .addOnSuccessListener(aVoid -> saveSuccess.setValue(true))
                 .addOnFailureListener(e -> saveSuccess.setValue(false));
     }
 
-    private void updateTodayGoals(int cals, int steps) {
-        String today = new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(new Date());
-        userRef.child("daily_data").child(today).child("caloriesGoal").setValue(cals);
-        userRef.child("daily_data").child(today).child("stepsGoal").setValue(steps);
+    // === НОВЫЙ МЕТОД: Запись веса в историю ===
+    private void saveWeightToHistory(double weight) {
+        // Создаем уникальный ключ (push ID), который сортируется по времени автоматически
+        DatabaseReference newWeightRef = userRef.child("health_logs").child("weight_history").push();
+
+        long timestamp = System.currentTimeMillis();
+        String dateStr = new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(new Date());
+
+        Map<String, Object> weightMap = new HashMap<>();
+        weightMap.put("val", weight);          // Значение (double)
+        weightMap.put("timestamp", timestamp); // Время (long) для сортировки
+        weightMap.put("date", dateStr);        // Дата (String) для группировки
+
+        newWeightRef.setValue(weightMap);
+
+        // Сразу обновляем локальное значение, чтобы UI отреагировал
+        currentWeight.setValue(weight);
     }
 
-    // --- ЛОГИКА РАСЧЕТА ---
+    // --- ЛОГИКА РАСЧЕТА КАЛОРИЙ ---
     private int calculateCalories(double weight, double height, String gender, String activity, String goal) {
         // Формула Миффлина-Сан Жеора
         double bmr;
+        int age = 25; // Заглушка, если нет возраста. В идеале считать из birthDate
+
         if ("Male".equals(gender)) {
-            bmr = 10 * weight + 6.25 * height - 5 * 25 + 5; // возраст заглушка 25
+            bmr = 10 * weight + 6.25 * height - 5 * age + 5;
         } else {
-            bmr = 10 * weight + 6.25 * height - 5 * 25 - 161;
+            bmr = 10 * weight + 6.25 * height - 5 * age - 161;
         }
 
         double multiplier = 1.2; // Sedentary

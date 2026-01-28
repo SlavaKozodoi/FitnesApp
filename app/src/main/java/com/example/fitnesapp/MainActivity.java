@@ -2,6 +2,7 @@ package com.example.fitnesapp;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageButton;
@@ -113,8 +114,7 @@ public class MainActivity extends AppCompatActivity {
                 Navigation.findNavController(this,R.id.nav_host_fragment_activity_main).navigate(R.id.settingsFragment);
             }
             else if (currentDestinationId[0] == R.id.weightFragment) {
-                Toast.makeText(MainActivity.this, "Add Weight Clicked", Toast.LENGTH_SHORT).show();
-            }
+                showAddWeightDialog();            }
             else if (currentDestinationId[0] == R.id.navigation_notifications) {
                 Toast.makeText(MainActivity.this, "Achievement window Clicked", Toast.LENGTH_SHORT).show();
                 Navigation.findNavController(this,R.id.nav_host_fragment_activity_main).navigate(R.id.historyAchievementsFragment);
@@ -297,5 +297,82 @@ public class MainActivity extends AppCompatActivity {
     public boolean onSupportNavigateUp() {
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_activity_main);
         return navController.navigateUp() || super.onSupportNavigateUp();
+    }
+
+    // === НОВЫЙ МЕТОД: Диалог добавления веса ===
+    private void showAddWeightDialog() {
+        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this);
+
+        // Используем тот же красивый макет
+        View customView = LayoutInflater.from(this).inflate(R.layout.dialog_edit_goal, null);
+
+        android.widget.TextView tvTitle = customView.findViewById(R.id.tvDialogTitle);
+        android.widget.EditText etInput = customView.findViewById(R.id.etGoalInput);
+        View btnCancel = customView.findViewById(R.id.btnCancel);
+        View btnSave = customView.findViewById(R.id.btnSave);
+
+        // Настраиваем заголовок
+        tvTitle.setText("Add Weight (kg)");
+
+        // ВАЖНО: Разрешаем вводить дробные числа (75.5)
+        etInput.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL);
+        etInput.setHint("0.0");
+
+        builder.setView(customView);
+        android.app.AlertDialog dialog = builder.create();
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
+
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+
+        btnSave.setOnClickListener(v -> {
+            String newValueStr = etInput.getText().toString();
+            // Заменяем запятую на точку, если пользователь ввел 75,5
+            newValueStr = newValueStr.replace(",", ".");
+
+            if (!newValueStr.isEmpty()) {
+                try {
+                    double newWeight = Double.parseDouble(newValueStr);
+                    saveWeightToFirebase(newWeight);
+                    dialog.dismiss();
+                } catch (NumberFormatException e) {
+                    Toast.makeText(MainActivity.this, "Invalid number format", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        dialog.show();
+    }
+
+    // === Метод сохранения веса в Firebase ===
+    private void saveWeightToFirebase(double weight) {
+        String uid = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
+        if (uid == null) return;
+
+        // Ссылка на историю веса
+        DatabaseReference weightRef = FirebaseDatabase.getInstance().getReference()
+                .child("users").child(uid).child("health_logs").child("weight_history");
+
+        // Создаем новую запись (push)
+        String key = weightRef.push().getKey();
+
+        if (key != null) {
+            long timestamp = System.currentTimeMillis();
+            String dateStr = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(new java.util.Date());
+
+            java.util.Map<String, Object> weightMap = new java.util.HashMap<>();
+            weightMap.put("val", weight);
+            weightMap.put("timestamp", timestamp);
+            weightMap.put("date", dateStr);
+
+            weightRef.child(key).setValue(weightMap)
+                    .addOnSuccessListener(aVoid ->
+                            Toast.makeText(MainActivity.this, "Weight added!", Toast.LENGTH_SHORT).show())
+                    .addOnFailureListener(e ->
+                            Toast.makeText(MainActivity.this, "Error adding weight", Toast.LENGTH_SHORT).show());
+        }
     }
 }

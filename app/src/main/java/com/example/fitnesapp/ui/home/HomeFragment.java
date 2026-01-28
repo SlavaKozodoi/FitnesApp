@@ -57,6 +57,7 @@ public class HomeFragment extends Fragment {
         binding = FragmentHomeBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
+        // Проверка авторизации
         homeViewModel.getRequireLogin().observe(getViewLifecycleOwner(), isRequired -> {
             if (isRequired) {
                 Intent intent = new Intent(requireActivity(), RegisterActivity.class);
@@ -69,14 +70,14 @@ public class HomeFragment extends Fragment {
         setupNavigation();
         setupHistoryCalendar();
 
-        // --- Дневная статистика ---
+        // --- Дневная статистика (Круги прогресса, Сон, Кислород) ---
         homeViewModel.getDailyData().observe(getViewLifecycleOwner(), dailyData -> {
             if (dailyData != null) {
                 updateDashboardWithRealData(dailyData);
             }
         });
 
-        // --- Профиль ---
+        // --- Профиль (Имя) ---
         homeViewModel.getUserProfile().observe(getViewLifecycleOwner(), profile -> {
             if (profile != null) {
                 if (binding.tvName != null) binding.tvName.setText(profile.firstName);
@@ -84,20 +85,41 @@ public class HomeFragment extends Fragment {
             }
         });
 
-        // --- График Пульса ---
+        // --- График Пульса + Текст ---
         homeViewModel.getPulseHistory().observe(getViewLifecycleOwner(), pulseList -> {
-            if (pulseList != null) {
-                // Передаем весь список, фильтрация будет внутри метода
+            if (pulseList != null && !pulseList.isEmpty()) {
+                // Сортировка
+                Collections.sort(pulseList, (o1, o2) -> Long.compare(o1.time, o2.time));
+
+                // Текст (последнее значение)
+                HealthLogItem lastItem = pulseList.get(pulseList.size() - 1);
+                binding.tvPulse.setText((int) lastItem.val + " bpm");
+
+                // График
                 setupPulseChart(pulseList);
+            } else {
+                binding.tvPulse.setText("-- bpm");
+                if (binding.chartPulse != null) binding.chartPulse.clear();
             }
         });
 
-        // --- График Веса ---
+        // --- График Веса + Текст (ИСПРАВЛЕНО ЗДЕСЬ) ---
         homeViewModel.getWeightHistory().observe(getViewLifecycleOwner(), weightList -> {
-            if (weightList != null && !weightList.isEmpty()) setupWeightChart(weightList);
+            if (weightList != null && !weightList.isEmpty()) {
+                // 1. Строим график
+                setupWeightChart(weightList);
+
+                // 2. Обновляем ТЕКСТ (берем последний элемент списка)
+                // Так как список приходит из Firebase, он может быть не отсортирован,
+                // но setupWeightChart его сортирует. На всякий случай берем последний добавленный.
+                WeightHistoryItem latestWeight = weightList.get(weightList.size() - 1);
+                binding.tvWeight.setText(String.format(Locale.US, "%.1f kg", latestWeight.val));
+            } else {
+                binding.tvWeight.setText("-- kg");
+            }
         });
 
-        // --- Календарь ---
+        // --- Календарь (активные дни) ---
         homeViewModel.getActiveDays().observe(getViewLifecycleOwner(), dateStrings -> {
             if (dateStrings != null) {
                 cachedActiveDates = dateStrings;
@@ -143,28 +165,10 @@ public class HomeFragment extends Fragment {
         if (binding.tvNutritionGoal != null) binding.tvNutritionGoal.setText("/" + (int) nutritionGoal + getString(R.string.short_text_calories));
 
 
-        // --- ЧАСТЬ 2: НИЖНИЕ КАРТОЧКИ ---
+        // --- ЧАСТЬ 2: НИЖНИЕ КАРТОЧКИ (Сон, Кислород) ---
+        // Заметка: Пульс и Вес перенесены в свои Observer'ы в onCreateView
 
-        // --- 1. ПУЛЬС (Последнее значение) ---
-        // --- График Пульса + ТЕКСТ ---
-        homeViewModel.getPulseHistory().observe(getViewLifecycleOwner(), pulseList -> {
-            if (pulseList != null && !pulseList.isEmpty()) {
-                // 1. Сортируем список по времени (от старых к новым)
-                Collections.sort(pulseList, (o1, o2) -> Long.compare(o1.time, o2.time));
-
-                // 2. Берем ПОСЛЕДНИЙ элемент (самый свежий) и ставим в текст
-                HealthLogItem lastItem = pulseList.get(pulseList.size() - 1);
-                binding.tvPulse.setText((int) lastItem.val + " bpm");
-
-                // 3. Строим график (он сам отфильтрует данные за сегодня внутри метода)
-                setupPulseChart(pulseList);
-            } else {
-                binding.tvPulse.setText("-- bpm");
-                if (binding.chartPulse != null) binding.chartPulse.clear();
-            }
-        });
-
-        // --- 2. КИСЛОРОД (Последнее значение) ---
+        // --- КИСЛОРОД (Последнее значение) ---
         if (data.oxygen != null && !data.oxygen.isEmpty()) {
             HealthLogItem latestOxygen = null;
             for (HealthLogItem item : data.oxygen.values()) {
@@ -190,26 +194,7 @@ public class HomeFragment extends Fragment {
             }
         }
 
-        // --- 3. ВЕС (Последнее значение) ---
-        if (data.weight_history != null && !data.weight_history.isEmpty()) {
-            WeightHistoryItem latestWeight = null;
-            for (WeightHistoryItem item : data.weight_history.values()) {
-                if (latestWeight == null || (item.date != null && item.date.compareTo(latestWeight.date) > 0)) {
-                    latestWeight = item;
-                }
-            }
-            if (latestWeight != null) {
-                binding.tvWeight.setText(String.format(Locale.US, "%.1f kg", latestWeight.val));
-            }
-        } else {
-            if (data.vitals_summary != null && data.vitals_summary.weight_today > 0) {
-                binding.tvWeight.setText(data.vitals_summary.weight_today + " kg");
-            } else {
-                binding.tvWeight.setText("-- kg");
-            }
-        }
-
-        // --- 4. СОН ---
+        // --- СОН ---
         if (data.sleep != null && data.sleep.durationMinutes > 0) {
             int hours = data.sleep.durationMinutes / 60;
             int mins = data.sleep.durationMinutes % 60;
@@ -224,7 +209,6 @@ public class HomeFragment extends Fragment {
 
     // === ГРАФИКИ ===
 
-    // ИСПРАВЛЕННЫЙ МЕТОД: Фильтрует данные только за СЕГОДНЯ
     private void setupPulseChart(List<HealthLogItem> allData) {
         BarChart chart = binding.chartPulse;
         if (chart == null) return;
@@ -234,7 +218,7 @@ public class HomeFragment extends Fragment {
             return;
         }
 
-        // 1. Определяем начало и конец СЕГОДНЯШНЕГО дня
+        // Фильтруем данные только за СЕГОДНЯ
         Calendar cal = Calendar.getInstance();
         cal.set(Calendar.HOUR_OF_DAY, 0);
         cal.set(Calendar.MINUTE, 0);
@@ -247,7 +231,6 @@ public class HomeFragment extends Fragment {
         cal.set(Calendar.SECOND, 59);
         long endOfDay = cal.getTimeInMillis();
 
-        // 2. Фильтруем список: оставляем только данные за сегодня
         List<HealthLogItem> todaysData = new ArrayList<>();
         for (HealthLogItem item : allData) {
             if (item.time >= startOfDay && item.time <= endOfDay) {
@@ -255,25 +238,21 @@ public class HomeFragment extends Fragment {
             }
         }
 
-        // Если данных за сегодня нет, очищаем график
         if (todaysData.isEmpty()) {
             chart.clear();
             return;
         }
 
-        // 3. Сортируем по времени (на всякий случай)
         Collections.sort(todaysData, (o1, o2) -> Long.compare(o1.time, o2.time));
 
-        // 4. Заполняем график
         ArrayList<BarEntry> entries = new ArrayList<>();
         for (int i = 0; i < todaysData.size(); i++) {
-            // X = индекс, Y = значение пульса
             entries.add(new BarEntry(i, (float) todaysData.get(i).val));
         }
 
         BarDataSet dataSet = new BarDataSet(entries, "");
         dataSet.setColor(Color.parseColor("#FF5252"));
-        dataSet.setDrawValues(false); // Не показывать цифры над столбиками
+        dataSet.setDrawValues(false);
 
         BarData data = new BarData(dataSet);
         data.setBarWidth(0.6f);
@@ -286,6 +265,7 @@ public class HomeFragment extends Fragment {
         LineChart chart = binding.chartWeight;
         if (chart == null || dataValues == null || dataValues.isEmpty()) return;
 
+        // Сортировка по дате
         Collections.sort(dataValues, (o1, o2) -> {
             if (o1.date == null) return -1;
             if (o2.date == null) return 1;
@@ -334,25 +314,21 @@ public class HomeFragment extends Fragment {
         binding.recyclerCalendar.setLayoutManager(new GridLayoutManager(getContext(), 7));
 
         calendarAdapter = new CalendarAdapter(getContext(), new ArrayList<>(), new ArrayList<>(), (day, isActive) -> {
-            // 1. Формируем правильную дату из нажатого дня и текущего месяца календаря
             Calendar clickCal = (Calendar) currentCalendar.clone();
             clickCal.set(Calendar.DAY_OF_MONTH, day);
 
-            // Важно: формат должен совпадать с ключами в Firebase ("yyyy-MM-dd")
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
             String selectedDate = sdf.format(clickCal.getTime());
 
-            // 2. Спрашиваем у ViewModel данные за этот день
             homeViewModel.getWorkoutForDate(selectedDate, new HomeViewModel.OnWorkoutCheckListener() {
                 @Override
                 public void onWorkoutFound(WorkoutItem workout) {
-                    // 3. Если тренировка есть - собираем данные в Bundle и переходим
                     Bundle bundle = new Bundle();
                     bundle.putString("type", workout.type);
                     bundle.putInt("calories", workout.calories);
                     bundle.putInt("duration", workout.durationMin);
                     bundle.putLong("timestamp", workout.timestamp);
-                    bundle.putBoolean("isHistory", true); // Флаг, что это история, а не лайв
+                    bundle.putBoolean("isHistory", true);
 
                     Navigation.findNavController(requireView())
                             .navigate(R.id.activeTrenFragment, bundle);
@@ -360,7 +336,6 @@ public class HomeFragment extends Fragment {
 
                 @Override
                 public void onNoWorkout() {
-                    // 4. Если тренировки нет - тост
                     Toast.makeText(getContext(), "В этот день тренировок не было", Toast.LENGTH_SHORT).show();
                 }
             });
