@@ -24,8 +24,11 @@ public class SleepViewModel extends ViewModel {
     private final MutableLiveData<DailyData.Sleep> sleepData = new MutableLiveData<>();
 
     private DatabaseReference userRef;
-    private String selectedDateKey;
+
+    // Храним текущие ссылки и слушатели, чтобы корректно их удалять
+    private DatabaseReference currentSleepRef;
     private ValueEventListener sleepListener;
+    private String selectedDateKey;
 
     public SleepViewModel() {
         String uid = FirebaseAuth.getInstance().getCurrentUser() != null
@@ -35,7 +38,7 @@ public class SleepViewModel extends ViewModel {
         if (uid != null) {
             userRef = FirebaseDatabase.getInstance().getReference("users").child(uid);
             loadProfile();
-            loadSleepData(new Date()); // Загружаем сегодня
+            loadSleepData(new Date()); // Загружаем сегодня по умолчанию
         }
     }
 
@@ -62,17 +65,17 @@ public class SleepViewModel extends ViewModel {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
         String newDateKey = sdf.format(date);
 
+        // Если дата не изменилась, ничего не делаем
         if (newDateKey.equals(selectedDateKey)) return;
         selectedDateKey = newDateKey;
 
-        // Удаляем старый слушатель, если был
-        if (sleepListener != null) {
-            userRef.child("daily_data").removeEventListener(sleepListener); // Удаляем грубо, лучше хранить ref точнее
-            // Но проще создать новый путь:
+        // 1. ВАЖНО: Удаляем старый слушатель, чтобы не плодить утечки памяти
+        if (currentSleepRef != null && sleepListener != null) {
+            currentSleepRef.removeEventListener(sleepListener);
         }
 
-        // Путь к конкретной дате
-        DatabaseReference sleepRef = userRef.child("daily_data").child(selectedDateKey).child("sleep");
+        // 2. Создаем новую ссылку на конкретный день
+        currentSleepRef = userRef.child("daily_data").child(selectedDateKey).child("sleep");
 
         sleepListener = new ValueEventListener() {
             @Override
@@ -89,6 +92,15 @@ public class SleepViewModel extends ViewModel {
             public void onCancelled(@NonNull DatabaseError error) {}
         };
 
-        sleepRef.addValueEventListener(sleepListener);
+        currentSleepRef.addValueEventListener(sleepListener);
+    }
+
+    // Очистка при уничтожении экрана
+    @Override
+    protected void onCleared() {
+        super.onCleared();
+        if (currentSleepRef != null && sleepListener != null) {
+            currentSleepRef.removeEventListener(sleepListener);
+        }
     }
 }

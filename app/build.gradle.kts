@@ -46,12 +46,18 @@ android {
 }
 
 dependencies {
+
+    implementation("androidx.work:work-runtime:2.9.0")
     // ВАЖНОЕ ИЗМЕНЕНИЕ: Библиотека для поддержки времени (Instant, Duration)
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
 
     implementation("androidx.health.connect:connect-client:1.1.0-alpha07")
 
     // Для работы Kotlin
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+// или 1.8.0
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
+// или 1.8.0
     implementation("org.jetbrains.kotlin:kotlin-stdlib:1.9.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-guava:1.7.3")

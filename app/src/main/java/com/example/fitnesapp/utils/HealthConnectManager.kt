@@ -8,7 +8,6 @@ import androidx.health.connect.client.request.AggregateGroupByDurationRequest
 import androidx.health.connect.client.request.AggregateRequest
 import androidx.health.connect.client.request.ReadRecordsRequest
 import androidx.health.connect.client.time.TimeRangeFilter
-import androidx.health.connect.client.records.TotalCaloriesBurnedRecord
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
 import kotlinx.coroutines.CoroutineScope
@@ -18,14 +17,41 @@ import java.time.Duration
 import java.time.Instant
 import java.time.ZoneId
 
-// Класс для графиков
+// === Data Classes ===
+
+data class WorkoutSessionData(
+    val type: String,       // "Running", "Gym", etc.
+    val startTime: Long,
+    val durationMinutes: Long,
+    val calories: Long      // Сожженные ккал
+)
+
+data class SleepSessionData(
+    val startTime: Long,
+    val endTime: Long,
+    val durationMinutes: Long,
+    val deepSleepMin: Long = 0,
+    val lightSleepMin: Long = 0,
+    val remSleepMin: Long = 0,
+    val awakeMin: Long = 0
+)
+
+data class OxygenData(
+    val time: Long,
+    val percentage: Double
+)
+
+data class HeartRateData(
+    val time: Long,
+    val bpm: Long
+)
+
 data class ActivityBucket(
     val startTime: Long,
     val steps: Long,
     val calories: Double
 )
 
-// Класс для питания
 data class MealData(
     val time: Long,
     val name: String,
@@ -42,71 +68,190 @@ class HealthConnectManager(private val context: Context) {
 
     fun isAvailable(): Boolean = HealthConnectClient.getSdkStatus(context) == HealthConnectClient.SDK_AVAILABLE
 
-    fun getPermissions(): Set<String> {
-        return setOf(
-            HealthPermission.getReadPermission(StepsRecord::class),
-            HealthPermission.getReadPermission(TotalCaloriesBurnedRecord::class),
-            HealthPermission.getReadPermission(HeartRateRecord::class),
-            HealthPermission.getReadPermission(SleepSessionRecord::class),
-            HealthPermission.getReadPermission(WeightRecord::class),
-            HealthPermission.getReadPermission(OxygenSaturationRecord::class),
-            HealthPermission.getReadPermission(NutritionRecord::class) // Важно: разрешение на еду
-        )
+    // === ИСПРАВЛЕННЫЙ МЕТОД ДЛЯ ТРЕНИРОВОК ===
+    fun readWorkoutSessions(): ListenableFuture<List<WorkoutSessionData>> {
+        val (start, end) = getTodayRange()
+        val future = SettableFuture.create<List<WorkoutSessionData>>()
+
+        scope.launch {
+            try {
+                // 1. Читаем список сессий
+                val response = healthConnectClient.readRecords(
+                    ReadRecordsRequest(
+                        recordType = ExerciseSessionRecord::class,
+                        timeRangeFilter = TimeRangeFilter.between(start, end)
+                    )
+                )
+
+                val workouts = ArrayList<WorkoutSessionData>()
+
+                // 2. Проходим циклом, чтобы посчитать калории для каждой тренировки отдельно
+                for (record in response.records) {
+                    val duration = java.time.Duration.between(record.startTime, record.endTime).toMinutes()
+
+                    // 3. АГРЕГАЦИЯ: Запрашиваем сумму калорий за время этой тренировки
+                    val aggregationResult = healthConnectClient.aggregate(
+                        AggregateRequest(
+                            metrics = setOf(TotalCaloriesBurnedRecord.ENERGY_TOTAL),
+                            timeRangeFilter = TimeRangeFilter.between(record.startTime, record.endTime)
+                        )
+                    )
+
+                    // 4. Достаем калории (или 0, если данных нет)
+                    val energy = aggregationResult[TotalCaloriesBurnedRecord.ENERGY_TOTAL]
+                    val cals = energy?.inKilocalories?.toLong() ?: 0L
+
+                    val typeName = getExerciseName(record.exerciseType)
+
+                    workouts.add(
+                        WorkoutSessionData(
+                            type = typeName,
+                            startTime = record.startTime.toEpochMilli(),
+                            durationMinutes = duration,
+                            calories = cals
+                        )
+                    )
+                }
+
+                future.set(workouts)
+            } catch (e: Exception) {
+                future.setException(e)
+            }
+        }
+        return future
     }
 
-    fun getPermissionContract() =
-        androidx.health.connect.client.PermissionController.createRequestPermissionResultContract()
+    private fun getExerciseName(type: Int): String {
+        return when (type) {
+            ExerciseSessionRecord.EXERCISE_TYPE_RUNNING -> "Running"
+            ExerciseSessionRecord.EXERCISE_TYPE_WALKING -> "Walking"
+            ExerciseSessionRecord.EXERCISE_TYPE_GYMNASTICS -> "Gymnastics"
+            ExerciseSessionRecord.EXERCISE_TYPE_WEIGHTLIFTING -> "Weightlifting"
+            ExerciseSessionRecord.EXERCISE_TYPE_BIKING -> "Cycling"
+            ExerciseSessionRecord.EXERCISE_TYPE_YOGA -> "Yoga"
+            ExerciseSessionRecord.EXERCISE_TYPE_SWIMMING_POOL,
+            ExerciseSessionRecord.EXERCISE_TYPE_SWIMMING_OPEN_WATER -> "Swimming"
+            ExerciseSessionRecord.EXERCISE_TYPE_HIGH_INTENSITY_INTERVAL_TRAINING -> "HIIT"
+            else -> "Workout"
+        }
+    }
 
-    // Вспомогательный метод: диапазон "Сегодня"
-    private fun getTodayRange(): Pair<Instant, Instant> {
+    fun readSleepSessions(): ListenableFuture<List<SleepSessionData>> {
+        // ИСПРАВЛЕНИЕ: Окно поиска с 12:00 вчерашнего дня до текущего момента.
+        // Это захватит весь ночной сон (например с 21:30 до 08:15) без обрывов на полуночи.
         val now = Instant.now()
-        val startOfDay = now.atZone(ZoneId.systemDefault())
-            .toLocalDate()
-            .atStartOfDay(ZoneId.systemDefault())
-            .toInstant()
-        return Pair(startOfDay, now)
-    }
+        val calendar = java.util.Calendar.getInstance()
+        calendar.add(java.util.Calendar.DAY_OF_YEAR, -1) // Вчерашний день
+        calendar.set(java.util.Calendar.HOUR_OF_DAY, 12) // 12:00 дня
+        calendar.set(java.util.Calendar.MINUTE, 0)
 
-    // ==========================================
-    // === МЕТОДЫ ДЛЯ JAVA (В обход Instant) ===
-    // ==========================================
+        val start = calendar.time.toInstant()
+        val end = now
 
-    fun readStepsForToday(): ListenableFuture<Long> {
+        val future = SettableFuture.create<List<SleepSessionData>>()
+
+        scope.launch {
+            try {
+                val response = healthConnectClient.readRecords(
+                    ReadRecordsRequest(
+                        recordType = SleepSessionRecord::class,
+                        timeRangeFilter = TimeRangeFilter.between(start, end)
+                    )
+                )
+
+                // УБРАН ФИЛЬТР. Теперь мы просто берем всё, что попало в это окно (всю ночь)
+                val sessions = response.records.map { record ->
+                    val totalDuration = java.time.Duration.between(record.startTime, record.endTime).toMinutes()
+
+                    var deep = 0L
+                    var light = 0L
+                    var rem = 0L
+                    var awake = 0L
+
+                    // Суммируем фазы (если они есть от браслета)
+                    for (stage in record.stages) {
+                        val stageDuration = java.time.Duration.between(stage.startTime, stage.endTime).toMinutes()
+                        when (stage.stage) {
+                            SleepSessionRecord.STAGE_TYPE_DEEP -> deep += stageDuration
+                            SleepSessionRecord.STAGE_TYPE_LIGHT -> light += stageDuration
+                            SleepSessionRecord.STAGE_TYPE_REM -> rem += stageDuration
+                            SleepSessionRecord.STAGE_TYPE_AWAKE,
+                            SleepSessionRecord.STAGE_TYPE_AWAKE_IN_BED -> awake += stageDuration
+                        }
+                    }
+
+                    SleepSessionData(
+                        startTime = record.startTime.toEpochMilli(),
+                        endTime = record.endTime.toEpochMilli(),
+                        durationMinutes = totalDuration,
+                        deepSleepMin = deep,
+                        lightSleepMin = light,
+                        remSleepMin = rem,
+                        awakeMin = awake
+                    )
+                }
+                future.set(sessions)
+            } catch (e: Exception) {
+                future.setException(e)
+            }
+        }
+        return future
+    }    fun readOxygenHistory(): ListenableFuture<List<OxygenData>> {
         val (start, end) = getTodayRange()
-        return readSteps(start, end)
+        val future = SettableFuture.create<List<OxygenData>>()
+
+        scope.launch {
+            try {
+                val response = healthConnectClient.readRecords(
+                    ReadRecordsRequest(
+                        recordType = OxygenSaturationRecord::class,
+                        timeRangeFilter = TimeRangeFilter.between(start, end)
+                    )
+                )
+
+                val oxygenList = response.records.map { record ->
+                    OxygenData(
+                        time = record.time.toEpochMilli(),
+                        percentage = record.percentage.value
+                    )
+                }
+                future.set(oxygenList)
+            } catch (e: Exception) {
+                future.setException(e)
+            }
+        }
+        return future
     }
 
-    fun readCaloriesForToday(): ListenableFuture<Double> {
+    fun readHeartRateHistory(): ListenableFuture<List<HeartRateData>> {
         val (start, end) = getTodayRange()
-        return readCalories(start, end)
+        val future = SettableFuture.create<List<HeartRateData>>()
+
+        scope.launch {
+            try {
+                val response = healthConnectClient.readRecords(
+                    ReadRecordsRequest(
+                        recordType = HeartRateRecord::class,
+                        timeRangeFilter = TimeRangeFilter.between(start, end)
+                    )
+                )
+
+                val heartRates = response.records.flatMap { record ->
+                    record.samples.map { sample ->
+                        HeartRateData(
+                            time = sample.time.toEpochMilli(),
+                            bpm = sample.beatsPerMinute
+                        )
+                    }
+                }
+                future.set(heartRates)
+            } catch (e: Exception) {
+                future.setException(e)
+            }
+        }
+        return future
     }
 
-    fun readHeartRateForToday(): ListenableFuture<Long> {
-        val (start, end) = getTodayRange()
-        return readAvgHeartRate(start, end)
-    }
-
-    fun readSleepForToday(): ListenableFuture<Long> {
-        val (start, end) = getTodayRange()
-        return readSleepDuration(start, end)
-    }
-
-    fun readWeightForToday(): ListenableFuture<Double> {
-        val (start, end) = getTodayRange()
-        return readLatestWeight(start, end)
-    }
-
-    fun readOxygenForToday(): ListenableFuture<Double> {
-        val (start, end) = getTodayRange()
-        return readAvgOxygen(start, end)
-    }
-
-    fun readHistoryForToday(): ListenableFuture<List<ActivityBucket>> {
-        val (start, end) = getTodayRange()
-        return readAggregatedData(start, end)
-    }
-
-    // === НОВЫЙ МЕТОД: Чтение питания ===
     fun readMealsForToday(): ListenableFuture<List<MealData>> {
         val (start, end) = getTodayRange()
         val future = SettableFuture.create<List<MealData>>()
@@ -125,8 +270,6 @@ class HealthConnectManager(private val context: Context) {
                     val protein = record.protein?.inGrams ?: 0.0
                     val carbs = record.totalCarbohydrate?.inGrams ?: 0.0
                     val fat = record.totalFat?.inGrams ?: 0.0
-
-                    // Если имя не задано, пишем "Meal"
                     val name = if (!record.name.isNullOrEmpty()) record.name!! else "Meal"
 
                     MealData(
@@ -146,11 +289,6 @@ class HealthConnectManager(private val context: Context) {
         return future
     }
 
-
-    // ==========================================
-    // === ВНУТРЕННИЕ МЕТОДЫ (Private) ===
-    // ==========================================
-
     fun readAggregatedData(startTime: Instant, endTime: Instant): ListenableFuture<List<ActivityBucket>> {
         val future = SettableFuture.create<List<ActivityBucket>>()
         scope.launch {
@@ -159,7 +297,6 @@ class HealthConnectManager(private val context: Context) {
                     AggregateGroupByDurationRequest(
                         metrics = setOf(
                             StepsRecord.COUNT_TOTAL,
-                            // ИСПОЛЬЗУЕМ TOTAL (ЭТО БАЗА + АКТИВНОСТЬ)
                             TotalCaloriesBurnedRecord.ENERGY_TOTAL
                         ),
                         timeRangeFilter = TimeRangeFilter.between(startTime, endTime),
@@ -170,8 +307,6 @@ class HealthConnectManager(private val context: Context) {
                 val buckets = response.map { bucket ->
                     val startEpoch = bucket.startTime.toEpochMilli()
                     val steps = bucket.result[StepsRecord.COUNT_TOTAL] ?: 0L
-
-                    // Получаем общие калории
                     val cals = bucket.result[TotalCaloriesBurnedRecord.ENERGY_TOTAL]?.inKilocalories ?: 0.0
 
                     ActivityBucket(startEpoch, steps, cals)
@@ -183,6 +318,55 @@ class HealthConnectManager(private val context: Context) {
         }
         return future
     }
+
+    // === Простые методы чтения ===
+
+    fun readStepsForToday(): ListenableFuture<Long> {
+        val (start, end) = getTodayRange()
+        return readSteps(start, end)
+    }
+
+    fun readCaloriesForToday(): ListenableFuture<Double> {
+        val (start, end) = getTodayRange()
+        return readCalories(start, end)
+    }
+
+    fun readHeartRateForToday(): ListenableFuture<Long> {
+        val (start, end) = getTodayRange()
+        return readAvgHeartRate(start, end)
+    }
+
+    fun readSleepForToday(): ListenableFuture<Long> {
+        // Берем данные с 12:00 вчерашнего дня, чтобы не обрезать сон на 00:00
+        val now = Instant.now()
+        val calendar = java.util.Calendar.getInstance()
+        calendar.add(java.util.Calendar.DAY_OF_YEAR, -1)
+        calendar.set(java.util.Calendar.HOUR_OF_DAY, 12)
+        calendar.set(java.util.Calendar.MINUTE, 0)
+
+        val start = calendar.time.toInstant()
+        val end = now
+
+        return readSleepDuration(start, end)
+    }
+
+    fun readWeightForToday(): ListenableFuture<Double> {
+        val (start, end) = getTodayRange()
+        return readLatestWeight(start, end)
+    }
+
+    fun readOxygenForToday(): ListenableFuture<Double> {
+        val (start, end) = getTodayRange()
+        return readAvgOxygen(start, end)
+    }
+
+    fun readHistoryForToday(): ListenableFuture<List<ActivityBucket>> {
+        val (start, end) = getTodayRange()
+        return readAggregatedData(start, end)
+    }
+
+    // === Приватные вспомогательные методы ===
+
     private fun readSteps(startTime: Instant, endTime: Instant): ListenableFuture<Long> {
         val future = SettableFuture.create<Long>()
         scope.launch {
@@ -260,5 +444,30 @@ class HealthConnectManager(private val context: Context) {
             } catch (e: Exception) { future.setException(e) }
         }
         return future
+    }
+
+    fun getPermissions(): Set<String> {
+        return setOf(
+            HealthPermission.getReadPermission(StepsRecord::class),
+            HealthPermission.getReadPermission(TotalCaloriesBurnedRecord::class),
+            HealthPermission.getReadPermission(HeartRateRecord::class),
+            HealthPermission.getReadPermission(SleepSessionRecord::class),
+            HealthPermission.getReadPermission(WeightRecord::class),
+            HealthPermission.getReadPermission(OxygenSaturationRecord::class),
+            HealthPermission.getReadPermission(NutritionRecord::class),
+            HealthPermission.getReadPermission(ExerciseSessionRecord::class)
+        )
+    }
+
+    fun getPermissionContract() =
+        androidx.health.connect.client.PermissionController.createRequestPermissionResultContract()
+
+    private fun getTodayRange(): Pair<Instant, Instant> {
+        val now = Instant.now()
+        val startOfDay = now.atZone(ZoneId.systemDefault())
+            .toLocalDate()
+            .atStartOfDay(ZoneId.systemDefault())
+            .toInstant()
+        return Pair(startOfDay, now)
     }
 }

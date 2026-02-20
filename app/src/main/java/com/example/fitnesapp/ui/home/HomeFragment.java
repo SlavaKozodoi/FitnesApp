@@ -85,33 +85,38 @@ public class HomeFragment extends Fragment {
             }
         });
 
-        // --- График Пульса + Текст ---
+        // --- 1. График Пульса (Используем всю историю) ---
         homeViewModel.getPulseHistory().observe(getViewLifecycleOwner(), pulseList -> {
-            if (pulseList != null && !pulseList.isEmpty()) {
-                // Сортировка
-                Collections.sort(pulseList, (o1, o2) -> Long.compare(o1.time, o2.time));
-
-                // Текст (последнее значение)
-                HealthLogItem lastItem = pulseList.get(pulseList.size() - 1);
-                binding.tvPulse.setText((int) lastItem.val + " bpm");
-
-                // График
-                setupPulseChart(pulseList);
-            } else {
-                binding.tvPulse.setText("-- bpm");
-                if (binding.chartPulse != null) binding.chartPulse.clear();
+            if (pulseList != null) {
+                setupPulseChart(pulseList); // Строим график
             }
         });
 
-        // --- График Веса + Текст (ИСПРАВЛЕНО ЗДЕСЬ) ---
+        // --- 2. Текст Пульса (Используем только значение за сегодня) ---
+        // Если сегодня замеров не было, придет null, и мы покажем "--"
+        homeViewModel.getTodayPulseValue().observe(getViewLifecycleOwner(), currentPulse -> {
+            if (currentPulse != null) {
+                binding.tvPulse.setText(currentPulse + " bpm");
+            } else {
+                binding.tvPulse.setText("-- bpm");
+            }
+        });
+
+        // --- График Веса + Текст ---
         homeViewModel.getWeightHistory().observe(getViewLifecycleOwner(), weightList -> {
             if (weightList != null && !weightList.isEmpty()) {
-                // 1. Строим график
+                // 1. Сначала СОРТИРУЕМ список по дате (от старых к новым)
+                // Это гарантирует, что последний элемент - это действительно самая свежая запись
+                Collections.sort(weightList, (o1, o2) -> {
+                    if (o1.date == null) return -1;
+                    if (o2.date == null) return 1;
+                    return o1.date.compareTo(o2.date);
+                });
+
+                // 2. Строим график (передаем уже отсортированный список)
                 setupWeightChart(weightList);
 
-                // 2. Обновляем ТЕКСТ (берем последний элемент списка)
-                // Так как список приходит из Firebase, он может быть не отсортирован,
-                // но setupWeightChart его сортирует. На всякий случай берем последний добавленный.
+                // 3. Берем последний элемент (теперь мы уверены, что он последний по времени)
                 WeightHistoryItem latestWeight = weightList.get(weightList.size() - 1);
                 binding.tvWeight.setText(String.format(Locale.US, "%.1f kg", latestWeight.val));
             } else {
@@ -132,28 +137,55 @@ public class HomeFragment extends Fragment {
 
     private void updateDashboardWithRealData(DailyData data) {
         // --- ЧАСТЬ 1: КРУГ И ЦЕЛИ ---
-        float caloriesGoal = (data.caloriesGoal > 0) ? data.caloriesGoal : 2000f;
-        float stepsGoal = (data.stepsGoal > 0) ? data.stepsGoal : 10000f;
-        float nutritionGoal = (data.nutrition != null && data.nutrition.maxCalories > 0)
-                ? data.nutrition.maxCalories : 2000f;
+        // Получаем текущие значения и цели из базы (без заглушек)
+        float caloriesGoal = data.caloriesGoal;
+        float stepsGoal = data.stepsGoal;
+        float nutritionGoal = (data.nutrition != null) ? data.nutrition.maxCalories : 0f;
 
         float caloriesCurrent = data.caloriesBurned;
         float stepsCurrent = data.steps;
-        float nutritionCurrent = (data.nutrition != null) ? data.nutrition.totalCalories : 0;
+        float nutritionCurrent = (data.nutrition != null) ? data.nutrition.totalCalories : 0f;
 
-        float calP = (caloriesGoal > 0) ? (caloriesCurrent / caloriesGoal) : 0f;
-        float stepP = (stepsGoal > 0) ? (stepsCurrent / stepsGoal) : 0f;
-        float nutP = (nutritionGoal > 0) ? (nutritionCurrent / nutritionGoal) : 0f;
+        // Переменные для умного подсчета
+        float totalPercent = 0f;
+        int activeGoalsCount = 0; // Считаем, сколько целей реально задано
 
-        if (calP > 1f) calP = 1f;
-        if (stepP > 1f) stepP = 1f;
-        if (nutP > 1f) nutP = 1f;
+        // 1. Считаем Калории
+        if (caloriesGoal > 0) {
+            float calP = Math.min(caloriesCurrent / caloriesGoal, 1f); // Не больше 100% (1.0)
+            totalPercent += calP;
+            activeGoalsCount++;
+        }
 
-        float totalPercentVal = ((calP + stepP + nutP) / 3f) * 100f;
+        // 2. Считаем Шаги
+        if (stepsGoal > 0) {
+            float stepP = Math.min(stepsCurrent / stepsGoal, 1f);
+            totalPercent += stepP;
+            activeGoalsCount++;
+        }
 
+        // 3. Считаем Питание
+        if (nutritionGoal > 0) {
+            float nutP = Math.min(nutritionCurrent / nutritionGoal, 1f);
+            totalPercent += nutP;
+            activeGoalsCount++;
+        }
+
+        // Вычисляем итоговый средний процент (только по активным целям)
+        float finalPercentVal = 0f;
+        if (activeGoalsCount > 0) {
+            finalPercentVal = (totalPercent / (float) activeGoalsCount) * 100f;
+        }
+
+        // Отрисовка круга с нашей новой логикой анимации
         binding.progressCalories.setProgressMax(100f);
-        binding.progressCalories.setProgressWithAnimation(totalPercentVal, 900L);
-        binding.tvGoalPercent.setText(Math.round(totalPercentVal) + "%");
+        if (!homeViewModel.isDashboardAnimated()) {
+            binding.progressCalories.setProgressWithAnimation(finalPercentVal, 900L);
+            homeViewModel.setDashboardAnimated(true);
+        } else {
+            binding.progressCalories.setProgress(finalPercentVal);
+        }
+        binding.tvGoalPercent.setText(Math.round(finalPercentVal) + "%");
 
         if (binding.tvCaloriesValue != null) binding.tvCaloriesValue.setText(String.valueOf((int) caloriesCurrent));
         if (binding.tvCaloriesGoal != null) binding.tvCaloriesGoal.setText("/" + (int) caloriesGoal + getString(R.string.short_text_calories));
@@ -166,7 +198,6 @@ public class HomeFragment extends Fragment {
 
 
         // --- ЧАСТЬ 2: НИЖНИЕ КАРТОЧКИ (Сон, Кислород) ---
-        // Заметка: Пульс и Вес перенесены в свои Observer'ы в onCreateView
 
         // --- КИСЛОРОД (Последнее значение) ---
         if (data.oxygen != null && !data.oxygen.isEmpty()) {
@@ -265,13 +296,7 @@ public class HomeFragment extends Fragment {
         LineChart chart = binding.chartWeight;
         if (chart == null || dataValues == null || dataValues.isEmpty()) return;
 
-        // Сортировка по дате
-        Collections.sort(dataValues, (o1, o2) -> {
-            if (o1.date == null) return -1;
-            if (o2.date == null) return 1;
-            return o1.date.compareTo(o2.date);
-        });
-
+        // Здесь список уже отсортирован в observer, но для графика это тоже не повредит
         ArrayList<Entry> entries = new ArrayList<>();
         for (int i = 0; i < dataValues.size(); i++) {
             entries.add(new Entry(i, (float) dataValues.get(i).val));

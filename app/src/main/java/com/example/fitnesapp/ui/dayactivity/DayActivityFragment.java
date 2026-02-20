@@ -108,10 +108,10 @@ public class DayActivityFragment extends Fragment {
 
         // --- БЛОК 1: ШАГИ И КАЛОРИИ ---
         binding.tvStepsScore.setText(String.valueOf(data.steps));
-        binding.tvStepsGoal.setText("Goal: " + (data.stepsGoal > 0 ? data.stepsGoal : 10000));
+        binding.tvStepsGoal.setText("Goal: " + (data.stepsGoal >= 0 ? data.stepsGoal : 10000));
 
         binding.tvCaloriesScore.setText(String.valueOf(data.caloriesBurned));
-        binding.tvCaloriesGoal.setText("Goal: " + (data.caloriesGoal > 0 ? data.caloriesGoal : 2000));
+        binding.tvCaloriesGoal.setText("Goal: " + (data.caloriesGoal >= 0 ? data.caloriesGoal : 2000));
 
         // --- БЛОК 2: ПИТАНИЕ ---
         if (data.nutrition != null) {
@@ -173,12 +173,18 @@ public class DayActivityFragment extends Fragment {
     }
 
     private void setup30MinCharts(Map<String, HourlyActivityItem> hourlyMap) {
-        // 1. Агрегация шагов по 30 минутам
+        // 1. Подготовка корзин (48 интервалов по 30 мин)
         float[] stepsBuckets = new float[48];
+        long dataTimestamp = 0; // Для проверки даты
 
+        // 2. Раскладываем ШАГИ по корзинам
         for (HourlyActivityItem item : hourlyMap.values()) {
             Calendar cal = Calendar.getInstance();
             cal.setTimeInMillis(item.time);
+
+            // Сохраняем время любой записи, чтобы понять, какой это день
+            if (dataTimestamp == 0) dataTimestamp = item.time;
+
             int hour = cal.get(Calendar.HOUR_OF_DAY);
             int minute = cal.get(Calendar.MINUTE);
             int index = (hour * 2) + (minute >= 30 ? 1 : 0);
@@ -188,16 +194,44 @@ public class DayActivityFragment extends Fragment {
             }
         }
 
-        // 2. Расчет калорий (BMR + Активность)
+        // ============================================================
+        // 3. ОПРЕДЕЛЯЕМ: ЭТО СЕГОДНЯ ИЛИ ИСТОРИЯ?
+        // ============================================================
+        boolean isToday;
+        if (dataTimestamp > 0) {
+            // Если данные есть, проверяем их дату
+            isToday = android.text.format.DateUtils.isToday(dataTimestamp);
+        } else {
+            // Если данных нет (пустой день), считаем по логике:
+            // Если мы пришли с календаря, activity знает дату, но здесь мы упростим:
+            // Если пусто, нарисуем до текущего момента (безопасный вариант)
+            isToday = true;
+        }
+
+        // Определяем индекс обрезки графика
+        int limitIndex;
+        if (isToday) {
+            // Если СЕГОДНЯ: рисуем до текущего времени
+            Calendar now = Calendar.getInstance();
+            int currentHour = now.get(Calendar.HOUR_OF_DAY);
+            int currentMinute = now.get(Calendar.MINUTE);
+            limitIndex = (currentHour * 2) + (currentMinute >= 30 ? 1 : 0);
+        } else {
+            // Если ПРОШЛОЕ: рисуем весь день до конца (23:30 = индекс 47)
+            limitIndex = 47;
+        }
+
+        // ============================================================
+        // 4. РАСЧЕТ КАЛОРИЙ ВРУЧНУЮ (BMR + Activity)
+        // ============================================================
+
         UserProfile profile = mViewModel.getUserProfile().getValue();
 
         double weight = (profile != null && profile.weight > 0) ? profile.weight : 75.0;
         double height = (profile != null && profile.height > 0) ? profile.height : 175.0;
-        // Используем метод getAge(), который мы добавили в UserProfile
         int age = (profile != null) ? profile.getAge() : 25;
         boolean isMale = (profile == null) || "Male".equalsIgnoreCase(profile.gender);
 
-        // Формула Миффлина-Сан Жеора
         double bmr;
         if (isMale) {
             bmr = (10 * weight) + (6.25 * height) - (5 * age) + 5;
@@ -205,25 +239,26 @@ public class DayActivityFragment extends Fragment {
             bmr = (10 * weight) + (6.25 * height) - (5 * age) - 161;
         }
 
-        double bmrPer30Min = bmr / 48.0; // База за 30 мин
-        double calsPerStep = 0.045;      // Активность за 1 шаг
+        double bmrPer30Min = bmr / 48.0;
+        double calsPerStep = 0.045;
 
         float[] calculatedCals = new float[48];
+
         for (int i = 0; i < 48; i++) {
             calculatedCals[i] = (float) (bmrPer30Min + (stepsBuckets[i] * calsPerStep));
         }
 
-        // 3. Обрезка будущего
-        Calendar now = Calendar.getInstance();
-        int currentHour = now.get(Calendar.HOUR_OF_DAY);
-        int currentMinute = now.get(Calendar.MINUTE);
-        int currentIndex = (currentHour * 2) + (currentMinute >= 30 ? 1 : 0);
+        // ============================================================
+        // 5. ФОРМИРУЕМ ДАННЫЕ ДЛЯ ОТРИСОВКИ
+        // ============================================================
 
         ArrayList<Entry> stepsEntries = new ArrayList<>();
         ArrayList<Entry> calEntries = new ArrayList<>();
         ArrayList<String> labels = new ArrayList<>();
 
-        for (int i = 0; i <= currentIndex; i++) {
+        // Цикл идет от 00:00 до limitIndex
+        // Если сегодня - до сейчас. Если вчера - до 23:30.
+        for (int i = 0; i <= limitIndex; i++) {
             stepsEntries.add(new Entry(i, stepsBuckets[i]));
             calEntries.add(new Entry(i, calculatedCals[i]));
 
@@ -233,6 +268,7 @@ public class DayActivityFragment extends Fragment {
             labels.add(timeLabel);
         }
 
+        // 6. Отрисовка
         String[] labelsArr = labels.toArray(new String[0]);
 
         if (stepsEntries.isEmpty()) {

@@ -1,37 +1,30 @@
 package com.example.fitnesapp.ui.setupprofile;
 
 import android.annotation.SuppressLint;
-import android.os.Bundle;
-
-import androidx.activity.EdgeToEdge;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
-
-import com.example.fitnesapp.MainActivity;
-import com.example.fitnesapp.R;
-
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.fitnesapp.MainActivity;
+import com.example.fitnesapp.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 public class SetupProfileActivity extends AppCompatActivity {
 
-    private EditText etName,etSurname, etWeight, etHeight, etBirthDate;
+    private EditText etName, etSurname, etWeight, etHeight, etBirthDate;
     private RadioGroup rgGender;
     private Button btnSave;
     private DatabaseReference mDatabase;
@@ -43,7 +36,10 @@ public class SetupProfileActivity extends AppCompatActivity {
         setContentView(R.layout.activity_setup_profile);
 
         String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        mDatabase = FirebaseDatabase.getInstance().getReference("users").child(uid).child("profile");
+
+        // ВАЖНО: Ссылка теперь указывает на корень пользователя (users/{uid}),
+        // чтобы мы могли писать и в "profile", и в "health_logs"
+        mDatabase = FirebaseDatabase.getInstance().getReference("users").child(uid);
 
         etName = findViewById(R.id.etName);
         etSurname = findViewById(R.id.etSurname);
@@ -53,9 +49,9 @@ public class SetupProfileActivity extends AppCompatActivity {
         rgGender = findViewById(R.id.rgGender);
         btnSave = findViewById(R.id.btnSaveProfile);
 
+        // Логика форматирования даты (без изменений)
         etBirthDate.addTextChangedListener(new android.text.TextWatcher() {
             private boolean isUpdating = false;
-            // Получаем текущий год заранее
             private final int currentYear = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR);
 
             @Override
@@ -66,76 +62,44 @@ public class SetupProfileActivity extends AppCompatActivity {
 
             @Override
             public void afterTextChanged(android.text.Editable s) {
-                // Защита от бесконечного цикла
-                if (isUpdating) {
-                    return;
-                }
+                if (isUpdating) return;
                 isUpdating = true;
 
                 String str = s.toString();
-                // Оставляем только цифры
                 String nums = str.replaceAll("[^\\d]", "");
 
-                // === ВАЛИДАЦИЯ ===
-
-                // 1. Проверка ДНЯ (если введено хотя бы 2 цифры)
                 if (nums.length() >= 2) {
                     try {
                         int day = Integer.parseInt(nums.substring(0, 2));
-                        if (day > 31) {
-                            // Если больше 31, меняем первые две цифры на "31"
-                            nums = "31" + nums.substring(2);
-                        } else if (day == 0) {
-                            // Если 0, можно менять на 1, но пока оставим как есть, чтобы человек мог набрать 01
-                        }
+                        if (day > 31) nums = "31" + nums.substring(2);
                     } catch (NumberFormatException e) {}
                 }
 
-                // 2. Проверка МЕСЯЦА (если введено хотя бы 4 цифры: ДДММ)
                 if (nums.length() >= 4) {
                     try {
                         int month = Integer.parseInt(nums.substring(2, 4));
-                        if (month > 12) {
-                            // Если больше 12, меняем на "12"
-                            nums = nums.substring(0, 2) + "12" + nums.substring(4);
-                        } else if (month == 0) {
-                            // Аналогично, если 00 - можно менять на 01, но дадим пользователю дописать
-                        }
+                        if (month > 12) nums = nums.substring(0, 2) + "12" + nums.substring(4);
                     } catch (NumberFormatException e) {}
                 }
 
-                // 3. Проверка ГОДА (если введено 8 цифр: ДДММГГГГ)
                 if (nums.length() >= 8) {
                     try {
                         int year = Integer.parseInt(nums.substring(4, 8));
-                        if (year > currentYear) {
-                            // Если год из будущего, ставим текущий год
-                            nums = nums.substring(0, 4) + currentYear;
-                        }
-                        // Можно добавить минимальный год, например 1900
-                        if (year < 1900 && nums.length() == 8) {
-                            // nums = nums.substring(0, 4) + "1900"; // По желанию
-                        }
+                        if (year > currentYear) nums = nums.substring(0, 4) + currentYear;
                     } catch (NumberFormatException e) {}
                 }
 
-                // === ФОРМАТИРОВАНИЕ (добавляем точки) ===
                 StringBuilder sb = new StringBuilder();
                 for (int i = 0; i < nums.length(); i++) {
                     sb.append(nums.charAt(i));
-                    // Ставим точки после 2-го и 4-го символа
                     if ((i == 1 || i == 3) && i < nums.length() - 1) {
                         sb.append('.');
                     }
                 }
 
-                // Обрезаем лишнее (макс 10 символов "ДД.ММ.ГГГГ")
-                if (sb.length() > 10) {
-                    sb.setLength(10);
-                }
-
+                if (sb.length() > 10) sb.setLength(10);
                 etBirthDate.setText(sb.toString());
-                etBirthDate.setSelection(sb.length()); // Курсор в конец
+                etBirthDate.setSelection(sb.length());
 
                 isUpdating = false;
             }
@@ -151,39 +115,57 @@ public class SetupProfileActivity extends AppCompatActivity {
         String heightStr = etHeight.getText().toString();
         String birthDate = etBirthDate.getText().toString();
 
-
-
-        // Определяем пол
-        int selectedId = rgGender.getCheckedRadioButtonId();
-        String gender = "Male"; // По умолчанию
-        if (selectedId == R.id.rbFemale) gender = "Female";
-
         if (weightStr.isEmpty() || heightStr.isEmpty() || birthDate.isEmpty()) {
             Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // TODO: 12.01.2026 добавить добавление большего количевства данных
-        // Готовим данные для обновления
-        Map<String, Object> updates = new HashMap<>();
-        updates.put("firstName",nameStr);
-        updates.put("secondName",surnameStr);
-        updates.put("weight", Double.parseDouble(weightStr));
-        updates.put("height", Integer.parseInt(heightStr));
-        updates.put("birthDate", birthDate);
-        updates.put("gender", gender);
-        // Можно сразу выставить дефолтные цели
-        updates.put("maxXp", 1000);
-        updates.put("totalXP", 0);
+        // Определяем пол
+        int selectedId = rgGender.getCheckedRadioButtonId();
+        String gender = "Male";
+        if (selectedId == R.id.rbFemale) gender = "Female";
 
-        // Обновляем профиль в базе
-        mDatabase.updateChildren(updates).addOnCompleteListener(task -> {
+        double weightVal = Double.parseDouble(weightStr);
+        int heightVal = Integer.parseInt(heightStr);
+
+        // === ПОДГОТОВКА ДАННЫХ ДЛЯ ЗАПИСИ ===
+        Map<String, Object> allUpdates = new HashMap<>();
+
+        // 1. Данные ПРОФИЛЯ (пишем в папку "profile")
+        // Заметьте: weight мы сюда НЕ пишем
+        allUpdates.put("profile/firstName", nameStr);
+        allUpdates.put("profile/secondName", surnameStr);
+        allUpdates.put("profile/height", heightVal);
+        allUpdates.put("profile/birthDate", birthDate);
+        allUpdates.put("profile/gender", gender);
+        allUpdates.put("profile/maxXp", 1000);
+        allUpdates.put("profile/totalXP", 0);
+        allUpdates.put("profile/notificationsEnabled", true);
+
+        // 2. Данные ИСТОРИИ ВЕСА (пишем в папку "health_logs/weight_history")
+        // Генерируем уникальный ключ
+        String weightKey = mDatabase.child("health_logs").child("weight_history").push().getKey();
+
+        long timestamp = System.currentTimeMillis();
+        String dateStr = new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(new Date());
+
+        Map<String, Object> weightData = new HashMap<>();
+        weightData.put("val", weightVal);
+        weightData.put("timestamp", timestamp);
+        weightData.put("date", dateStr);
+
+        if (weightKey != null) {
+            allUpdates.put("health_logs/weight_history/" + weightKey, weightData);
+        }
+
+        // 3. Выполняем ВСЕ обновления одним запросом
+        mDatabase.updateChildren(allUpdates).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 // Все готово, идем на главный экран
                 startActivity(new Intent(SetupProfileActivity.this, MainActivity.class));
                 finishAffinity();
             } else {
-                Toast.makeText(this, "Error saving data", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Error saving data: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }

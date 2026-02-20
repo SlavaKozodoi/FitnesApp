@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -15,20 +14,17 @@ import androidx.lifecycle.ViewModelProvider;
 import com.example.fitnesapp.R;
 import com.example.fitnesapp.databinding.FragmentSleepBinding;
 import com.example.fitnesapp.models.firebase.DailyData;
-import com.example.fitnesapp.models.firebase.SleepStageItem; // Ваша новая модель
+import com.example.fitnesapp.models.firebase.SleepStageItem;
 import com.example.fitnesapp.utils.ChartHelper;
 import com.example.fitnesapp.utils.DateHelper;
-import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.charts.PieChart;
-import com.github.mikephil.charting.components.XAxis;
+import com.github.mikephil.charting.components.AxisBase;
 import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.Entry;
-import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
-import com.github.mikephil.charting.formatter.IndexAxisValueFormatter;
 import com.github.mikephil.charting.formatter.ValueFormatter;
 
 import java.text.SimpleDateFormat;
@@ -70,7 +66,7 @@ public class SleepFragment extends Fragment {
             }
         });
 
-        // 2. Данные о сне (вся логика тут)
+        // 2. Данные о сне
         mViewModel.getSleepData().observe(getViewLifecycleOwner(), this::updateSleepUI);
     }
 
@@ -111,7 +107,7 @@ public class SleepFragment extends Fragment {
         if (sleep.hypnogram != null && !sleep.hypnogram.isEmpty()) {
             setupRealSleepChart(sleep.hypnogram);
         } else {
-            binding.chartSleepInfo.clear(); // Если данных нет, очищаем
+            binding.chartSleepInfo.clear();
         }
     }
 
@@ -126,29 +122,60 @@ public class SleepFragment extends Fragment {
 
         for (int i = 0; i < dataPoints.size(); i++) {
             SleepStageItem item = dataPoints.get(i);
-
-            // Y = Фаза (0, 1, 2, 3)
+            // Y = Фаза (1=Deep, 2=Light, 3=REM, 4=Awake)
             entries.add(new Entry(i, item.stage));
-
-            // X Label = Время ("23:00")
+            // X Label = Время
             labelsList.add(timeFormat.format(new Date(item.time)));
         }
 
-        // Превращаем список подписей в массив
         String[] labels = labelsList.toArray(new String[0]);
 
-        // 2. ИСПОЛЬЗУЕМ ChartHelper (Как в пульсе)
-        // Он сам сделает график плавным, уберет лишние оси и настроит градиент
+        // 2. Базовая настройка через ChartHelper
         ChartHelper.setupUnifiedChart(
                 requireContext(),
                 binding.chartSleepInfo,
                 entries,
                 labels,
-                R.color.sleep_start, // Убедитесь, что эти цвета есть в colors.xml
+                R.color.sleep_start,
                 R.color.sleep_end,
-                true // Включить заливку градиентом
+                true
         );
+
+        // 3. СПЕЦИФИЧЕСКАЯ НАСТРОЙКА ДЛЯ СНА
+        if (binding.chartSleepInfo.getData() != null &&
+                binding.chartSleepInfo.getData().getDataSetCount() > 0) {
+
+            LineDataSet set = (LineDataSet) binding.chartSleepInfo.getData().getDataSetByIndex(0);
+
+            // ВАЖНО: Делаем линии прямоугольными (ступеньки), а не плавными
+            set.setMode(LineDataSet.Mode.STEPPED);
+            set.setDrawCircles(false); // Убираем точки
+            set.setDrawValues(false);  // Убираем цифры значений
+
+            binding.chartSleepInfo.invalidate();
+        }
+
+        // 4. Настройка оси Y (Текстовые метки вместо цифр)
+        YAxis leftAxis = binding.chartSleepInfo.getAxisLeft();
+        leftAxis.setGranularity(1f); // Шаг 1
+        leftAxis.setAxisMinimum(0.5f); // Немного отступа снизу
+        leftAxis.setAxisMaximum(4.5f); // Немного отступа сверху
+        leftAxis.setValueFormatter(new ValueFormatter() {
+            @Override
+            public String getAxisLabel(float value, AxisBase axis) {
+                // Маппинг цифр в названия
+                int val = (int) value;
+                switch (val) {
+                    case 4: return "Awake";
+                    case 3: return "REM";
+                    case 2: return "Light";
+                    case 1: return "Deep";
+                    default: return "";
+                }
+            }
+        });
     }
+
     private void updatePhase(PieChart chart, android.widget.TextView tvPercent, android.widget.TextView tvTime,
                              int percentage, int totalDurationMin, int color) {
         tvPercent.setText(percentage + "%");
@@ -162,29 +189,51 @@ public class SleepFragment extends Fragment {
     private void setupMiniPie(PieChart chart, int percentage, int color) {
         if (chart == null) return;
         List<PieEntry> entries = new ArrayList<>();
+        // Данные: сколько заняла фаза vs сколько осталось
         entries.add(new PieEntry((float) percentage));
         entries.add(new PieEntry((float) (100 - percentage)));
+
         PieDataSet dataSet = new PieDataSet(entries, "");
+        // Цвет фазы и цвет фона (темно-серый)
         dataSet.setColors(color, Color.parseColor("#232D36"));
         dataSet.setDrawValues(false);
+
         PieData data = new PieData(dataSet);
         chart.setData(data);
+
+        // Отключаем лишнее
         chart.setDescription(null);
         chart.getLegend().setEnabled(false);
         chart.setTouchEnabled(false);
+
+        // Делаем "Бублик" (Donut chart)
         chart.setDrawHoleEnabled(true);
         chart.setHoleColor(Color.TRANSPARENT);
         chart.setHoleRadius(70f);
         chart.setTransparentCircleRadius(0f);
-        chart.setMinOffset(0f);
+
         chart.invalidate();
     }
 
     private void clearUI() {
         binding.tvSleepScore.setText("--");
         binding.tvSleepQuality.setText("--");
+        binding.tvSleepTime.setText("--");
+        binding.tvGettingIntoBed.setText("--:--");
+        binding.tvAwaking.setText("--:--");
+        binding.tvFallAsleep.setText("-- min");
         binding.chartSleepInfo.clear();
-        // ... очистка остальных полей (как в прошлом коде) ...
+
+        // Очистка пай-чартов (ставим 0)
+        setupMiniPie(binding.chartDeep, 0, Color.GRAY);
+        setupMiniPie(binding.chartSurface, 0, Color.GRAY);
+        setupMiniPie(binding.chartFast, 0, Color.GRAY);
+        setupMiniPie(binding.chartAwake, 0, Color.GRAY);
+
+        binding.tvDeepPercent.setText("0%"); binding.tvDeepTime.setText("-");
+        binding.tvSurfacePercent.setText("0%"); binding.tvSurfaceTime.setText("-");
+        binding.tvFastPercent.setText("0%"); binding.tvFastTime.setText("-");
+        binding.tvAwakePercent.setText("0%"); binding.tvAwakeTime.setText("-");
     }
 
     private void setupCalendar() {

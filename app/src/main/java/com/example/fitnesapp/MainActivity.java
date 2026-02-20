@@ -14,11 +14,17 @@ import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
+import androidx.work.Constraints;
+import androidx.work.ExistingPeriodicWorkPolicy;
+import androidx.work.NetworkType;
+import androidx.work.PeriodicWorkRequest;
+import androidx.work.WorkManager;
 
 import com.example.fitnesapp.databinding.ActivityMainBinding;
 import com.example.fitnesapp.models.firebase.HourlyActivityItem;
 import com.example.fitnesapp.utils.ActivityBucket;
 import com.example.fitnesapp.utils.HealthConnectManager;
+import com.example.fitnesapp.utils.HealthSyncWorker;
 import com.example.fitnesapp.utils.MealData;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.common.util.concurrent.FutureCallback;
@@ -28,6 +34,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -35,6 +42,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -120,6 +128,44 @@ public class MainActivity extends AppCompatActivity {
                 Navigation.findNavController(this,R.id.nav_host_fragment_activity_main).navigate(R.id.historyAchievementsFragment);
             }
         });
+
+        scheduleDailyHealthSync();
+    }
+
+    private void scheduleDailyHealthSync() {
+        // 1. Считаем, сколько времени осталось до 23:30
+        Calendar currentDate = Calendar.getInstance();
+        Calendar dueDate = Calendar.getInstance();
+        dueDate.set(Calendar.HOUR_OF_DAY, 23);
+        dueDate.set(Calendar.MINUTE, 30);
+        dueDate.set(Calendar.SECOND, 0);
+
+        // Если 23:30 уже прошло, планируем на завтра
+        if (dueDate.before(currentDate)) {
+            dueDate.add(Calendar.HOUR_OF_DAY, 24);
+        }
+
+        long timeDiff = dueDate.getTimeInMillis() - currentDate.getTimeInMillis();
+
+        // 2. Настраиваем условия (обязательно нужен интернет)
+        Constraints constraints = new Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .build();
+
+        // 3. Создаем задачу (выполнять каждые 24 часа)
+        PeriodicWorkRequest syncRequest = new PeriodicWorkRequest.Builder(
+                HealthSyncWorker.class, 24, TimeUnit.HOURS)
+                .setInitialDelay(timeDiff, TimeUnit.MILLISECONDS) // Откладываем до 23:30
+                .setConstraints(constraints)
+                .build();
+
+        // 4. Отправляем в WorkManager
+        // Используем KEEP, чтобы не перезапускать таймер, если задача уже запланирована
+        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+                "DailyHealthSyncTask",
+                ExistingPeriodicWorkPolicy.KEEP,
+                syncRequest
+        );
     }
 
     private void syncHealthData() {
@@ -201,6 +247,46 @@ public class MainActivity extends AppCompatActivity {
             }
             @Override
             public void onFailure(Throwable t) { Log.e("HEALTH", "Nutrition sync failed", t); }
+        }, Executors.newSingleThreadExecutor());
+
+        // 9. ПУЛЬС
+        Futures.addCallback(healthManager.readHeartRateHistory(), new FutureCallback<List<com.example.fitnesapp.utils.HeartRateData>>() {
+            @Override
+            public void onSuccess(List<com.example.fitnesapp.utils.HeartRateData> data) {
+                savePulseToFirebase(data);
+            }
+            @Override
+            public void onFailure(Throwable t) { Log.e("HEALTH", "Pulse sync failed", t); }
+        }, Executors.newSingleThreadExecutor());
+
+        // 10. КИСЛОРОД (ДЕТАЛЬНАЯ ИСТОРИЯ)
+        Futures.addCallback(healthManager.readOxygenHistory(), new FutureCallback<List<com.example.fitnesapp.utils.OxygenData>>() {
+            @Override
+            public void onSuccess(List<com.example.fitnesapp.utils.OxygenData> data) {
+                saveOxygenToFirebase(data);
+            }
+            @Override
+            public void onFailure(Throwable t) { Log.e("HEALTH", "Oxygen sync failed", t); }
+        }, Executors.newSingleThreadExecutor());
+
+        // 11. СОН (ДЕТАЛЬНЫЕ СЕССИИ)
+        Futures.addCallback(healthManager.readSleepSessions(), new FutureCallback<List<com.example.fitnesapp.utils.SleepSessionData>>() {
+            @Override
+            public void onSuccess(List<com.example.fitnesapp.utils.SleepSessionData> data) {
+                saveSleepSessionsToFirebase(data);
+            }
+            @Override
+            public void onFailure(Throwable t) { Log.e("HEALTH", "Sleep sessions fail", t); }
+        }, Executors.newSingleThreadExecutor());
+
+        // 12. ТРЕНИРОВКИ
+        Futures.addCallback(healthManager.readWorkoutSessions(), new FutureCallback<List<com.example.fitnesapp.utils.WorkoutSessionData>>() {
+            @Override
+            public void onSuccess(List<com.example.fitnesapp.utils.WorkoutSessionData> data) {
+                saveWorkoutsToFirebase(data);
+            }
+            @Override
+            public void onFailure(Throwable t) { Log.e("HEALTH", "Workouts sync fail", t); }
         }, Executors.newSingleThreadExecutor());
     }
 
@@ -374,5 +460,168 @@ public class MainActivity extends AppCompatActivity {
                     .addOnFailureListener(e ->
                             Toast.makeText(MainActivity.this, "Error adding weight", Toast.LENGTH_SHORT).show());
         }
+    }
+    private void savePulseToFirebase(List<com.example.fitnesapp.utils.HeartRateData> pulseList) {
+        String uid = FirebaseAuth.getInstance().getCurrentUser() != null ? FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
+        if (uid == null || pulseList.isEmpty()) return;
+
+        DatabaseReference pulseRef = FirebaseDatabase.getInstance().getReference()
+                .child("users").child(uid).child("health_logs").child("pulse");
+
+        // Чтобы не дублировать данные при каждой синхронизации, можно использовать timestamp как ключ
+        Map<String, Object> updates = new HashMap<>();
+
+        for (com.example.fitnesapp.utils.HeartRateData item : pulseList) {
+            String key = String.valueOf(item.getTime()); // Ключ = время замера
+
+            Map<String, Object> map = new HashMap<>();
+            map.put("time", item.getTime());
+            map.put("val", item.getBpm()); // HomeViewModel ждет поле "val"
+
+            updates.put(key, map);
+        }
+
+        pulseRef.updateChildren(updates);
+    }
+
+    private void saveOxygenToFirebase(List<com.example.fitnesapp.utils.OxygenData> oxygenList) {
+        String uid = FirebaseAuth.getInstance().getCurrentUser() != null ? FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
+        if (uid == null || oxygenList.isEmpty()) return;
+
+        DatabaseReference oxyRef = FirebaseDatabase.getInstance().getReference()
+                .child("users").child(uid).child("health_logs").child("oxygen");
+
+        Map<String, Object> updates = new HashMap<>();
+
+        for (com.example.fitnesapp.utils.OxygenData item : oxygenList) {
+            String key = String.valueOf(item.getTime());
+
+            Map<String, Object> map = new HashMap<>();
+            map.put("time", item.getTime());
+            map.put("val", item.getPercentage()); // HomeViewModel ищет "val"
+
+            updates.put(key, map);
+        }
+
+        oxyRef.updateChildren(updates);
+    }
+
+    private void saveSleepSessionsToFirebase(List<com.example.fitnesapp.utils.SleepSessionData> sessions) {
+        String uid = FirebaseAuth.getInstance().getCurrentUser() != null ? FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
+        if (uid == null || sessions.isEmpty()) return;
+
+        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference().child("users").child(uid);
+        String todayDate = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(new java.util.Date());
+
+        Map<String, Object> logsUpdates = new HashMap<>();
+
+        long minStartTime = Long.MAX_VALUE;
+        long maxEndTime = Long.MIN_VALUE;
+        long totalDeep = 0, totalLight = 0, totalRem = 0, totalAwake = 0;
+
+        for (com.example.fitnesapp.utils.SleepSessionData item : sessions) {
+            String key = String.valueOf(item.getStartTime());
+            Map<String, Object> map = new HashMap<>();
+            map.put("startTime", item.getStartTime());
+            map.put("endTime", item.getEndTime());
+            map.put("duration", item.getDurationMinutes());
+            map.put("stage", 2);
+            logsUpdates.put(key, map);
+
+            // Находим самое раннее засыпание и самое позднее пробуждение
+            if (item.getStartTime() < minStartTime) minStartTime = item.getStartTime();
+            if (item.getEndTime() > maxEndTime) maxEndTime = item.getEndTime();
+
+            totalDeep += item.getDeepSleepMin();
+            totalLight += item.getLightSleepMin();
+            totalRem += item.getRemSleepMin();
+            totalAwake += item.getAwakeMin();
+        }
+
+        userRef.child("health_logs").child("sleep").updateChildren(logsUpdates);
+
+        // ==========================================================
+        // ИСПРАВЛЕНИЕ: Считаем длительность ЖЕСТКО от отбоя до пробуждения
+        // (08:15 - 21:30 = 645 минут = 10 часов 45 минут)
+        // ==========================================================
+        long totalDuration = 0;
+        if (minStartTime != Long.MAX_VALUE && maxEndTime != Long.MIN_VALUE) {
+            totalDuration = (maxEndTime - minStartTime) / (1000 * 60); // Перевод в минуты
+        }
+
+        Map<String, Object> dailySleepMap = new HashMap<>();
+        java.text.SimpleDateFormat timeFmt = new java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault());
+        String bedTimeStr = (minStartTime != Long.MAX_VALUE) ? timeFmt.format(new java.util.Date(minStartTime)) : "--:--";
+        String wakeTimeStr = (maxEndTime != Long.MIN_VALUE) ? timeFmt.format(new java.util.Date(maxEndTime)) : "--:--";
+
+        dailySleepMap.put("durationMinutes", totalDuration);
+        dailySleepMap.put("bedTime", bedTimeStr);
+        dailySleepMap.put("wakeTime", wakeTimeStr);
+        dailySleepMap.put("fallingAsleepMin", 0);
+
+        int score = 60;
+        if (totalDuration >= 420 && totalDuration <= 540) score = 100;
+        else if (totalDuration > 540) score = 90;
+        else if (totalDuration >= 360) score = 80;
+        dailySleepMap.put("score", score);
+
+        String quality = "Fair";
+        if (totalDuration >= 420) quality = "Excellent";
+        else if (totalDuration >= 360) quality = "Good";
+        dailySleepMap.put("quality", quality);
+
+        long totalPhases = totalDeep + totalLight + totalRem + totalAwake;
+        if (totalPhases == 0) totalPhases = 1;
+
+        Map<String, Object> phasesMap = new HashMap<>();
+        phasesMap.put("deep", (int) ((totalDeep * 100) / totalPhases));
+        phasesMap.put("surface", (int) ((totalLight * 100) / totalPhases));
+        phasesMap.put("rem", (int) ((totalRem * 100) / totalPhases));
+        phasesMap.put("awake", (int) ((totalAwake * 100) / totalPhases));
+
+        dailySleepMap.put("phases", phasesMap);
+
+        userRef.child("daily_data").child(todayDate).child("sleep").updateChildren(dailySleepMap);
+    }
+    // Вспомогательные методы для красоты
+    private int calculateSleepScore(long durationMin) {
+        if (durationMin >= 420 && durationMin <= 540) return 100; // 7-9 часов
+        if (durationMin > 540) return 90;
+        if (durationMin >= 360) return 80;
+        return 60;
+    }
+
+    private String calculateSleepQuality(long durationMin) {
+        if (durationMin >= 420) return "Excellent";
+        if (durationMin >= 360) return "Good";
+        return "Fair";
+    }
+    private void saveWorkoutsToFirebase(List<com.example.fitnesapp.utils.WorkoutSessionData> workouts) {
+        String uid = FirebaseAuth.getInstance().getCurrentUser() != null ? FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
+        if (uid == null || workouts.isEmpty()) return;
+
+        // Сохраняем в папку "сегодняшнего дня"
+        String todayDate = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(new java.util.Date());
+
+        DatabaseReference workoutsRef = FirebaseDatabase.getInstance().getReference()
+                .child("users").child(uid)
+                .child("daily_data").child(todayDate).child("workouts");
+
+        Map<String, Object> updates = new HashMap<>();
+
+        for (com.example.fitnesapp.utils.WorkoutSessionData item : workouts) {
+            // Ключ - время начала
+            String key = String.valueOf(item.getStartTime());
+
+            Map<String, Object> map = new HashMap<>();
+            map.put("type", item.getType());
+            map.put("calories", item.getCalories());
+            map.put("durationMin", item.getDurationMinutes());
+            map.put("timestamp", item.getStartTime());
+
+            updates.put(key, map);
+        }
+
+        workoutsRef.updateChildren(updates);
     }
 }

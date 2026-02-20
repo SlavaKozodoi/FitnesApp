@@ -17,10 +17,10 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.database.annotations.NotNull;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -31,18 +31,35 @@ public class HomeViewModel extends ViewModel {
     private final MutableLiveData<UserProfile> userProfile = new MutableLiveData<>();
     private final MutableLiveData<DailyData> dailyData = new MutableLiveData<>();
 
-    // Списки для графиков и календаря
+    // Списки для графиков
     private final MutableLiveData<List<HealthLogItem>> pulseHistory = new MutableLiveData<>();
     private final MutableLiveData<List<WeightHistoryItem>> weightHistory = new MutableLiveData<>();
     private final MutableLiveData<List<String>> activeDays = new MutableLiveData<>();
+
+    // НОВОЕ: Отдельная LiveData для ТЕКУЩЕГО пульса (последнего за СЕГОДНЯ)
+    private final MutableLiveData<Integer> todayPulseValue = new MutableLiveData<>();
 
     private final MutableLiveData<Boolean> requireLogin = new MutableLiveData<>();
     public LiveData<Boolean> getRequireLogin() { return requireLogin; }
 
     private DatabaseReference userRef;
 
+    // НОВЫЕ ПЕРЕМЕННЫЕ ДЛЯ АНИМАЦИЙ
+    private boolean isDashboardAnimated = false;
+    private boolean isPulseChartAnimated = false;
+    private boolean isWeightChartAnimated = false;
+
+    // Геттеры и сеттеры
+    public boolean isDashboardAnimated() { return isDashboardAnimated; }
+    public void setDashboardAnimated(boolean animated) { isDashboardAnimated = animated; }
+
+    public boolean isPulseChartAnimated() { return isPulseChartAnimated; }
+    public void setPulseChartAnimated(boolean animated) { isPulseChartAnimated = animated; }
+
+    public boolean isWeightChartAnimated() { return isWeightChartAnimated; }
+    public void setWeightChartAnimated(boolean animated) { isWeightChartAnimated = animated; }
+
     public HomeViewModel() {
-        // 1. Попытка получить текущего юзера
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         String uid = null;
 
@@ -50,14 +67,11 @@ public class HomeViewModel extends ViewModel {
             uid = user.getUid();
         } else {
             requireLogin.setValue(true);
-
-
         }
 
         if (uid != null) {
             userRef = FirebaseDatabase.getInstance().getReference("users").child(uid);
 
-            // Запускаем загрузку всех данных
             loadProfile();
             loadTodayStats();
             loadChartsHistory();
@@ -71,6 +85,9 @@ public class HomeViewModel extends ViewModel {
     public LiveData<List<HealthLogItem>> getPulseHistory() { return pulseHistory; }
     public LiveData<List<WeightHistoryItem>> getWeightHistory() { return weightHistory; }
     public LiveData<List<String>> getActiveDays() { return activeDays; }
+
+    // Геттер для нового значения пульса
+    public LiveData<Integer> getTodayPulseValue() { return todayPulseValue; }
 
 
     // --- Загрузка Профиля ---
@@ -96,7 +113,7 @@ public class HomeViewModel extends ViewModel {
                 if (snapshot.exists()) {
                     dailyData.setValue(snapshot.getValue(DailyData.class));
                 } else {
-                    dailyData.setValue(new DailyData()); // Пустые данные для нового дня
+                    dailyData.setValue(new DailyData());
                 }
             }
             @Override
@@ -112,17 +129,46 @@ public class HomeViewModel extends ViewModel {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         List<HealthLogItem> list = new ArrayList<>();
+
+                        // 1. Вычисляем начало сегодняшнего дня (00:00:00)
+                        Calendar cal = Calendar.getInstance();
+                        cal.set(Calendar.HOUR_OF_DAY, 0);
+                        cal.set(Calendar.MINUTE, 0);
+                        cal.set(Calendar.SECOND, 0);
+                        cal.set(Calendar.MILLISECOND, 0);
+                        long startOfDay = cal.getTimeInMillis();
+
+                        HealthLogItem lastTodayItem = null;
+
                         for (DataSnapshot child : snapshot.getChildren()) {
                             HealthLogItem item = child.getValue(HealthLogItem.class);
-                            if (item != null) list.add(item);
+                            if (item != null) {
+                                list.add(item);
+
+                                // 2. Проверяем: если запись сделана сегодня, запоминаем её
+                                // Так как цикл идет по порядку, lastTodayItem в конце будет содержать самую свежую запись
+                                if (item.time >= startOfDay) {
+                                    lastTodayItem = item;
+                                }
+                            }
                         }
+
+                        // Обновляем список для графика
                         pulseHistory.setValue(list);
+
+                        // 3. Обновляем значение "Пульс сейчас"
+                        if (lastTodayItem != null) {
+                            todayPulseValue.setValue((int) lastTodayItem.val);
+                        } else {
+                            // Если сегодня записей нет, отправляем null (или 0)
+                            todayPulseValue.setValue(null);
+                        }
                     }
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {}
                 });
 
-        // Вес (последние 30 записей)
+        // Вес (оставляем без изменений, так как вес не обязательно обновляется каждый день)
         userRef.child("health_logs").child("weight_history").limitToLast(30)
                 .addValueEventListener(new ValueEventListener() {
                     @Override
@@ -141,47 +187,34 @@ public class HomeViewModel extends ViewModel {
 
     private void loadActiveDays() {
         if (userRef == null) return;
-
         userRef.child("daily_data").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 List<String> validDays = new ArrayList<>();
-
                 for (DataSnapshot daySnap : snapshot.getChildren()) {
                     DailyData dayData = daySnap.getValue(DailyData.class);
-
                     if (dayData != null) {
-                        // === СТРОГИЙ ФИЛЬТР ===
-                        // День считается активным ТОЛЬКО если есть список тренировок
-                        // и он не пустой.
-
                         boolean hasWorkouts = (dayData.workouts != null && !dayData.workouts.isEmpty());
-
                         if (hasWorkouts) {
-                            validDays.add(daySnap.getKey()); // Добавляем дату "2026-01-15"
+                            validDays.add(daySnap.getKey());
                         }
                     }
                 }
                 activeDays.setValue(validDays);
             }
-
             @Override
             public void onCancelled(@NonNull DatabaseError error) {}
         });
     }
-    // Метод для получения данных конкретного дня по клику
+
     public void getWorkoutForDate(String dateKey, OnWorkoutCheckListener listener) {
         if (userRef == null) return;
-
         userRef.child("daily_data").child(dateKey).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists()) {
                     DailyData data = snapshot.getValue(DailyData.class);
-                    // Проверяем, есть ли тренировки
                     if (data != null && data.workouts != null && !data.workouts.isEmpty()) {
-                        // Берем первую попавшуюся тренировку (или можно сделать список выбора)
-                        // values().iterator().next() берет первый элемент из Map
                         WorkoutItem workout = data.workouts.values().iterator().next();
                         listener.onWorkoutFound(workout);
                     } else {
@@ -191,7 +224,6 @@ public class HomeViewModel extends ViewModel {
                     listener.onNoWorkout();
                 }
             }
-
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
                 listener.onNoWorkout();
@@ -199,7 +231,6 @@ public class HomeViewModel extends ViewModel {
         });
     }
 
-    // Интерфейс для обратного вызова (Callback)
     public interface OnWorkoutCheckListener {
         void onWorkoutFound(WorkoutItem workout);
         void onNoWorkout();
