@@ -9,6 +9,10 @@ android {
     namespace = "com.example.fitnesapp"
     compileSdk = 36
 
+    androidResources {
+        noCompress += "tflite"
+    }
+
     defaultConfig {
         applicationId = "com.example.fitnesapp"
         minSdk = 26
@@ -17,7 +21,9 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
     }
+
 
     buildTypes {
         release {
@@ -46,6 +52,9 @@ android {
 }
 
 dependencies {
+
+    implementation(libs.tensorflow.lite)
+    implementation(libs.tensorflow.lite.support)
 
     implementation("androidx.work:work-runtime:2.9.0")
     // ВАЖНОЕ ИЗМЕНЕНИЕ: Библиотека для поддержки времени (Instant, Duration)

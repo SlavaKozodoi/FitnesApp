@@ -11,7 +11,7 @@ public class UserProfile {
     public String gender;       // "Male" / "Female"
     public String birthDate;
     public int height;
-    public double weight;       // double для веса (например, 78.5)
+    public float weight;       // double для веса (например, 78.5)
     public int totalXP;
     public int maxXp;
     public boolean notificationsEnabled;
@@ -21,7 +21,7 @@ public class UserProfile {
 
     // 2. Полный конструктор (Нужен для создания объекта в коде)
     // Обратите внимание на порядок полей, он должен совпадать с тем, как вы их передаете
-    public UserProfile(String firstName, String secondName, String gender, String birthDate, int height, double weight, int totalXP, int maxXp, boolean notificationsEnabled) {
+    public UserProfile(String firstName, String secondName, String gender, String birthDate, int height, float weight, int totalXP, int maxXp, boolean notificationsEnabled) {
         this.firstName = firstName;
         this.secondName = secondName;
         this.gender = gender;
