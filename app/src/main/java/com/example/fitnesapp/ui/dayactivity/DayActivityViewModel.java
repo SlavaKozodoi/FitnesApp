@@ -38,6 +38,9 @@ public class DayActivityViewModel extends ViewModel {
             loadDataForDate(new Date()); // Сегодня
         }
     }
+    public String getSelectedDateKey(){
+        return selectedDateKey;
+    }
 
     public LiveData<UserProfile> getUserProfile() { return userProfile; }
     public LiveData<DailyData> getDailyData() { return dailyData; }

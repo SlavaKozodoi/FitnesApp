@@ -2,7 +2,6 @@ package com.example.fitnesapp.ui.dayactivity;
 
 import android.app.AlertDialog;
 import android.os.Bundle;
-import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,10 +30,11 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
-import java.time.LocalDate;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -44,6 +44,9 @@ public class DayActivityFragment extends Fragment {
 
     private DayActivityViewModel mViewModel;
     private FragmentDayActivityBinding binding;
+
+    // Храним текущую выбранную дату (по умолчанию - сегодня)
+    private Date selectedDate = new Date();
 
     public static DayActivityFragment newInstance() {
         return new DayActivityFragment();
@@ -69,7 +72,6 @@ public class DayActivityFragment extends Fragment {
                 binding.tvName.setText(profile.firstName);
                 binding.tvSecondName.setText(profile.secondName);
 
-                // Если данные дня уже загружены, обновляем графики с учетом веса/возраста из профиля
                 if (mViewModel.getDailyData().getValue() != null) {
                     updateCharts(mViewModel.getDailyData().getValue());
                 }
@@ -84,25 +86,16 @@ public class DayActivityFragment extends Fragment {
     }
 
     private void setupClickListeners() {
-        // Изменение цели шагов
-        binding.tvStepsGoal.setOnClickListener(v -> {
-            showEditGoalDialog("Steps Goal", "stepsGoal");
-        });
-
-        // Изменение цели калорий
-        binding.tvCaloriesGoal.setOnClickListener(v -> {
-            showEditGoalDialog("Burn Calories Goal", "caloriesGoal");
-        });
-
-        // Изменение цели по еде (Максимум калорий)
-        binding.tvNutritionMax.setOnClickListener(v -> {
-            showEditGoalDialog("Nutrition Max Goal", "nutrition/maxCalories");
-        });
+        binding.tvStepsGoal.setOnClickListener(v -> showEditGoalDialog("Steps Goal", "stepsGoal"));
+        binding.tvCaloriesGoal.setOnClickListener(v -> showEditGoalDialog("Burn Calories Goal", "caloriesGoal"));
+        binding.tvNutritionMax.setOnClickListener(v -> showEditGoalDialog("Nutrition Max Goal", "nutrition/maxCalories"));
     }
 
     private void updateUI(DailyData data) {
         if (data == null) {
             clearUI();
+            // Принудительно рисуем пустые графики
+            updateCharts(new DailyData());
             return;
         }
 
@@ -110,17 +103,16 @@ public class DayActivityFragment extends Fragment {
         binding.tvStepsScore.setText(String.valueOf(data.steps));
         binding.tvStepsGoal.setText("Goal: " + (data.stepsGoal >= 0 ? data.stepsGoal : 10000));
 
-        binding.tvCaloriesScore.setText(String.valueOf(data.caloriesBurned));
+        binding.tvCaloriesScore.setText(String.valueOf((int) data.caloriesBurned));
         binding.tvCaloriesGoal.setText("Goal: " + (data.caloriesGoal >= 0 ? data.caloriesGoal : 2000));
 
         // --- БЛОК 2: ПИТАНИЕ ---
         if (data.nutrition != null) {
-            binding.tvNutritionScore.setText(String.valueOf(data.nutrition.totalCalories));
+            binding.tvNutritionScore.setText(String.valueOf((int) data.nutrition.totalCalories));
             binding.tvNutritionMax.setText("Max: " + data.nutrition.maxCalories);
-
-            binding.tvNutritionAllCarbs.setText("Carbs: " + data.nutrition.carbs + "g");
-            binding.tvNutritionAllProteins.setText("Protein: " + data.nutrition.protein + "g");
-            binding.tvNutritionAllFats.setText("Fats: " + data.nutrition.fat + "g");
+            binding.tvNutritionAllCarbs.setText("Carbs: " + (int) data.nutrition.carbs + "g");
+            binding.tvNutritionAllProteins.setText("Protein: " + (int) data.nutrition.protein + "g");
+            binding.tvNutritionAllFats.setText("Fats: " + (int) data.nutrition.fat + "g");
         } else {
             binding.tvNutritionScore.setText("0");
             binding.tvNutritionMax.setText("Max: 2000");
@@ -141,8 +133,6 @@ public class DayActivityFragment extends Fragment {
 
         if (mealsMap != null && !mealsMap.isEmpty()) {
             List<MealItem> firebaseList = new ArrayList<>(mealsMap.values());
-
-            // Сортировка по времени
             Collections.sort(firebaseList, (o1, o2) -> {
                 if (o1.time == null) return -1;
                 if (o2.time == null) return 1;
@@ -152,10 +142,10 @@ public class DayActivityFragment extends Fragment {
             for (MealItem item : firebaseList) {
                 uiList.add(new Nutrition(
                         item.time != null ? item.time : "--:--",
-                        String.valueOf(item.carbs),
-                        String.valueOf(item.protein),
-                        String.valueOf(item.fat),
-                        String.valueOf(item.calories)
+                        String.valueOf((int) item.carbs),
+                        String.valueOf((int) item.protein),
+                        String.valueOf((int) item.fat),
+                        String.valueOf((int) item.calories)
                 ));
             }
         }
@@ -165,7 +155,6 @@ public class DayActivityFragment extends Fragment {
         binding.recyclerViewNutHistory.setAdapter(adapter);
     }
 
-    // --- ГРАФИКИ ---
     private void updateCharts(DailyData data) {
         Map<String, HourlyActivityItem> rawData = data.hourly_activity;
         if (rawData == null) rawData = new HashMap<>();
@@ -173,117 +162,85 @@ public class DayActivityFragment extends Fragment {
     }
 
     private void setup30MinCharts(Map<String, HourlyActivityItem> hourlyMap) {
-        // 1. Подготовка корзин (48 интервалов по 30 мин)
-        float[] stepsBuckets = new float[48];
-        long dataTimestamp = 0; // Для проверки даты
 
-        // 2. Раскладываем ШАГИ по корзинам
-        for (HourlyActivityItem item : hourlyMap.values()) {
-            Calendar cal = Calendar.getInstance();
-            cal.setTimeInMillis(item.time);
+        // 1. ОПРЕДЕЛЯЕМ ВРЕМЯ (Будущее, Сегодня, Прошлое)
+        Calendar today = Calendar.getInstance();
+        today.set(Calendar.HOUR_OF_DAY, 0); today.set(Calendar.MINUTE, 0); today.set(Calendar.SECOND, 0); today.set(Calendar.MILLISECOND, 0);
 
-            // Сохраняем время любой записи, чтобы понять, какой это день
-            if (dataTimestamp == 0) dataTimestamp = item.time;
+        Calendar selCal = Calendar.getInstance();
+        selCal.setTime(selectedDate);
+        selCal.set(Calendar.HOUR_OF_DAY, 0); selCal.set(Calendar.MINUTE, 0); selCal.set(Calendar.SECOND, 0); selCal.set(Calendar.MILLISECOND, 0);
 
-            int hour = cal.get(Calendar.HOUR_OF_DAY);
-            int minute = cal.get(Calendar.MINUTE);
-            int index = (hour * 2) + (minute >= 30 ? 1 : 0);
-
-            if (index >= 0 && index < 48) {
-                stepsBuckets[index] += item.steps;
-            }
-        }
-
-        // ============================================================
-        // 3. ОПРЕДЕЛЯЕМ: ЭТО СЕГОДНЯ ИЛИ ИСТОРИЯ?
-        // ============================================================
-        boolean isToday;
-        if (dataTimestamp > 0) {
-            // Если данные есть, проверяем их дату
-            isToday = android.text.format.DateUtils.isToday(dataTimestamp);
-        } else {
-            // Если данных нет (пустой день), считаем по логике:
-            // Если мы пришли с календаря, activity знает дату, но здесь мы упростим:
-            // Если пусто, нарисуем до текущего момента (безопасный вариант)
-            isToday = true;
-        }
-
-        // Определяем индекс обрезки графика
-        int limitIndex;
-        if (isToday) {
-            // Если СЕГОДНЯ: рисуем до текущего времени
-            Calendar now = Calendar.getInstance();
-            int currentHour = now.get(Calendar.HOUR_OF_DAY);
-            int currentMinute = now.get(Calendar.MINUTE);
-            limitIndex = (currentHour * 2) + (currentMinute >= 30 ? 1 : 0);
-        } else {
-            // Если ПРОШЛОЕ: рисуем весь день до конца (23:30 = индекс 47)
-            limitIndex = 47;
-        }
-
-        // ============================================================
-        // 4. РАСЧЕТ КАЛОРИЙ ВРУЧНУЮ (BMR + Activity)
-        // ============================================================
-
-        UserProfile profile = mViewModel.getUserProfile().getValue();
-
-        double weight = (profile != null && profile.weight > 0) ? profile.weight : 75.0;
-        double height = (profile != null && profile.height > 0) ? profile.height : 175.0;
-        int age = (profile != null) ? profile.getAge() : 25;
-        boolean isMale = (profile == null) || "Male".equalsIgnoreCase(profile.gender);
-
-        double bmr;
-        if (isMale) {
-            bmr = (10 * weight) + (6.25 * height) - (5 * age) + 5;
-        } else {
-            bmr = (10 * weight) + (6.25 * height) - (5 * age) - 161;
-        }
-
-        double bmrPer30Min = bmr / 48.0;
-        double calsPerStep = 0.045;
-
-        float[] calculatedCals = new float[48];
-
-        for (int i = 0; i < 48; i++) {
-            calculatedCals[i] = (float) (bmrPer30Min + (stepsBuckets[i] * calsPerStep));
-        }
-
-        // ============================================================
-        // 5. ФОРМИРУЕМ ДАННЫЕ ДЛЯ ОТРИСОВКИ
-        // ============================================================
+        boolean isFuture = selCal.after(today);
+        boolean isToday = selCal.equals(today);
 
         ArrayList<Entry> stepsEntries = new ArrayList<>();
         ArrayList<Entry> calEntries = new ArrayList<>();
         ArrayList<String> labels = new ArrayList<>();
 
-        // Цикл идет от 00:00 до limitIndex
-        // Если сегодня - до сейчас. Если вчера - до 23:30.
-        for (int i = 0; i <= limitIndex; i++) {
-            stepsEntries.add(new Entry(i, stepsBuckets[i]));
-            calEntries.add(new Entry(i, calculatedCals[i]));
+        // Переменная для "пола" графика калорий
+        float baseCalories = 0f;
 
-            int h = i / 2;
-            int m = (i % 2) * 30;
-            String timeLabel = String.format(Locale.US, "%02d:%02d", h, m);
-            labels.add(timeLabel);
+        if (isFuture) {
+            // === ЕСЛИ ЭТО БУДУЩЕЕ: РИСУЕМ СТРОГИЕ НУЛИ ===
+            stepsEntries.add(new Entry(0, 0f));
+            stepsEntries.add(new Entry(1, 0f));
+            calEntries.add(new Entry(0, 0f));
+            calEntries.add(new Entry(1, 0f));
+            labels.add("00:00");
+            labels.add("23:59");
+            // baseCalories остается 0f
+        } else {
+            // === ЕСЛИ СЕГОДНЯ ИЛИ ПРОШЛОЕ: РАССЧИТЫВАЕМ ДАННЫЕ ===
+            int limitIndex = isToday ?
+                    (Calendar.getInstance().get(Calendar.HOUR_OF_DAY) * 2) + (Calendar.getInstance().get(Calendar.MINUTE) >= 30 ? 1 : 0)
+                    : 47;
+
+            float[] stepsBuckets = new float[48];
+            for (HourlyActivityItem item : hourlyMap.values()) {
+                Calendar cal = Calendar.getInstance();
+                cal.setTimeInMillis(item.time);
+                int index = (cal.get(Calendar.HOUR_OF_DAY) * 2) + (cal.get(Calendar.MINUTE) >= 30 ? 1 : 0);
+                if (index >= 0 && index < 48) stepsBuckets[index] += item.steps;
+            }
+
+            UserProfile profile = mViewModel.getUserProfile().getValue();
+            double weight = (profile != null && profile.weight > 0) ? profile.weight : 75.0;
+            double height = (profile != null && profile.height > 0) ? profile.height : 175.0;
+            int age = (profile != null) ? profile.getAge() : 25;
+            boolean isMale = (profile == null) || "Male".equalsIgnoreCase(profile.gender);
+
+            double bmr = isMale ? (10 * weight) + (6.25 * height) - (5 * age) + 5 : (10 * weight) + (6.25 * height) - (5 * age) - 161;
+            double bmrPer30Min = bmr / 48.0;
+            double calsPerStep = 0.045;
+
+            for (int i = 0; i <= limitIndex; i++) {
+                stepsEntries.add(new Entry(i, stepsBuckets[i]));
+
+                // ИЗМЕНЕНИЕ: Рисуем на графике ТОЛЬКО активные калории
+                // Базовый метаболизм уже включен в общую цифру наверху экрана
+                float activeCals = (float) (stepsBuckets[i] * calsPerStep);
+                calEntries.add(new Entry(i, activeCals));
+
+                int h = i / 2;
+                int m = (i % 2) * 30;
+                labels.add(String.format(Locale.US, "%02d:%02d", h, m));
+            }
         }
 
-        // 6. Отрисовка
         String[] labelsArr = labels.toArray(new String[0]);
 
-        if (stepsEntries.isEmpty()) {
-            stepsEntries.add(new Entry(0, 0));
-            calEntries.add(new Entry(0, (float) bmrPer30Min));
-            labelsArr = new String[]{"00:00"};
-        }
-
-        drawChart(binding.chartStepsinfo, stepsEntries, labelsArr, R.color.steps_start, R.color.steps_end);
-        drawChart(binding.chartCaloriesnfo, calEntries, labelsArr, R.color.calories_start, R.color.calories_end);
+        // ТЕПЕРЬ ПОЛ ДЛЯ ОБОИХ ГРАФИКОВ - СТРОГИЙ НОЛЬ (0f)
+        drawChart(binding.chartStepsinfo, stepsEntries, labelsArr, R.color.steps_start, R.color.steps_end, 0f);
+        drawChart(binding.chartCaloriesnfo, calEntries, labelsArr, R.color.calories_start, R.color.calories_end, 0f);
     }
 
+    // Обратите внимание на новый параметр float floorValue
     private void drawChart(com.github.mikephil.charting.charts.LineChart chart,
-                           ArrayList<Entry> entries, String[] labels, int colorStart, int colorEnd) {
+                           ArrayList<Entry> entries, String[] labels, int colorStart, int colorEnd, float floorValue) {
         if (chart == null) return;
+
+
         ChartHelper.setupUnifiedChart(
                 requireContext(),
                 chart,
@@ -293,70 +250,61 @@ public class DayActivityFragment extends Fragment {
                 colorEnd,
                 true
         );
+
+        // Прибиваем график к нашему кастомному полу!
+        // Для шагов это будет 0, для калорий - базовый метаболизм
+
+        chart.invalidate();
     }
 
-    // --- ДИАЛОГ ИЗМЕНЕНИЯ ЦЕЛИ ---
     private void showEditGoalDialog(String title, String databasePath) {
-        // 1. Создаем Builder
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
-
-        // 2. Инфлейтим (создаем) наш кастомный макет
         View customView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_edit_goal, null);
 
-        // 3. Находим элементы внутри макета
         TextView tvTitle = customView.findViewById(R.id.tvDialogTitle);
         EditText etInput = customView.findViewById(R.id.etGoalInput);
         View btnCancel = customView.findViewById(R.id.btnCancel);
         View btnSave = customView.findViewById(R.id.btnSave);
 
-        // Устанавливаем заголовок
         tvTitle.setText(title);
-
-        // Устанавливаем макет в диалог
         builder.setView(customView);
-
-        // Создаем диалог (но пока не показываем)
         AlertDialog dialog = builder.create();
 
-        // Делаем фон самого окна прозрачным, чтобы видны были только наши закругленные углы
         if (dialog.getWindow() != null) {
             dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
         }
 
-        // 4. Обработка нажатий
-
-        // Кнопка Cancel
         btnCancel.setOnClickListener(v -> dialog.dismiss());
-
-        // Кнопка Save
         btnSave.setOnClickListener(v -> {
             String newValueStr = etInput.getText().toString();
             if (!newValueStr.isEmpty()) {
                 try {
                     int newValue = Integer.parseInt(newValueStr);
                     updateGoalInFirebase(databasePath, newValue);
-                    dialog.dismiss(); // Закрываем окно после сохранения
+                    dialog.dismiss();
                 } catch (NumberFormatException e) {
                     Toast.makeText(getContext(), "Invalid number", Toast.LENGTH_SHORT).show();
                 }
             }
         });
 
-        // Показываем диалог
         dialog.show();
     }
+
     private void updateGoalInFirebase(String relativePath, int value) {
         String uid = FirebaseAuth.getInstance().getCurrentUser() != null
                 ? FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
         if (uid == null) return;
 
-        String todayDate = LocalDate.now().toString(); // Требует Desugaring в Gradle, или используйте DateHelper
+        // ИСПОЛЬЗУЕМ ВЫБРАННУЮ ДАТУ (а не просто сегодняшний день)
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
+        String dateKey = sdf.format(selectedDate);
 
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference()
                 .child("users")
                 .child(uid)
                 .child("daily_data")
-                .child(todayDate);
+                .child(dateKey);
 
         ref.child(relativePath).setValue(value)
                 .addOnSuccessListener(aVoid ->
@@ -372,8 +320,7 @@ public class DayActivityFragment extends Fragment {
         binding.tvNutritionAllCarbs.setText("Carbs: 0g");
         binding.tvNutritionAllProteins.setText("Protein: 0g");
         binding.tvNutritionAllFats.setText("Fats: 0g");
-        if (binding.chartStepsinfo != null) binding.chartStepsinfo.clear();
-        if (binding.chartCaloriesnfo != null) binding.chartCaloriesnfo.clear();
+        // Графики не очищаем, они перерисуются сами!
         binding.recyclerViewNutHistory.setAdapter(null);
     }
 
@@ -382,7 +329,8 @@ public class DayActivityFragment extends Fragment {
                 requireContext(),
                 binding.recyclerViewDayActivity,
                 date -> {
-                    mViewModel.loadDataForDate(date.getDate());
+                    selectedDate = date.getDate(); // ЗАПОМИНАЕМ ВЫБРАННУЮ ДАТУ
+                    mViewModel.loadDataForDate(selectedDate);
                 }
         );
     }

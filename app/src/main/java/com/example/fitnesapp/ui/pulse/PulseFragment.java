@@ -92,29 +92,26 @@ public class PulseFragment extends Fragment {
     }
 
     private void updateChartUI(List<HealthLogItem> logs) {
-        if (logs == null || logs.isEmpty()) {
-            binding.chartPulseInfo.clear();
-            return;
-        }
-
         ArrayList<Entry> entries = new ArrayList<>();
         ArrayList<String> labelsList = new ArrayList<>();
         SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm", Locale.getDefault());
 
-        for (int i = 0; i < logs.size(); i++) {
-            HealthLogItem item = logs.get(i);
-            entries.add(new Entry(i, (float) item.val));
-
-            // Используем реальное время из timestamp
-            try {
-                labelsList.add(timeFormat.format(new Date(item.time)));
-            } catch (Exception e) {
-                labelsList.add("");
+        // Просто парсим то, что пришло (если пришел пустой список, цикл просто не запустится)
+        if (logs != null) {
+            for (int i = 0; i < logs.size(); i++) {
+                HealthLogItem item = logs.get(i);
+                entries.add(new Entry(i, (float) item.val));
+                try {
+                    labelsList.add(timeFormat.format(new Date(item.time)));
+                } catch (Exception e) {
+                    labelsList.add("");
+                }
             }
         }
 
         String[] labels = labelsList.toArray(new String[0]);
 
+        // Отправляем в Хелпер. Он сам проверит: если entries пустой — нарисует красивую прямую линию!
         ChartHelper.setupUnifiedChart(
                 requireContext(),
                 binding.chartPulseInfo,
@@ -125,7 +122,6 @@ public class PulseFragment extends Fragment {
                 true
         );
     }
-
     private void setupCalendar() {
         DateHelper.setupHistoryCalendar(
                 requireContext(),

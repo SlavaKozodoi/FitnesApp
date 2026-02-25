@@ -18,8 +18,24 @@ import java.util.ArrayList;
 
 public class ChartHelper {
 
+    public static void setupUnifiedChart(Context context, LineChart chart, ArrayList<Entry> entries, String[] timeLabels, int startColorResId, int endColorResId, boolean showBackground) {
 
-    public static void setupUnifiedChart(Context context, LineChart chart, ArrayList<Entry> entries, String[] timeLabels, int startColorResId, int endColorResId, boolean showBackground) {        if (chart == null || entries == null || entries.isEmpty()) return;
+        if (chart == null) return;
+
+        // 1. Убираем текст об отсутствии данных, так как график теперь будет рисоваться ВСЕГДА
+        chart.setNoDataText("");
+
+        // 2. === УМНАЯ ГЕНЕРАЦИЯ НУЛЕВОГО ГРАФИКА ===
+        // Если данных нет, создаем искусственную линию на уровне 0
+        if (entries == null || entries.isEmpty()) {
+            entries = new ArrayList<>();
+            entries.add(new Entry(0, 0f)); // Точка старта (значение 0)
+            entries.add(new Entry(1, 0f)); // Точка конца (значение 0)
+
+            // Ставим заглушки времени по краям
+            timeLabels = new String[]{"00:00", "23:59"};
+        }
+        // ===========================================
 
         // 1. ПОЛУЧЕНИЕ ЦВЕТОВ
         int startColor = ContextCompat.getColor(context, startColorResId);
@@ -63,6 +79,7 @@ public class ChartHelper {
         }
 
         // Добавляем отступы сверху и снизу (20%), чтобы линия не прилипала к краям
+        // Эта строчка гениальна: для нулевого графика offset станет 1f, и линия будет ровно по центру!
         float offset = (yMax - yMin) * 0.2f;
         if (offset == 0) offset = 1f; // Защита от прямой линии
 
@@ -91,12 +108,13 @@ public class ChartHelper {
 
         // Устанавливаем свой форматер (даты или время), если передан массив строк
         if (timeLabels != null && timeLabels.length > 0) {
+            final String[] finalTimeLabels = timeLabels; // Делаем final для использования внутри ValueFormatter
             xAxis.setValueFormatter(new ValueFormatter() {
                 @Override
                 public String getAxisLabel(float value, com.github.mikephil.charting.components.AxisBase axis) {
                     int index = (int) value;
-                    if (index >= 0 && index < timeLabels.length) {
-                        return timeLabels[index];
+                    if (index >= 0 && index < finalTimeLabels.length) {
+                        return finalTimeLabels[index];
                     }
                     return "";
                 }
@@ -114,28 +132,18 @@ public class ChartHelper {
         chart.setPinchZoom(false);
 
         // Подключаем наш кастомный маркер (всплывающее окошко)
-        // Убедитесь, что класс CustomMarkerView создан в пакете utils
         CustomMarkerView mv = new CustomMarkerView(context, R.layout.view_custom_marker, timeLabels);
         mv.setChartView(chart);
         chart.setMarker(mv);
 
         // 6. ФОН
         chart.setDrawGridBackground(false); // Отключаем встроенный квадратный фон
-
-
-            // Для больших графиков истории (темный скругленный фон)
-            // Для маленьких графиков в карусели (прозрачный фон)
-            chart.setBackgroundColor(Color.TRANSPARENT);
-
+        chart.setBackgroundColor(Color.TRANSPARENT);
 
         // 7. ОТСТУПЫ (VIEW PORT OFFSETS)
         // Рассчитываем отступы в пикселях, чтобы текст точно влезал
-
-        // Нижний отступ под текст
         float bottomOffsetDp = showBackground ? 0f : 0f;
         float bottomOffsetPx = bottomOffsetDp * density;
-
-        // Боковой отступ, чтобы текст не прилипал к краям экрана
         float sideOffsetDp = 1f;
         float sideOffsetPx = sideOffsetDp * density;
 

@@ -25,6 +25,7 @@ import com.example.fitnesapp.ui.auth.RegisterActivity;
 import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.charts.Chart;
 import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.BarData;
 import com.github.mikephil.charting.data.BarDataSet;
 import com.github.mikephil.charting.data.BarEntry;
@@ -85,15 +86,12 @@ public class HomeFragment extends Fragment {
             }
         });
 
-        // --- 1. График Пульса (Используем всю историю) ---
+        // --- 1. График Пульса ---
         homeViewModel.getPulseHistory().observe(getViewLifecycleOwner(), pulseList -> {
-            if (pulseList != null) {
-                setupPulseChart(pulseList); // Строим график
-            }
+            setupPulseChart(pulseList);
         });
 
-        // --- 2. Текст Пульса (Используем только значение за сегодня) ---
-        // Если сегодня замеров не было, придет null, и мы покажем "--"
+        // --- 2. Текст Пульса ---
         homeViewModel.getTodayPulseValue().observe(getViewLifecycleOwner(), currentPulse -> {
             if (currentPulse != null) {
                 binding.tvPulse.setText(currentPulse + " bpm");
@@ -105,22 +103,18 @@ public class HomeFragment extends Fragment {
         // --- График Веса + Текст ---
         homeViewModel.getWeightHistory().observe(getViewLifecycleOwner(), weightList -> {
             if (weightList != null && !weightList.isEmpty()) {
-                // 1. Сначала СОРТИРУЕМ список по дате (от старых к новым)
-                // Это гарантирует, что последний элемент - это действительно самая свежая запись
                 Collections.sort(weightList, (o1, o2) -> {
                     if (o1.date == null) return -1;
                     if (o2.date == null) return 1;
                     return o1.date.compareTo(o2.date);
                 });
 
-                // 2. Строим график (передаем уже отсортированный список)
                 setupWeightChart(weightList);
-
-                // 3. Берем последний элемент (теперь мы уверены, что он последний по времени)
                 WeightHistoryItem latestWeight = weightList.get(weightList.size() - 1);
                 binding.tvWeight.setText(String.format(Locale.US, "%.1f kg", latestWeight.val));
             } else {
                 binding.tvWeight.setText("-- kg");
+                setupWeightChart(new ArrayList<>()); // Рисуем нулевой график
             }
         });
 
@@ -137,7 +131,6 @@ public class HomeFragment extends Fragment {
 
     private void updateDashboardWithRealData(DailyData data) {
         // --- ЧАСТЬ 1: КРУГ И ЦЕЛИ ---
-        // Получаем текущие значения и цели из базы (без заглушек)
         float caloriesGoal = data.caloriesGoal;
         float stepsGoal = data.stepsGoal;
         float nutritionGoal = (data.nutrition != null) ? data.nutrition.maxCalories : 0f;
@@ -146,38 +139,27 @@ public class HomeFragment extends Fragment {
         float stepsCurrent = data.steps;
         float nutritionCurrent = (data.nutrition != null) ? data.nutrition.totalCalories : 0f;
 
-        // Переменные для умного подсчета
         float totalPercent = 0f;
-        int activeGoalsCount = 0; // Считаем, сколько целей реально задано
+        int activeGoalsCount = 0;
 
-        // 1. Считаем Калории
         if (caloriesGoal > 0) {
-            float calP = Math.min(caloriesCurrent / caloriesGoal, 1f); // Не больше 100% (1.0)
-            totalPercent += calP;
+            totalPercent += Math.min(caloriesCurrent / caloriesGoal, 1f);
             activeGoalsCount++;
         }
-
-        // 2. Считаем Шаги
         if (stepsGoal > 0) {
-            float stepP = Math.min(stepsCurrent / stepsGoal, 1f);
-            totalPercent += stepP;
+            totalPercent += Math.min(stepsCurrent / stepsGoal, 1f);
             activeGoalsCount++;
         }
-
-        // 3. Считаем Питание
         if (nutritionGoal > 0) {
-            float nutP = Math.min(nutritionCurrent / nutritionGoal, 1f);
-            totalPercent += nutP;
+            totalPercent += Math.min(nutritionCurrent / nutritionGoal, 1f);
             activeGoalsCount++;
         }
 
-        // Вычисляем итоговый средний процент (только по активным целям)
         float finalPercentVal = 0f;
         if (activeGoalsCount > 0) {
             finalPercentVal = (totalPercent / (float) activeGoalsCount) * 100f;
         }
 
-        // Отрисовка круга с нашей новой логикой анимации
         binding.progressCalories.setProgressMax(100f);
         if (!homeViewModel.isDashboardAnimated()) {
             binding.progressCalories.setProgressWithAnimation(finalPercentVal, 900L);
@@ -198,8 +180,6 @@ public class HomeFragment extends Fragment {
 
 
         // --- ЧАСТЬ 2: НИЖНИЕ КАРТОЧКИ (Сон, Кислород) ---
-
-        // --- КИСЛОРОД (Последнее значение) ---
         if (data.oxygen != null && !data.oxygen.isEmpty()) {
             HealthLogItem latestOxygen = null;
             for (HealthLogItem item : data.oxygen.values()) {
@@ -230,11 +210,29 @@ public class HomeFragment extends Fragment {
             int hours = data.sleep.durationMinutes / 60;
             int mins = data.sleep.durationMinutes % 60;
             binding.tvSleepTime.setText(hours + "h " + mins + "m");
+
             if (data.sleep.quality != null && !data.sleep.quality.isEmpty()) {
                 binding.tvSleepStatus.setText(data.sleep.quality);
+
+                if (data.sleep.score >= 80) {
+                    binding.tvSleepStatus.setTextColor(Color.parseColor("#4CAF50")); // Зеленый (Отлично)
+                } else if (data.sleep.score >= 50) {
+                    binding.tvSleepStatus.setTextColor(Color.parseColor("#448AFF")); // Синий/Оранжевый (Норма)
+                } else if (data.sleep.score > 0) {
+                    binding.tvSleepStatus.setTextColor(Color.parseColor("#F44336")); // Красный (Плохо)
+                } else {
+                    binding.tvSleepStatus.setTextColor(Color.parseColor("#B0BEC5")); // Серый
+                }
+            } else {
+                binding.tvSleepStatus.setText("--");
+                binding.tvSleepStatus.setTextColor(Color.parseColor("#B0BEC5"));
             }
         } else {
             binding.tvSleepTime.setText("-- h -- m");
+            if (binding.tvSleepStatus != null) {
+                binding.tvSleepStatus.setText("--");
+                binding.tvSleepStatus.setTextColor(Color.parseColor("#B0BEC5"));
+            }
         }
     }
 
@@ -244,41 +242,38 @@ public class HomeFragment extends Fragment {
         BarChart chart = binding.chartPulse;
         if (chart == null) return;
 
-        if (allData == null || allData.isEmpty()) {
-            chart.clear();
-            return;
-        }
-
-        // Фильтруем данные только за СЕГОДНЯ
-        Calendar cal = Calendar.getInstance();
-        cal.set(Calendar.HOUR_OF_DAY, 0);
-        cal.set(Calendar.MINUTE, 0);
-        cal.set(Calendar.SECOND, 0);
-        cal.set(Calendar.MILLISECOND, 0);
-        long startOfDay = cal.getTimeInMillis();
-
-        cal.set(Calendar.HOUR_OF_DAY, 23);
-        cal.set(Calendar.MINUTE, 59);
-        cal.set(Calendar.SECOND, 59);
-        long endOfDay = cal.getTimeInMillis();
-
-        List<HealthLogItem> todaysData = new ArrayList<>();
-        for (HealthLogItem item : allData) {
-            if (item.time >= startOfDay && item.time <= endOfDay) {
-                todaysData.add(item);
-            }
-        }
-
-        if (todaysData.isEmpty()) {
-            chart.clear();
-            return;
-        }
-
-        Collections.sort(todaysData, (o1, o2) -> Long.compare(o1.time, o2.time));
-
         ArrayList<BarEntry> entries = new ArrayList<>();
-        for (int i = 0; i < todaysData.size(); i++) {
-            entries.add(new BarEntry(i, (float) todaysData.get(i).val));
+
+        if (allData == null || allData.isEmpty()) {
+            for (int i = 0; i < 5; i++) entries.add(new BarEntry(i, 0f));
+        } else {
+            Calendar cal = Calendar.getInstance();
+            cal.set(Calendar.HOUR_OF_DAY, 0);
+            cal.set(Calendar.MINUTE, 0);
+            cal.set(Calendar.SECOND, 0);
+            cal.set(Calendar.MILLISECOND, 0);
+            long startOfDay = cal.getTimeInMillis();
+
+            cal.set(Calendar.HOUR_OF_DAY, 23);
+            cal.set(Calendar.MINUTE, 59);
+            cal.set(Calendar.SECOND, 59);
+            long endOfDay = cal.getTimeInMillis();
+
+            List<HealthLogItem> todaysData = new ArrayList<>();
+            for (HealthLogItem item : allData) {
+                if (item.time >= startOfDay && item.time <= endOfDay) {
+                    todaysData.add(item);
+                }
+            }
+
+            if (todaysData.isEmpty()) {
+                for (int i = 0; i < 5; i++) entries.add(new BarEntry(i, 0f));
+            } else {
+                Collections.sort(todaysData, (o1, o2) -> Long.compare(o1.time, o2.time));
+                for (int i = 0; i < todaysData.size(); i++) {
+                    entries.add(new BarEntry(i, (float) todaysData.get(i).val));
+                }
+            }
         }
 
         BarDataSet dataSet = new BarDataSet(entries, "");
@@ -294,12 +289,18 @@ public class HomeFragment extends Fragment {
 
     private void setupWeightChart(List<WeightHistoryItem> dataValues) {
         LineChart chart = binding.chartWeight;
-        if (chart == null || dataValues == null || dataValues.isEmpty()) return;
+        if (chart == null) return;
 
-        // Здесь список уже отсортирован в observer, но для графика это тоже не повредит
         ArrayList<Entry> entries = new ArrayList<>();
-        for (int i = 0; i < dataValues.size(); i++) {
-            entries.add(new Entry(i, (float) dataValues.get(i).val));
+
+        if (dataValues == null || dataValues.isEmpty()) {
+            for (int i = 0; i < 5; i++) {
+                entries.add(new Entry(i, 0f));
+            }
+        } else {
+            for (int i = 0; i < dataValues.size(); i++) {
+                entries.add(new Entry(i, (float) dataValues.get(i).val));
+            }
         }
 
         LineDataSet dataSet = new LineDataSet(entries, "");
@@ -313,6 +314,12 @@ public class HomeFragment extends Fragment {
         LineData data = new LineData(dataSet);
         chart.setData(data);
         simplifyChart(chart);
+
+        if (dataValues == null || dataValues.isEmpty()) {
+            chart.getAxisLeft().setAxisMinimum(-5f);
+            chart.getAxisLeft().setAxisMaximum(10f);
+        }
+
         chart.invalidate();
     }
 
@@ -320,17 +327,27 @@ public class HomeFragment extends Fragment {
         chart.setTouchEnabled(false);
         chart.getDescription().setEnabled(false);
         chart.getLegend().setEnabled(false);
+
         chart.getXAxis().setEnabled(false);
         chart.getXAxis().setDrawGridLines(false);
 
+        YAxis leftAxis = null;
         if (chart instanceof BarChart) {
-            ((BarChart) chart).getAxisLeft().setEnabled(false);
+            leftAxis = ((BarChart) chart).getAxisLeft();
             ((BarChart) chart).getAxisRight().setEnabled(false);
-            ((BarChart) chart).getAxisLeft().setDrawGridLines(false);
         } else if (chart instanceof LineChart) {
-            ((LineChart) chart).getAxisLeft().setEnabled(false);
+            leftAxis = ((LineChart) chart).getAxisLeft();
             ((LineChart) chart).getAxisRight().setEnabled(false);
-            ((LineChart) chart).getAxisLeft().setDrawGridLines(false);
+        }
+
+        if (leftAxis != null) {
+            leftAxis.setEnabled(true);
+            leftAxis.setDrawLabels(false);
+            leftAxis.setDrawAxisLine(false);
+            leftAxis.setDrawGridLines(false);
+
+            leftAxis.setSpaceBottom(15f);
+            leftAxis.setSpaceTop(15f);
         }
     }
 

@@ -1,20 +1,33 @@
 package com.example.fitnesapp.models;
 
 public class InsightItem {
+
     public enum Type {
-        WARNING,    // Красный: Предупреждения (переутомление, превышение калорий)
-        TIP,        // Синий: Подсказки (пейте воду, ложитесь спать)
-        PREDICTION, // Зеленый: ИИ-прогнозы (прогноз шагов, восстановление в норме)
-        PRAISE      // Золотой: Похвала (цель выполнена, идеальное восстановление)
+        PRAISE,
+        WARNING,
+        TIP,
+        PREDICTION
+    }
+
+    // НОВОЕ: Категории для фильтрации
+    public enum Category {
+        RECOVERY,   // Энергия / Батарейка
+        NUTRITION,  // Питание / БЖУ
+        ACTIVITY,   // Шаги / Тренировки
+        SLEEP,      // Сон / Восстановление
+        GENERAL     // Общие советы
     }
 
     public Type type;
+    public Category category; // НОВОЕ ПОЛЕ
     public String title;
-    public String message;
+    public String description;
 
-    public InsightItem(Type type, String title, String message) {
+    // ОБНОВЛЕННЫЙ КОНСТРУКТОР
+    public InsightItem(Type type, Category category, String title, String description) {
         this.type = type;
+        this.category = category;
         this.title = title;
-        this.message = message;
+        this.description = description;
     }
 }

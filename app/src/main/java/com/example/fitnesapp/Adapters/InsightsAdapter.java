@@ -44,7 +44,7 @@ public class InsightsAdapter extends RecyclerView.Adapter<InsightsAdapter.Insigh
         InsightItem item = insightsList.get(position);
 
         holder.tvTitle.setText(item.title);
-        holder.tvMessage.setText(item.message);
+        holder.tvMessage.setText(item.description);
 
         // Настраиваем дизайн в зависимости от типа подсказки
         switch (item.type) {

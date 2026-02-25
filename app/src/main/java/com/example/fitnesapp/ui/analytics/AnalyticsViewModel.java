@@ -17,9 +17,11 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -31,12 +33,16 @@ public class AnalyticsViewModel extends AndroidViewModel {
     private DatabaseReference dailyRef;
     private DatabaseReference profileRef;
     private DatabaseReference goalsRef;
+    private Query historyQuery; // Новый запрос для истории
 
     private AnalyticsEngine analyticsEngine;
 
     private DailyData currentDailyData = null;
     private UserProfile currentUserProfile = null;
     private UserGoals currentUserGoals = null;
+    private List<DailyData> currentWeekHistory = new ArrayList<>(); // Список истории
+
+    private String todayDate;
 
     public AnalyticsViewModel(@NonNull Application application) {
         super(application);
@@ -47,13 +53,16 @@ public class AnalyticsViewModel extends AndroidViewModel {
                 FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
 
         if (uid != null) {
-            String todayDate = new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(new Date());
+            todayDate = new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(new Date());
 
             DatabaseReference userRef = FirebaseDatabase.getInstance().getReference().child("users").child(uid);
 
             dailyRef = userRef.child("daily_data").child(todayDate);
             profileRef = userRef.child("profile");
             goalsRef = userRef.child("goals");
+
+            // Запрашиваем последние 8 записей (чтобы точно получить историю за неделю + сегодняшний день, который мы отфильтруем)
+            historyQuery = userRef.child("daily_data").orderByKey().limitToLast(8);
 
             loadAnalytics();
         }
@@ -95,10 +104,36 @@ public class AnalyticsViewModel extends AndroidViewModel {
                 public void onCancelled(@NonNull DatabaseError error) {}
             });
         }
+
+        // Загружаем историю для аналитики сна
+        if (historyQuery != null) {
+            historyQuery.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    List<DailyData> history = new ArrayList<>();
+                    for (DataSnapshot daySnap : snapshot.getChildren()) {
+                        String dateKey = daySnap.getKey();
+
+                        // Исключаем сегодняшний день, чтобы в истории были только прошлые дни
+                        if (dateKey != null && !dateKey.equals(todayDate)) {
+                            DailyData dayData = daySnap.getValue(DailyData.class);
+                            if (dayData != null) {
+                                history.add(dayData);
+                            }
+                        }
+                    }
+                    currentWeekHistory = history;
+                    generateAndSetInsights();
+                }
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {}
+            });
+        }
     }
 
     private void generateAndSetInsights() {
-        List<InsightItem> newInsights = analyticsEngine.generate(currentDailyData, currentUserProfile, currentUserGoals);
+        // Передаем все 4 параметра в наш мозг (AnalyticsEngine)
+        List<InsightItem> newInsights = analyticsEngine.generate(currentDailyData, currentUserProfile, currentUserGoals, currentWeekHistory);
         insightsList.setValue(newInsights);
     }
 

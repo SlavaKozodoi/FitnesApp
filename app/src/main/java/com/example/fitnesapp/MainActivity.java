@@ -112,6 +112,10 @@ public class MainActivity extends AppCompatActivity {
                 btnSettings.setImageResource(R.drawable.ic_achievement);
                 btnSettings.setVisibility(View.VISIBLE);
             }
+            else if (destination.getId() == R.id.sleepFragment) {
+                btnSettings.setImageResource(R.drawable.ic_add_new_sleep);
+                btnSettings.setVisibility(View.VISIBLE);
+            }
             else {
                 btnSettings.setVisibility(View.GONE);
             }
@@ -122,9 +126,12 @@ public class MainActivity extends AppCompatActivity {
                 Navigation.findNavController(this,R.id.nav_host_fragment_activity_main).navigate(R.id.settingsFragment);
             }
             else if (currentDestinationId[0] == R.id.weightFragment) {
-                showAddWeightDialog();            }
+                showAddWeightDialog();
+            }
+            else if (currentDestinationId[0] == R.id.sleepFragment) {
+                showAddSleepDialog();
+            }
             else if (currentDestinationId[0] == R.id.navigation_notifications) {
-                Toast.makeText(MainActivity.this, "Achievement window Clicked", Toast.LENGTH_SHORT).show();
                 Navigation.findNavController(this,R.id.nav_host_fragment_activity_main).navigate(R.id.historyAchievementsFragment);
             }
         });
@@ -132,6 +139,143 @@ public class MainActivity extends AppCompatActivity {
         scheduleDailyHealthSync();
     }
 
+    private void showAddSleepDialog() {
+        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this);
+
+        // Подключаем наш новый красивый макет
+        View customView = LayoutInflater.from(this).inflate(R.layout.dialog_add_sleep, null);
+
+        android.widget.TextView tvBedDate = customView.findViewById(R.id.tvBedDate);
+        android.widget.TextView tvBedTime = customView.findViewById(R.id.tvBedTime);
+        android.widget.TextView tvWakeDate = customView.findViewById(R.id.tvWakeDate);
+        android.widget.TextView tvWakeTime = customView.findViewById(R.id.tvWakeTime);
+
+        View btnCancel = customView.findViewById(R.id.btnCancel);
+        View btnSave = customView.findViewById(R.id.btnSave);
+
+        // Создаем два календаря для точного подсчета разницы во времени
+        java.util.Calendar bedCalendar = java.util.Calendar.getInstance();
+        java.util.Calendar wakeCalendar = java.util.Calendar.getInstance();
+
+        // Массив флагов, чтобы проверить, что пользователь заполнил все 4 поля
+        boolean[] isFilled = new boolean[4];
+
+        builder.setView(customView);
+        android.app.AlertDialog dialog = builder.create();
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
+
+        // --- 1. ВЫБОР ДАТЫ СНА ---
+        tvBedDate.setOnClickListener(v -> {
+            new android.app.DatePickerDialog(this, (view, year, month, day) -> {
+                bedCalendar.set(java.util.Calendar.YEAR, year);
+                bedCalendar.set(java.util.Calendar.MONTH, month);
+                bedCalendar.set(java.util.Calendar.DAY_OF_MONTH, day);
+                tvBedDate.setText(String.format(java.util.Locale.US, "%02d/%02d/%d", day, month + 1, year));
+                isFilled[0] = true;
+            }, bedCalendar.get(java.util.Calendar.YEAR), bedCalendar.get(java.util.Calendar.MONTH), bedCalendar.get(java.util.Calendar.DAY_OF_MONTH)).show();
+        });
+
+        // --- 2. ВЫБОР ВРЕМЕНИ СНА ---
+        tvBedTime.setOnClickListener(v -> {
+            new android.app.TimePickerDialog(this, (view, hour, minute) -> {
+                bedCalendar.set(java.util.Calendar.HOUR_OF_DAY, hour);
+                bedCalendar.set(java.util.Calendar.MINUTE, minute);
+                tvBedTime.setText(String.format(java.util.Locale.US, "%02d:%02d", hour, minute));
+                isFilled[1] = true;
+            }, bedCalendar.get(java.util.Calendar.HOUR_OF_DAY), bedCalendar.get(java.util.Calendar.MINUTE), true).show();
+        });
+
+        // --- 3. ВЫБОР ДАТЫ ПРОБУЖДЕНИЯ ---
+        tvWakeDate.setOnClickListener(v -> {
+            new android.app.DatePickerDialog(this, (view, year, month, day) -> {
+                wakeCalendar.set(java.util.Calendar.YEAR, year);
+                wakeCalendar.set(java.util.Calendar.MONTH, month);
+                wakeCalendar.set(java.util.Calendar.DAY_OF_MONTH, day);
+                tvWakeDate.setText(String.format(java.util.Locale.US, "%02d/%02d/%d", day, month + 1, year));
+                isFilled[2] = true;
+            }, wakeCalendar.get(java.util.Calendar.YEAR), wakeCalendar.get(java.util.Calendar.MONTH), wakeCalendar.get(java.util.Calendar.DAY_OF_MONTH)).show();
+        });
+
+        // --- 4. ВЫБОР ВРЕМЕНИ ПРОБУЖДЕНИЯ ---
+        tvWakeTime.setOnClickListener(v -> {
+            new android.app.TimePickerDialog(this, (view, hour, minute) -> {
+                wakeCalendar.set(java.util.Calendar.HOUR_OF_DAY, hour);
+                wakeCalendar.set(java.util.Calendar.MINUTE, minute);
+                tvWakeTime.setText(String.format(java.util.Locale.US, "%02d:%02d", hour, minute));
+                isFilled[3] = true;
+            }, wakeCalendar.get(java.util.Calendar.HOUR_OF_DAY), wakeCalendar.get(java.util.Calendar.MINUTE), true).show();
+        });
+
+        // --- КНОПКИ ---
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+
+        btnSave.setOnClickListener(v -> {
+            // Проверяем, что все поля заполнены
+            if (!isFilled[0] || !isFilled[1] || !isFilled[2] || !isFilled[3]) {
+                android.widget.Toast.makeText(this, "Please fill in all date and time fields", android.widget.Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            long bedTimeMillis = bedCalendar.getTimeInMillis();
+            long wakeTimeMillis = wakeCalendar.getTimeInMillis();
+
+            if (wakeTimeMillis <= bedTimeMillis) {
+                android.widget.Toast.makeText(this, "Wake-up time must be after bedtime", android.widget.Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            long durationMinutes = (wakeTimeMillis - bedTimeMillis) / (1000 * 60);
+
+            String bedTimeStr = tvBedTime.getText().toString();
+            String wakeTimeStr = tvWakeTime.getText().toString();
+
+            // НОВОЕ: Достаем дату ПРОБУЖДЕНИЯ в формате "yyyy-MM-dd" из нашего календаря
+            String selectedDateKey = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(wakeCalendar.getTime());
+
+            // Передаем эту дату первым параметром!
+            saveSleepToFirebase(selectedDateKey, (int) durationMinutes, bedTimeStr, wakeTimeStr);
+
+            dialog.dismiss();
+        });
+
+        dialog.show();
+    }
+    private void saveSleepToFirebase(String dateKey, int durationMinutes, String bedTime, String wakeTime) {
+        String uid = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser() != null ?
+                com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
+
+        if (uid == null) {
+            android.widget.Toast.makeText(this, "User not authorized", android.widget.Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // УДАЛИЛИ генерацию сегодняшней даты. Теперь мы используем dateKey из параметров!
+
+        com.google.firebase.database.DatabaseReference sleepRef = com.google.firebase.database.FirebaseDatabase.getInstance().getReference()
+                .child("users").child(uid).child("daily_data").child(dateKey).child("sleep");
+
+        com.example.fitnesapp.models.firebase.DailyData.Sleep newSleep = new com.example.fitnesapp.models.firebase.DailyData.Sleep();
+        newSleep.durationMinutes = durationMinutes;
+        newSleep.bedTime = bedTime;
+        newSleep.wakeTime = wakeTime;
+        newSleep.fallingAsleepMin = 0;
+
+        // Честные нули во все фазы
+        com.example.fitnesapp.models.firebase.DailyData.SleepPhases phases = new com.example.fitnesapp.models.firebase.DailyData.SleepPhases();
+        phases.deep = 0;
+        phases.rem = 0;
+        phases.surface = 0;
+        phases.awake = 0;
+
+        newSleep.phases = phases;
+
+        sleepRef.setValue(newSleep)
+                .addOnSuccessListener(aVoid -> android.widget.Toast.makeText(this, "Sleep data saved!", android.widget.Toast.LENGTH_SHORT).show())
+                .addOnFailureListener(e -> android.widget.Toast.makeText(this, "Error saving data", android.widget.Toast.LENGTH_SHORT).show());
+    }
     private void scheduleDailyHealthSync() {
         // 1. Считаем, сколько времени осталось до 23:30
         Calendar currentDate = Calendar.getInstance();
@@ -583,19 +727,7 @@ public class MainActivity extends AppCompatActivity {
 
         userRef.child("daily_data").child(todayDate).child("sleep").updateChildren(dailySleepMap);
     }
-    // Вспомогательные методы для красоты
-    private int calculateSleepScore(long durationMin) {
-        if (durationMin >= 420 && durationMin <= 540) return 100; // 7-9 часов
-        if (durationMin > 540) return 90;
-        if (durationMin >= 360) return 80;
-        return 60;
-    }
 
-    private String calculateSleepQuality(long durationMin) {
-        if (durationMin >= 420) return "Excellent";
-        if (durationMin >= 360) return "Good";
-        return "Fair";
-    }
     private void saveWorkoutsToFirebase(List<com.example.fitnesapp.utils.WorkoutSessionData> workouts) {
         String uid = FirebaseAuth.getInstance().getCurrentUser() != null ? FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
         if (uid == null || workouts.isEmpty()) return;

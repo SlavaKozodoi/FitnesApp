@@ -117,10 +117,7 @@ public class WeightFragment extends Fragment {
     }
 
     private void updateChartForPeriod(int months) {
-        if (allWeightHistory.isEmpty()) {
-            binding.chartWeightInfo.clear();
-            return;
-        }
+
 
         // 1. Вычисляем дату отсечения
         Calendar cal = Calendar.getInstance();
@@ -160,11 +157,14 @@ public class WeightFragment extends Fragment {
             }
         }
 
+        // ЗАЩИТА ТЕКСТА ОТ СУМАСШЕДШИХ ЦИФР
         if (entries.isEmpty()) {
-            binding.chartWeightInfo.clear();
             binding.tvHighestWeight.setText("--");
             binding.tvLowestWeight.setText("--");
-            return;
+        } else {
+            // Если данные есть, выводим реальные макс и мин
+            binding.tvHighestWeight.setText(String.format(Locale.US, "%.1f kg", max));
+            binding.tvLowestWeight.setText(String.format(Locale.US, "%.1f kg", min));
         }
 
         String[] labels = labelsList.toArray(new String[0]);
@@ -178,9 +178,6 @@ public class WeightFragment extends Fragment {
                 R.color.weight_end,
                 true
         );
-
-        binding.tvHighestWeight.setText(String.format(Locale.US, "%.1f kg", max));
-        binding.tvLowestWeight.setText(String.format(Locale.US, "%.1f kg", min));
     }
 
     private void updateButtonVisuals(Button activeButton) {

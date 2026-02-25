@@ -71,8 +71,20 @@ public class SleepFragment extends Fragment {
     }
 
     private void updateSleepUI(DailyData.Sleep sleep) {
+        // Если данных вообще нет (выбран пустой день)
         if (sleep == null) {
             clearUI();
+
+            // НОВОЕ: Вызываем ChartHelper с null, чтобы он нарисовал нулевую гипнограмму
+            ChartHelper.setupUnifiedChart(
+                    requireContext(),
+                    binding.chartSleepInfo,
+                    null, // Передаем null, ChartHelper сам сделает прямую линию
+                    null,
+                    R.color.sleep_start,
+                    R.color.sleep_end,
+                    true
+            );
             return;
         }
 
@@ -101,16 +113,32 @@ public class SleepFragment extends Fragment {
 
             updatePhase(binding.chartAwake, binding.tvAwakePercent, binding.tvAwakeTime,
                     sleep.phases.awake, sleep.durationMinutes, Color.parseColor("#F44336"));
+        } else {
+            // Если сон есть (ручной ввод), но фаз нет, обнуляем круги
+            setupMiniPie(binding.chartDeep, 0, Color.GRAY);
+            setupMiniPie(binding.chartSurface, 0, Color.GRAY);
+            setupMiniPie(binding.chartFast, 0, Color.GRAY);
+            setupMiniPie(binding.chartAwake, 0, Color.GRAY);
         }
 
         // --- ГЛАВНЫЙ ГРАФИК (ГИПНОГРАММА) ---
+        // НОВОЕ: Мы больше не делаем chart.clear(). Мы просто передаем данные,
+        // либо, если их нет, передаем null, и ChartHelper рисует прямую линию.
         if (sleep.hypnogram != null && !sleep.hypnogram.isEmpty()) {
             setupRealSleepChart(sleep.hypnogram);
         } else {
-            binding.chartSleepInfo.clear();
+            // Данных гипнограммы нет (например, ручной ввод) -> рисуем нулевую линию
+            ChartHelper.setupUnifiedChart(
+                    requireContext(),
+                    binding.chartSleepInfo,
+                    null, // Null заставит ChartHelper нарисовать нули
+                    null,
+                    R.color.sleep_start,
+                    R.color.sleep_end,
+                    true
+            );
         }
     }
-
     private void setupRealSleepChart(java.util.Map<String, SleepStageItem> hypnogramMap) {
         // 1. Преобразуем Map в List и сортируем по времени
         List<SleepStageItem> dataPoints = new ArrayList<>(hypnogramMap.values());
@@ -188,6 +216,10 @@ public class SleepFragment extends Fragment {
 
     private void setupMiniPie(PieChart chart, int percentage, int color) {
         if (chart == null) return;
+
+        // НОВОЕ: Отключаем текст полностью
+        chart.setNoDataText("");
+
         List<PieEntry> entries = new ArrayList<>();
         // Данные: сколько заняла фаза vs сколько осталось
         entries.add(new PieEntry((float) percentage));
@@ -222,7 +254,6 @@ public class SleepFragment extends Fragment {
         binding.tvGettingIntoBed.setText("--:--");
         binding.tvAwaking.setText("--:--");
         binding.tvFallAsleep.setText("-- min");
-        binding.chartSleepInfo.clear();
 
         // Очистка пай-чартов (ставим 0)
         setupMiniPie(binding.chartDeep, 0, Color.GRAY);

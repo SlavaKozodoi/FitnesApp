@@ -15,16 +15,42 @@ public class MLPredictor {
     private Interpreter tfliteRecovery;
     private Interpreter tfliteHabits;
     private Interpreter tfliteMacros;
+    private Interpreter tfliteSleep;
 
     public MLPredictor(Context context) {
         try {
             tfliteRecovery = new Interpreter(loadModelFile(context, "model_recovery.tflite"));
             tfliteHabits = new Interpreter(loadModelFile(context, "model_habits.tflite"));
             tfliteMacros = new Interpreter(loadModelFile(context, "model_macros.tflite"));
+            tfliteSleep = new Interpreter(loadModelFile(context, "model_sleep.tflite"));
             Log.d("ML", "Все 3 модели успешно загружены!");
         } catch (Exception e) {
             Log.e("ML", "Ошибка загрузки моделей", e);
         }
+    }
+
+    public float predictSleepQuality(long totalMinutes, long deepMinutes, long remMinutes, int awakenings, long avgHistoryMinutes) {
+        if (tfliteSleep == null) return -1f;
+
+        // 1. Нормализация данных
+        float normTotal = (float) totalMinutes / 480f; // 8 часов = 1.0
+        float normDeep = totalMinutes > 0 ? (float) deepMinutes / totalMinutes : 0f;
+        float normRem = totalMinutes > 0 ? (float) remMinutes / totalMinutes : 0f;
+        float normAwakenings = Math.min((float) awakenings / 10f, 1.0f); // Максимум 1.0
+        float normHistory = (float) avgHistoryMinutes / 480f; // 8 часов в среднем = 1.0
+
+        // 2. Упаковываем 5 входов
+        float[][] inputValues = new float[1][5];
+        inputValues[0][0] = normTotal;
+        inputValues[0][1] = normDeep;
+        inputValues[0][2] = normRem;
+        inputValues[0][3] = normAwakenings;
+        inputValues[0][4] = normHistory;
+
+        float[][] outputValue = new float[1][1];
+        tfliteSleep.run(inputValues, outputValue);
+
+        return outputValue[0][0];
     }
 
     private MappedByteBuffer loadModelFile(Context context, String modelName) throws Exception {
@@ -81,27 +107,32 @@ public class MLPredictor {
         return outputValue[0][0];
     }
 
-    public float predictMacros(float currentHour, float caloriesEaten, float caloriesGoal, float caloriesBurned, float burnGoal) {
+    // Метод для аналитики питания
+    public float predictMacros(float currentHour, float calsEaten, float calsGoal, float calsBurned, float burnGoal) {
         if (tfliteMacros == null) return -1f;
 
-        float normTime = currentHour / 24.0f;
-        float personalCalGoal = (caloriesGoal > 0) ? caloriesGoal : 2000f;
-        float personalBurnGoal = (burnGoal > 0) ? burnGoal : 500f;
+        // 1. Нормализуем данные точно так же, как делали в Python!
+        // Время (8:30 утра = 8.5 / 24.0 = 0.35)
+        float timeNorm = currentHour / 24.0f;
 
-        float normEaten = caloriesEaten / personalCalGoal;
-        float normBurned = caloriesBurned / personalBurnGoal;
+        // Защита от деления на ноль
+        float safeCalsGoal = calsGoal > 0 ? calsGoal : 2000f;
+        float safeBurnGoal = burnGoal > 0 ? burnGoal : 500f;
 
+        float foodNorm = calsEaten / safeCalsGoal;
+        float burnNorm = calsBurned / safeBurnGoal;
+
+        // 2. Упаковываем в массив (3 входа)
         float[][] inputValues = new float[1][3];
-        inputValues[0][0] = normTime;
-        inputValues[0][1] = normEaten;
-        inputValues[0][2] = normBurned;
+        inputValues[0][0] = timeNorm;
+        inputValues[0][1] = foodNorm;
+        inputValues[0][2] = burnNorm;
 
         float[][] outputValue = new float[1][1];
         tfliteMacros.run(inputValues, outputValue);
 
-        return outputValue[0][0];
+        return outputValue[0][0]; // Возвращает число от 0.0 до 1.0
     }
-
     public void close() {
         if (tfliteRecovery != null) tfliteRecovery.close();
         if (tfliteHabits != null) tfliteHabits.close();

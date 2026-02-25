@@ -110,10 +110,7 @@ public class OxygenFragment extends Fragment {
     }
 
     private void updateChartUI(List<HealthLogItem> logs) {
-        if (logs == null || logs.isEmpty()) {
-            binding.chartOxygenInfo.clear();
-            return;
-        }
+
 
         ArrayList<Entry> entries = new ArrayList<>();
         ArrayList<String> labelsList = new ArrayList<>();
