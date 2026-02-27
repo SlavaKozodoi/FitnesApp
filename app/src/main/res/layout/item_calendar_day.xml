@@ -16,6 +16,20 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <com.mikhaellopez.circularprogressbar.CircularProgressBar
+        android:id="@+id/progressDay"
+        android:layout_width="38dp"
+        android:layout_height="38dp"
+        app:cpb_background_progressbar_color="#1AFFFFFF"
+        app:cpb_background_progressbar_width="2dp"
+        app:cpb_progressbar_color="@color/blue_start"
+        app:cpb_progressbar_width="3dp"
+        app:cpb_round_border="true"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <TextView
         android:id="@+id/tvDayNumber"
         android:layout_width="wrap_content"

@@ -27,17 +27,22 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
-// ВАЖНО: Класс теперь наследует AndroidViewModel для работы ML
 public class HomeViewModel extends AndroidViewModel {
 
     private final MutableLiveData<UserProfile> userProfile = new MutableLiveData<>();
     private final MutableLiveData<DailyData> dailyData = new MutableLiveData<>();
     private final MutableLiveData<List<HealthLogItem>> pulseHistory = new MutableLiveData<>();
     private final MutableLiveData<List<WeightHistoryItem>> weightHistory = new MutableLiveData<>();
-    private final MutableLiveData<List<String>> activeDays = new MutableLiveData<>();
+
+    // ДВА СПИСКА ДЛЯ КАЛЕНДАРЯ:
+    private final MutableLiveData<List<String>> activeDays = new MutableLiveData<>(); // Дни с тренировками
+    private final MutableLiveData<Map<String, Integer>> dailyProgressMap = new MutableLiveData<>(); // Кольца прогресса
+
     private final MutableLiveData<Integer> todayPulseValue = new MutableLiveData<>();
     private final MutableLiveData<Boolean> requireLogin = new MutableLiveData<>();
 
@@ -49,7 +54,6 @@ public class HomeViewModel extends AndroidViewModel {
     private boolean isPulseChartAnimated = false;
     private boolean isWeightChartAnimated = false;
 
-    // --- НАША НЕЙРОСЕТЬ ---
     private MLPredictor mlPredictor;
     private Query historyQuery;
     private List<DailyData> currentWeekHistory = new ArrayList<>();
@@ -67,24 +71,17 @@ public class HomeViewModel extends AndroidViewModel {
 
     public HomeViewModel(@NonNull Application application) {
         super(application);
-
-        // Инициализируем предсказатель
         mlPredictor = new MLPredictor(application);
 
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        String uid = null;
+        String uid = user != null ? user.getUid() : null;
 
-        if (user != null) {
-            uid = user.getUid();
-        } else {
+        if (uid == null) {
             requireLogin.setValue(true);
-        }
-
-        if (uid != null) {
+        } else {
             userRef = FirebaseDatabase.getInstance().getReference("users").child(uid);
             todayDate = new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(new Date());
 
-            // Запрашиваем историю за неделю
             historyQuery = userRef.child("daily_data").orderByKey().limitToLast(8);
 
             loadProfile();
@@ -99,7 +96,11 @@ public class HomeViewModel extends AndroidViewModel {
     public LiveData<DailyData> getDailyData() { return dailyData; }
     public LiveData<List<HealthLogItem>> getPulseHistory() { return pulseHistory; }
     public LiveData<List<WeightHistoryItem>> getWeightHistory() { return weightHistory; }
+
+    // Геттеры для календаря
     public LiveData<List<String>> getActiveDays() { return activeDays; }
+    public LiveData<Map<String, Integer>> getDailyProgressMap() { return dailyProgressMap; }
+
     public LiveData<Integer> getTodayPulseValue() { return todayPulseValue; }
 
     private void loadProfile() {
@@ -113,7 +114,6 @@ public class HomeViewModel extends AndroidViewModel {
         });
     }
 
-    // Скачиваем историю сна для работы ИИ
     private void loadHistoryForML() {
         historyQuery.addValueEventListener(new ValueEventListener() {
             @Override
@@ -128,7 +128,6 @@ public class HomeViewModel extends AndroidViewModel {
                 }
                 currentWeekHistory = history;
 
-                // Пересчитываем текущие данные, если они уже загрузились
                 DailyData current = dailyData.getValue();
                 if (current != null && current.sleep != null && current.sleep.durationMinutes > 0) {
                     enrichSleepWithML(current.sleep);
@@ -145,12 +144,9 @@ public class HomeViewModel extends AndroidViewModel {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 DailyData data = snapshot.exists() ? snapshot.getValue(DailyData.class) : new DailyData();
-
-                // Пропускаем сырые данные через ИИ
                 if (data != null && data.sleep != null && data.sleep.durationMinutes > 0) {
                     enrichSleepWithML(data.sleep);
                 }
-
                 dailyData.setValue(data);
             }
             @Override
@@ -158,7 +154,6 @@ public class HomeViewModel extends AndroidViewModel {
         });
     }
 
-    // МЕТОД: Пересчет сна нейросетью
     private void enrichSleepWithML(DailyData.Sleep sleep) {
         if (sleep == null) return;
         long totalSleep = sleep.durationMinutes;
@@ -196,7 +191,6 @@ public class HomeViewModel extends AndroidViewModel {
             else if (mlScore >= 0.5f) sleep.quality = "Норма";
             else sleep.quality = "Плохо";
         } else {
-            // Если ИИ почему-то не отработал, переводим английское слово
             if ("Excellent".equalsIgnoreCase(sleep.quality)) sleep.quality = "Отлично";
             else if ("Good".equalsIgnoreCase(sleep.quality)) sleep.quality = "Норма";
             else if ("Poor".equalsIgnoreCase(sleep.quality)) sleep.quality = "Плохо";
@@ -215,7 +209,6 @@ public class HomeViewModel extends AndroidViewModel {
                         cal.set(Calendar.SECOND, 0);
                         cal.set(Calendar.MILLISECOND, 0);
                         long startOfDay = cal.getTimeInMillis();
-
                         HealthLogItem lastTodayItem = null;
 
                         for (DataSnapshot child : snapshot.getChildren()) {
@@ -253,14 +246,48 @@ public class HomeViewModel extends AndroidViewModel {
         userRef.child("daily_data").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                List<String> validDays = new ArrayList<>();
+                Map<String, Integer> progressMap = new HashMap<>();
+                List<String> workoutDays = new ArrayList<>();
+
                 for (DataSnapshot daySnap : snapshot.getChildren()) {
-                    DailyData dayData = daySnap.getValue(DailyData.class);
-                    if (dayData != null && dayData.workouts != null && !dayData.workouts.isEmpty()) {
-                        validDays.add(daySnap.getKey());
+                    DailyData data = daySnap.getValue(DailyData.class);
+                    if (data != null) {
+
+                        // 1. Проверяем тренировки (добавляем в список для фиолетового фона)
+                        if (data.workouts != null && !data.workouts.isEmpty()) {
+                            workoutDays.add(daySnap.getKey());
+                        }
+
+                        // 2. Считаем прогресс (для кольца)
+                        float calG = data.caloriesGoal > 0 ? data.caloriesGoal : 2000f;
+                        float stepG = data.stepsGoal > 0 ? data.stepsGoal : 10000f;
+                        float nutG = (data.nutrition != null && data.nutrition.maxCalories > 0) ? data.nutrition.maxCalories : 0f;
+
+                        float calP = Math.min(data.caloriesBurned / calG, 1f);
+                        float stepP = Math.min(data.steps / stepG, 1f);
+                        float nutP = 0f;
+
+                        int count = 2;
+                        if (nutG > 0) {
+                            nutP = Math.min(data.nutrition.totalCalories / nutG, 1f);
+                            count = 3;
+                        }
+
+                        int finalPercent = Math.round(((calP + stepP + nutP) / count) * 100f);
+
+                        if (finalPercent == 0 && (data.steps > 0 || data.caloriesBurned > 0 || data.workouts != null)) {
+                            finalPercent = 5;
+                        }
+
+                        if (finalPercent > 0 || data.workouts != null) {
+                            progressMap.put(daySnap.getKey(), finalPercent);
+                        }
                     }
                 }
-                activeDays.setValue(validDays);
+
+                // Отправляем ОБА списка
+                dailyProgressMap.setValue(progressMap);
+                activeDays.setValue(workoutDays);
             }
             @Override
             public void onCancelled(@NonNull DatabaseError error) {}

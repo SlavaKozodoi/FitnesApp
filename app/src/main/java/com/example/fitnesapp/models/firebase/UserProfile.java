@@ -16,6 +16,18 @@ public class UserProfile {
     public int maxXp;
     public boolean notificationsEnabled;
 
+    public int totalSteps = 0;          // Шагов за всё время
+    public int totalWorkouts = 0;       // Тренировок за всё время
+    public int totalCaloriesBurned = 0; // Сожжено калорий за всё время
+    public int stepStreakDays = 0;      // Дней подряд выполнена цель по шагам
+    public int perfectSleepDays = 0;
+
+    // Добавьте эти поля к уже существующим:
+    public int totalWeightLogs = 0;   // Сколько раз взвешивался
+    public int totalPulseLogs = 0;    // Сколько раз мерил пульс
+    public int totalOxygenLogs = 0;   // Сколько раз мерил кислород
+    public int closedRingsStreak = 0; // Дней подряд закрыто все 3 кольца
+
     // 1. Пустой конструктор (ОБЯЗАТЕЛЕН для Firebase)
     public UserProfile() {}
 

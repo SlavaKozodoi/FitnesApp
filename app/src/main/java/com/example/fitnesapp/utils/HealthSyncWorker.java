@@ -10,10 +10,12 @@ import androidx.work.WorkerParameters;
 import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -31,7 +33,7 @@ public class HealthSyncWorker extends Worker {
     public Result doWork() {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user == null) {
-            return Result.failure(); // Если юзер не авторизован, отменяем
+            return Result.failure();
         }
 
         HealthConnectManager healthManager = new HealthConnectManager(getApplicationContext());
@@ -46,15 +48,15 @@ public class HealthSyncWorker extends Worker {
         DatabaseReference dailyRef = userRef.child("daily_data").child(todayDate);
 
         try {
-            // === 1. СИНХРОНИЗИРУЕМ ШАГИ ===
+            // === 1. ШАГИ ===
             Long steps = healthManager.readStepsForToday().get();
             Tasks.await(dailyRef.child("steps").setValue(steps));
 
-            // === 2. СИНХРОНИЗИРУЕМ КАЛОРИИ ===
+            // === 2. КАЛОРИИ ===
             Double cals = healthManager.readCaloriesForToday().get();
             Tasks.await(dailyRef.child("caloriesBurned").setValue(cals));
 
-            // === 3. СИНХРОНИЗИРУЕМ ПУЛЬС ===
+            // === 3. ПУЛЬС ===
             List<HeartRateData> pulseList = healthManager.readHeartRateHistory().get();
             if (!pulseList.isEmpty()) {
                 Map<String, Object> pulseUpdates = new HashMap<>();
@@ -67,7 +69,7 @@ public class HealthSyncWorker extends Worker {
                 Tasks.await(userRef.child("health_logs").child("pulse").updateChildren(pulseUpdates));
             }
 
-            // === 4. СИНХРОНИЗИРУЕМ ТРЕНИРОВКИ ===
+            // === 4. ТРЕНИРОВКИ ===
             List<WorkoutSessionData> workouts = healthManager.readWorkoutSessions().get();
             if (!workouts.isEmpty()) {
                 Map<String, Object> workoutUpdates = new HashMap<>();
@@ -82,7 +84,7 @@ public class HealthSyncWorker extends Worker {
                 Tasks.await(dailyRef.child("workouts").updateChildren(workoutUpdates));
             }
 
-            // === 5. СИНХРОНИЗИРУЕМ СОН (Графики + Сводка) ===
+            // === 5. СОН ===
             List<SleepSessionData> sleepSessions = healthManager.readSleepSessions().get();
             if (!sleepSessions.isEmpty()) {
                 Map<String, Object> logsUpdates = new HashMap<>();
@@ -111,19 +113,15 @@ public class HealthSyncWorker extends Worker {
                     totalDuration = (maxEndTime - minStartTime) / (1000 * 60);
                 }
 
-                // Сохраняем логи для графика
                 Tasks.await(userRef.child("health_logs").child("sleep").updateChildren(logsUpdates));
 
-                // Формируем сводку для экрана сна
                 Map<String, Object> dailySleepMap = new HashMap<>();
                 SimpleDateFormat timeFmt = new SimpleDateFormat("HH:mm", Locale.getDefault());
-
                 dailySleepMap.put("durationMinutes", totalDuration);
                 dailySleepMap.put("bedTime", (minStartTime != Long.MAX_VALUE) ? timeFmt.format(new Date(minStartTime)) : "--:--");
                 dailySleepMap.put("wakeTime", (maxEndTime != Long.MIN_VALUE) ? timeFmt.format(new Date(maxEndTime)) : "--:--");
                 dailySleepMap.put("fallingAsleepMin", 0);
 
-                // Оценка сна
                 int score = 60;
                 if (totalDuration >= 420 && totalDuration <= 540) score = 100;
                 else if (totalDuration > 540) score = 90;
@@ -135,9 +133,8 @@ public class HealthSyncWorker extends Worker {
                 else if (totalDuration >= 360) quality = "Good";
                 dailySleepMap.put("quality", quality);
 
-                // Круговые диаграммы фаз
                 long totalPhases = totalDeep + totalLight + totalRem + totalAwake;
-                if (totalPhases == 0) totalPhases = 1; // Защита от деления на 0
+                if (totalPhases == 0) totalPhases = 1;
                 Map<String, Object> phasesMap = new HashMap<>();
                 phasesMap.put("deep", (int) ((totalDeep * 100) / totalPhases));
                 phasesMap.put("surface", (int) ((totalLight * 100) / totalPhases));
@@ -148,7 +145,7 @@ public class HealthSyncWorker extends Worker {
                 Tasks.await(dailyRef.child("sleep").updateChildren(dailySleepMap));
             }
 
-            // === 6. СИНХРОНИЗИРУЕМ КИСЛОРОД (SpO2) ===
+            // === 6. КИСЛОРОД (SpO2) ===
             List<OxygenData> oxygenList = healthManager.readOxygenHistory().get();
             if (!oxygenList.isEmpty()) {
                 Map<String, Object> oxyUpdates = new HashMap<>();
@@ -161,7 +158,7 @@ public class HealthSyncWorker extends Worker {
                 Tasks.await(userRef.child("health_logs").child("oxygen").updateChildren(oxyUpdates));
             }
 
-            // === 7. СИНХРОНИЗИРУЕМ ПИТАНИЕ (Nutrition) ===
+            // === 7. ПИТАНИЕ ===
             List<MealData> meals = healthManager.readMealsForToday().get();
             if (!meals.isEmpty()) {
                 Map<String, Object> mealUpdates = new HashMap<>();
@@ -185,20 +182,17 @@ public class HealthSyncWorker extends Worker {
                     totalFat += item.getFat();
                 }
 
-                // Сохраняем список съеденного
                 Tasks.await(dailyRef.child("meals").setValue(mealUpdates));
 
-                // Обновляем общую сводку БЖУ за день
                 Map<String, Object> summaryMap = new HashMap<>();
                 summaryMap.put("totalCalories", (int) totalMealCals);
                 summaryMap.put("carbs", (int) totalCarbs);
                 summaryMap.put("protein", (int) totalProtein);
                 summaryMap.put("fat", (int) totalFat);
-                // Заметьте: мы НЕ обновляем maxCalories (цель), чтобы не затереть ее
                 Tasks.await(dailyRef.child("nutrition").updateChildren(summaryMap));
             }
 
-            // === 8. СИНХРОНИЗИРУЕМ ИСТОРИЮ (Графики 30-min шагов и калорий) ===
+            // === 8. ИСТОРИЯ АКТИВНОСТИ ===
             List<ActivityBucket> buckets = healthManager.readHistoryForToday().get();
             if (!buckets.isEmpty()) {
                 Map<String, Object> hourlyUpdates = new HashMap<>();
@@ -212,12 +206,88 @@ public class HealthSyncWorker extends Worker {
                 Tasks.await(dailyRef.child("hourly_activity").updateChildren(hourlyUpdates));
             }
 
-            Log.d("HealthSyncWorker", "Background sync COMPLETED successfully for ALL metrics!");
+            // ==========================================================
+            // === 9. УМНЫЙ ПОДСЧЕТ СТРИКОВ (ДНЕЙ ПОДРЯД) ДЛЯ АЧИВОК ===
+            // ==========================================================
+            DataSnapshot dailySnap = Tasks.await(dailyRef.get());
+            DataSnapshot profileSnap = Tasks.await(userRef.child("profile").get());
+
+            if (dailySnap.exists() && profileSnap.exists()) {
+                int currentStepStreak = profileSnap.child("stepStreakDays").exists() ? profileSnap.child("stepStreakDays").getValue(Integer.class) : 0;
+                int currentSleepStreak = profileSnap.child("perfectSleepDays").exists() ? profileSnap.child("perfectSleepDays").getValue(Integer.class) : 0;
+                int currentRingsStreak = profileSnap.child("closedRingsStreak").exists() ? profileSnap.child("closedRingsStreak").getValue(Integer.class) : 0;
+
+                // Флаги, чтобы не начислить стрик дважды за один день
+                boolean stepAwarded = dailySnap.child("streaksAwarded").child("steps").exists() && Boolean.TRUE.equals(dailySnap.child("streaksAwarded").child("steps").getValue(Boolean.class));
+                boolean sleepAwarded = dailySnap.child("streaksAwarded").child("sleep").exists() && Boolean.TRUE.equals(dailySnap.child("streaksAwarded").child("sleep").getValue(Boolean.class));
+                boolean ringsAwarded = dailySnap.child("streaksAwarded").child("rings").exists() && Boolean.TRUE.equals(dailySnap.child("streaksAwarded").child("rings").getValue(Boolean.class));
+
+                Map<String, Object> profileUpdates = new HashMap<>();
+                Map<String, Object> dailyStreakUpdates = new HashMap<>();
+
+                // Проверяем, конец ли это дня (после 23:00)
+                Calendar cal = Calendar.getInstance();
+                boolean isLateNight = cal.get(Calendar.HOUR_OF_DAY) >= 23;
+
+                // --- ЛОГИКА ШАГОВ ---
+                long actualSteps = dailySnap.child("steps").exists() ? dailySnap.child("steps").getValue(Long.class) : 0;
+                long stepGoal = dailySnap.child("stepsGoal").exists() ? dailySnap.child("stepsGoal").getValue(Long.class) : 10000;
+
+                if (actualSteps >= stepGoal && stepGoal > 0) {
+                    if (!stepAwarded) {
+                        profileUpdates.put("stepStreakDays", currentStepStreak + 1);
+                        dailyStreakUpdates.put("steps", true);
+                    }
+                } else if (isLateNight && !stepAwarded) {
+                    profileUpdates.put("stepStreakDays", 0); // Цель не выполнена, день закончен = обнуляем стрик
+                }
+
+                // --- ЛОГИКА СНА ---
+                long sleepDur = dailySnap.child("sleep").child("durationMinutes").exists() ? dailySnap.child("sleep").child("durationMinutes").getValue(Long.class) : 0;
+                if (sleepDur >= 420) { // Идеальный сон: 7+ часов (420 минут)
+                    if (!sleepAwarded) {
+                        profileUpdates.put("perfectSleepDays", currentSleepStreak + 1);
+                        dailyStreakUpdates.put("sleep", true);
+                    }
+                } else if (isLateNight && !sleepAwarded) {
+                    profileUpdates.put("perfectSleepDays", 0);
+                }
+
+                // --- ЛОГИКА 3 КОЛЕЦ ---
+                long actualCals = dailySnap.child("caloriesBurned").exists() ? dailySnap.child("caloriesBurned").getValue(Long.class) : 0;
+                long calGoal = dailySnap.child("caloriesGoal").exists() ? dailySnap.child("caloriesGoal").getValue(Long.class) : 2000;
+                long actualNutr = dailySnap.child("nutrition").child("totalCalories").exists() ? dailySnap.child("nutrition").child("totalCalories").getValue(Long.class) : 0;
+                long nutrGoal = dailySnap.child("nutrition").child("maxCalories").exists() ? dailySnap.child("nutrition").child("maxCalories").getValue(Long.class) : 0;
+
+                int rings = 0;
+                if (actualSteps >= stepGoal && stepGoal > 0) rings++;
+                if (actualCals >= calGoal && calGoal > 0) rings++;
+                if (nutrGoal > 0 && actualNutr >= nutrGoal) rings++;
+                else if (nutrGoal <= 0) rings++; // Если цель питания не задана, кольцо дается по умолчанию
+
+                if (rings >= 3) {
+                    if (!ringsAwarded) {
+                        profileUpdates.put("closedRingsStreak", currentRingsStreak + 1);
+                        dailyStreakUpdates.put("rings", true);
+                    }
+                } else if (isLateNight && !ringsAwarded) {
+                    profileUpdates.put("closedRingsStreak", 0);
+                }
+
+                // Сохраняем обновленные стрики
+                if (!profileUpdates.isEmpty()) {
+                    Tasks.await(userRef.child("profile").updateChildren(profileUpdates));
+                }
+                if (!dailyStreakUpdates.isEmpty()) {
+                    Tasks.await(dailyRef.child("streaksAwarded").updateChildren(dailyStreakUpdates));
+                }
+            }
+
+            Log.d("HealthSyncWorker", "Background sync & Streaks COMPLETED successfully!");
             return Result.success();
 
         } catch (Exception e) {
             Log.e("HealthSyncWorker", "Background sync failed", e);
-            // Если пропал интернет во время выгрузки, Worker попробует запустить задачу позже
             return Result.retry();
         }
     }

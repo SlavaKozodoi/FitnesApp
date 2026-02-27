@@ -15,6 +15,7 @@ import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.GridLayoutManager;
 
 import com.example.fitnesapp.Adapters.CalendarAdapter;
+import com.example.fitnesapp.MainActivity;
 import com.example.fitnesapp.R;
 import com.example.fitnesapp.databinding.FragmentHomeBinding;
 import com.example.fitnesapp.models.firebase.DailyData;
@@ -39,6 +40,8 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.HashMap;
 
 public class HomeFragment extends Fragment {
 
@@ -48,7 +51,10 @@ public class HomeFragment extends Fragment {
 
     // Календарь
     private final Calendar currentCalendar = Calendar.getInstance();
-    private List<String> cachedActiveDates = new ArrayList<>();
+
+    // Храним оба списка:
+    private List<String> cachedActiveDates = new ArrayList<>(); // Дни с тренировками
+    private Map<String, Integer> cachedProgressMap = new HashMap<>(); // Проценты колец
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -71,11 +77,24 @@ public class HomeFragment extends Fragment {
         setupNavigation();
         setupHistoryCalendar();
 
-        // --- Дневная статистика (Круги прогресса, Сон, Кислород) ---
-        homeViewModel.getDailyData().observe(getViewLifecycleOwner(), dailyData -> {
-            if (dailyData != null) {
-                updateDashboardWithRealData(dailyData);
+        // --- Настройка Pull-to-Refresh ---
+        binding.swipeRefreshHome.setColorSchemeColors(Color.parseColor("#4CAF50"), Color.parseColor("#448AFF"));
+
+        binding.swipeRefreshHome.setOnRefreshListener(() -> {
+            if (getActivity() instanceof MainActivity) {
+                ((MainActivity) getActivity()).syncHealthData();
+                Toast.makeText(getContext(), "Synchronization...", Toast.LENGTH_SHORT).show();
             }
+            new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+                if (binding != null && binding.swipeRefreshHome != null) {
+                    binding.swipeRefreshHome.setRefreshing(false);
+                }
+            }, 2000);
+        });
+
+        // --- Дневная статистика ---
+        homeViewModel.getDailyData().observe(getViewLifecycleOwner(), dailyData -> {
+            if (dailyData != null) updateDashboardWithRealData(dailyData);
         });
 
         // --- Профиль (Имя) ---
@@ -86,18 +105,15 @@ public class HomeFragment extends Fragment {
             }
         });
 
-        // --- 1. График Пульса ---
+        // --- График Пульса ---
         homeViewModel.getPulseHistory().observe(getViewLifecycleOwner(), pulseList -> {
             setupPulseChart(pulseList);
         });
 
-        // --- 2. Текст Пульса ---
+        // --- Текст Пульса ---
         homeViewModel.getTodayPulseValue().observe(getViewLifecycleOwner(), currentPulse -> {
-            if (currentPulse != null) {
-                binding.tvPulse.setText(currentPulse + " bpm");
-            } else {
-                binding.tvPulse.setText("-- bpm");
-            }
+            if (currentPulse != null) binding.tvPulse.setText(currentPulse + " bpm");
+            else binding.tvPulse.setText("-- bpm");
         });
 
         // --- График Веса + Текст ---
@@ -114,14 +130,22 @@ public class HomeFragment extends Fragment {
                 binding.tvWeight.setText(String.format(Locale.US, "%.1f kg", latestWeight.val));
             } else {
                 binding.tvWeight.setText("-- kg");
-                setupWeightChart(new ArrayList<>()); // Рисуем нулевой график
+                setupWeightChart(new ArrayList<>());
             }
         });
 
-        // --- Календарь (активные дни) ---
+        // --- КАЛЕНДАРЬ: Тренировки (Фиолетовый фон) ---
         homeViewModel.getActiveDays().observe(getViewLifecycleOwner(), dateStrings -> {
             if (dateStrings != null) {
                 cachedActiveDates = dateStrings;
+                updateCalendarDisplay();
+            }
+        });
+
+        // --- КАЛЕНДАРЬ: Кольца прогресса ---
+        homeViewModel.getDailyProgressMap().observe(getViewLifecycleOwner(), map -> {
+            if (map != null) {
+                cachedProgressMap = map;
                 updateCalendarDisplay();
             }
         });
@@ -130,7 +154,6 @@ public class HomeFragment extends Fragment {
     }
 
     private void updateDashboardWithRealData(DailyData data) {
-        // --- ЧАСТЬ 1: КРУГ И ЦЕЛИ ---
         float caloriesGoal = data.caloriesGoal;
         float stepsGoal = data.stepsGoal;
         float nutritionGoal = (data.nutrition != null) ? data.nutrition.maxCalories : 0f;
@@ -178,8 +201,7 @@ public class HomeFragment extends Fragment {
         if (binding.tvNutritionValue != null) binding.tvNutritionValue.setText(String.valueOf((int) nutritionCurrent));
         if (binding.tvNutritionGoal != null) binding.tvNutritionGoal.setText("/" + (int) nutritionGoal + getString(R.string.short_text_calories));
 
-
-        // --- ЧАСТЬ 2: НИЖНИЕ КАРТОЧКИ (Сон, Кислород) ---
+        // Сон и Кислород
         if (data.oxygen != null && !data.oxygen.isEmpty()) {
             HealthLogItem latestOxygen = null;
             for (HealthLogItem item : data.oxygen.values()) {
@@ -205,7 +227,6 @@ public class HomeFragment extends Fragment {
             }
         }
 
-        // --- СОН ---
         if (data.sleep != null && data.sleep.durationMinutes > 0) {
             int hours = data.sleep.durationMinutes / 60;
             int mins = data.sleep.durationMinutes % 60;
@@ -213,16 +234,10 @@ public class HomeFragment extends Fragment {
 
             if (data.sleep.quality != null && !data.sleep.quality.isEmpty()) {
                 binding.tvSleepStatus.setText(data.sleep.quality);
-
-                if (data.sleep.score >= 80) {
-                    binding.tvSleepStatus.setTextColor(Color.parseColor("#4CAF50")); // Зеленый (Отлично)
-                } else if (data.sleep.score >= 50) {
-                    binding.tvSleepStatus.setTextColor(Color.parseColor("#448AFF")); // Синий/Оранжевый (Норма)
-                } else if (data.sleep.score > 0) {
-                    binding.tvSleepStatus.setTextColor(Color.parseColor("#F44336")); // Красный (Плохо)
-                } else {
-                    binding.tvSleepStatus.setTextColor(Color.parseColor("#B0BEC5")); // Серый
-                }
+                if (data.sleep.score >= 80) binding.tvSleepStatus.setTextColor(Color.parseColor("#4CAF50"));
+                else if (data.sleep.score >= 50) binding.tvSleepStatus.setTextColor(Color.parseColor("#448AFF"));
+                else if (data.sleep.score > 0) binding.tvSleepStatus.setTextColor(Color.parseColor("#F44336"));
+                else binding.tvSleepStatus.setTextColor(Color.parseColor("#B0BEC5"));
             } else {
                 binding.tvSleepStatus.setText("--");
                 binding.tvSleepStatus.setTextColor(Color.parseColor("#B0BEC5"));
@@ -236,12 +251,9 @@ public class HomeFragment extends Fragment {
         }
     }
 
-    // === ГРАФИКИ ===
-
     private void setupPulseChart(List<HealthLogItem> allData) {
         BarChart chart = binding.chartPulse;
         if (chart == null) return;
-
         ArrayList<BarEntry> entries = new ArrayList<>();
 
         if (allData == null || allData.isEmpty()) {
@@ -253,7 +265,6 @@ public class HomeFragment extends Fragment {
             cal.set(Calendar.SECOND, 0);
             cal.set(Calendar.MILLISECOND, 0);
             long startOfDay = cal.getTimeInMillis();
-
             cal.set(Calendar.HOUR_OF_DAY, 23);
             cal.set(Calendar.MINUTE, 59);
             cal.set(Calendar.SECOND, 59);
@@ -290,17 +301,12 @@ public class HomeFragment extends Fragment {
     private void setupWeightChart(List<WeightHistoryItem> dataValues) {
         LineChart chart = binding.chartWeight;
         if (chart == null) return;
-
         ArrayList<Entry> entries = new ArrayList<>();
 
         if (dataValues == null || dataValues.isEmpty()) {
-            for (int i = 0; i < 5; i++) {
-                entries.add(new Entry(i, 0f));
-            }
+            for (int i = 0; i < 5; i++) entries.add(new Entry(i, 0f));
         } else {
-            for (int i = 0; i < dataValues.size(); i++) {
-                entries.add(new Entry(i, (float) dataValues.get(i).val));
-            }
+            for (int i = 0; i < dataValues.size(); i++) entries.add(new Entry(i, (float) dataValues.get(i).val));
         }
 
         LineDataSet dataSet = new LineDataSet(entries, "");
@@ -319,7 +325,6 @@ public class HomeFragment extends Fragment {
             chart.getAxisLeft().setAxisMinimum(-5f);
             chart.getAxisLeft().setAxisMaximum(10f);
         }
-
         chart.invalidate();
     }
 
@@ -327,7 +332,6 @@ public class HomeFragment extends Fragment {
         chart.setTouchEnabled(false);
         chart.getDescription().setEnabled(false);
         chart.getLegend().setEnabled(false);
-
         chart.getXAxis().setEnabled(false);
         chart.getXAxis().setDrawGridLines(false);
 
@@ -345,7 +349,6 @@ public class HomeFragment extends Fragment {
             leftAxis.setDrawLabels(false);
             leftAxis.setDrawAxisLine(false);
             leftAxis.setDrawGridLines(false);
-
             leftAxis.setSpaceBottom(15f);
             leftAxis.setSpaceTop(15f);
         }
@@ -355,32 +358,38 @@ public class HomeFragment extends Fragment {
     private void setupHistoryCalendar() {
         binding.recyclerCalendar.setLayoutManager(new GridLayoutManager(getContext(), 7));
 
-        calendarAdapter = new CalendarAdapter(getContext(), new ArrayList<>(), new ArrayList<>(), (day, isActive) -> {
-            Calendar clickCal = (Calendar) currentCalendar.clone();
-            clickCal.set(Calendar.DAY_OF_MONTH, day);
+        // Передаем 3 параметра: Дни месяца, Дни с тренировками, Прогресс колец
+        calendarAdapter = new CalendarAdapter(getContext(), new ArrayList<>(), new ArrayList<>(), new HashMap<>(), (day, hasWorkout) -> {
 
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
-            String selectedDate = sdf.format(clickCal.getTime());
+            // Если в этот день была тренировка (фиолетовый фон), показываем ее
+            if (hasWorkout) {
+                Calendar clickCal = (Calendar) currentCalendar.clone();
+                clickCal.set(Calendar.DAY_OF_MONTH, day);
 
-            homeViewModel.getWorkoutForDate(selectedDate, new HomeViewModel.OnWorkoutCheckListener() {
-                @Override
-                public void onWorkoutFound(WorkoutItem workout) {
-                    Bundle bundle = new Bundle();
-                    bundle.putString("type", workout.type);
-                    bundle.putInt("calories", workout.calories);
-                    bundle.putInt("duration", workout.durationMin);
-                    bundle.putLong("timestamp", workout.timestamp);
-                    bundle.putBoolean("isHistory", true);
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
+                String selectedDate = sdf.format(clickCal.getTime());
 
-                    Navigation.findNavController(requireView())
-                            .navigate(R.id.activeTrenFragment, bundle);
-                }
+                homeViewModel.getWorkoutForDate(selectedDate, new HomeViewModel.OnWorkoutCheckListener() {
+                    @Override
+                    public void onWorkoutFound(WorkoutItem workout) {
+                        Bundle bundle = new Bundle();
+                        bundle.putString("type", workout.type);
+                        bundle.putInt("calories", workout.calories);
+                        bundle.putInt("duration", workout.durationMin);
+                        bundle.putLong("timestamp", workout.timestamp);
+                        bundle.putBoolean("isHistory", true);
 
-                @Override
-                public void onNoWorkout() {
-                    Toast.makeText(getContext(), "В этот день тренировок не было", Toast.LENGTH_SHORT).show();
-                }
-            });
+                        Navigation.findNavController(requireView()).navigate(R.id.activeTrenFragment, bundle);
+                    }
+
+                    @Override
+                    public void onNoWorkout() {
+                        Toast.makeText(getContext(), "В этот день тренировок не было", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            } else {
+                Toast.makeText(getContext(), "В этот день тренировок не было", Toast.LENGTH_SHORT).show();
+            }
         });
 
         binding.recyclerCalendar.setAdapter(calendarAdapter);
@@ -401,20 +410,32 @@ public class HomeFragment extends Fragment {
         SimpleDateFormat sdfTitle = new SimpleDateFormat("MMMM", Locale.ENGLISH);
         binding.tvMonthName.setText(sdfTitle.format(currentCalendar.getTime()));
 
-        List<Integer> activeDaysInThisMonth = new ArrayList<>();
+        List<Integer> activeDaysInThisMonth = new ArrayList<>(); // Дни с тренировками
+        Map<Integer, Integer> progressInThisMonth = new HashMap<>(); // Кольца
+
         SimpleDateFormat sdfParse = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
 
         int currentMonth = currentCalendar.get(Calendar.MONTH);
         int currentYear = currentCalendar.get(Calendar.YEAR);
 
+        // 1. Извлекаем дни с ТРЕНИРОВКАМИ
         for (String dateStr : cachedActiveDates) {
             try {
                 Calendar dateCal = Calendar.getInstance();
                 dateCal.setTime(sdfParse.parse(dateStr));
-
-                if (dateCal.get(Calendar.YEAR) == currentYear &&
-                        dateCal.get(Calendar.MONTH) == currentMonth) {
+                if (dateCal.get(Calendar.YEAR) == currentYear && dateCal.get(Calendar.MONTH) == currentMonth) {
                     activeDaysInThisMonth.add(dateCal.get(Calendar.DAY_OF_MONTH));
+                }
+            } catch (Exception e) { e.printStackTrace(); }
+        }
+
+        // 2. Извлекаем дни с ПРОГРЕССОМ КОЛЕЦ
+        for (Map.Entry<String, Integer> entry : cachedProgressMap.entrySet()) {
+            try {
+                Calendar dateCal = Calendar.getInstance();
+                dateCal.setTime(sdfParse.parse(entry.getKey()));
+                if (dateCal.get(Calendar.YEAR) == currentYear && dateCal.get(Calendar.MONTH) == currentMonth) {
+                    progressInThisMonth.put(dateCal.get(Calendar.DAY_OF_MONTH), entry.getValue());
                 }
             } catch (Exception e) { e.printStackTrace(); }
         }
@@ -423,8 +444,9 @@ public class HomeFragment extends Fragment {
         List<Integer> daysList = new ArrayList<>();
         for (int i = 1; i <= daysInMonth; i++) daysList.add(i);
 
+        // Передаем все в адаптер
         if (calendarAdapter != null) {
-            calendarAdapter.updateData(daysList, activeDaysInThisMonth);
+            calendarAdapter.updateData(daysList, activeDaysInThisMonth, progressInThisMonth);
         }
     }
 

@@ -69,7 +69,6 @@ public class AchievementsViewModel extends ViewModel {
     }
 
     private void loadUserData() {
-        // Профиль
         dbRef.child("users").child(uid).child("profile").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -83,7 +82,6 @@ public class AchievementsViewModel extends ViewModel {
             public void onCancelled(@NonNull DatabaseError error) {}
         });
 
-        // Коллекция
         dbRef.child("users").child(uid).child("achievements_collection").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -97,7 +95,6 @@ public class AchievementsViewModel extends ViewModel {
             public void onCancelled(@NonNull DatabaseError error) {}
         });
 
-        // Данные за сегодня
         String today = new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(new Date());
         dbRef.child("users").child(uid).child("daily_data").child(today).addValueEventListener(new ValueEventListener() {
             @Override
@@ -117,23 +114,17 @@ public class AchievementsViewModel extends ViewModel {
     private void recalculate() {
         if (catalog.isEmpty()) return;
 
-        // Временная карта для быстрого доступа к объектам по ID
         Map<String, Achievement> processedMap = new HashMap<>();
         List<Achievement> tempList = new ArrayList<>();
 
-        // Справочник названий для отображения требований (Req: Title)
         Map<String, String> titlesMap = new HashMap<>();
         for (Achievement a : catalog) {
             titlesMap.put(a.id, a.title);
         }
 
-        // ==========================================
-        // ЭТАП 1: Расчет прогресса для ВСЕХ заданий
-        // ==========================================
         for (Achievement template : catalog) {
             Achievement userAch = copyAchievement(template);
 
-            // 1. Расчет Коллекций (Meta-Achievements)
             if ("collection".equals(userAch.type)) {
                 int foundCount = 0;
                 StringBuilder statusBuilder = new StringBuilder();
@@ -157,64 +148,81 @@ public class AchievementsViewModel extends ViewModel {
                 userAch.isLocked = false;
 
             } else {
-                // 2. Расчет Обычных заданий (Steps, XP, Cal)
-                // Сначала считаем прогресс БЕЗ учета блокировки
-                if ("steps".equals(userAch.type)) userAch.currentProgress = currentDayData.steps;
-                else if ("calories".equals(userAch.type)) userAch.currentProgress = currentDayData.caloriesBurned;
-                else if ("total_xp".equals(userAch.type)) userAch.currentProgress = (currentProfile != null) ? currentProfile.totalXP : 0;
+                if (currentProfile != null && currentDayData != null) {
+                    switch (userAch.type) {
+                        case "daily_steps": userAch.currentProgress = currentDayData.steps; break;
+                        case "daily_calories": userAch.currentProgress = currentDayData.caloriesBurned; break;
+                        case "daily_sleep_min": userAch.currentProgress = currentDayData.sleep != null ? currentDayData.sleep.durationMinutes : 0; break;
+                        case "daily_nutrition": userAch.currentProgress = currentDayData.nutrition != null ? currentDayData.nutrition.totalCalories : 0; break;
+
+                        // НОВАЯ ПРОВЕРКА ИДЕАЛЬНОГО ДНЯ (ЗАКРЫТЫ ЛИ 3 КОЛЬЦА?)
+                        case "daily_closed_rings":
+                            int rings = 0;
+                            float cGoal = currentDayData.caloriesGoal > 0 ? currentDayData.caloriesGoal : 2000f;
+                            float sGoal = currentDayData.stepsGoal > 0 ? currentDayData.stepsGoal : 10000f;
+                            float nGoal = (currentDayData.nutrition != null && currentDayData.nutrition.maxCalories > 0) ? currentDayData.nutrition.maxCalories : 0f;
+
+                            if (currentDayData.steps >= sGoal) rings++;
+                            if (currentDayData.caloriesBurned >= cGoal) rings++;
+                            if (nGoal > 0 && currentDayData.nutrition != null && currentDayData.nutrition.totalCalories >= nGoal) rings++;
+                            else if (nGoal == 0) rings++; // Если цель питания не задана, считаем кольцо закрытым по умолчанию
+
+                            userAch.currentProgress = (rings >= 3) ? 1 : 0;
+                            break;
+
+                        case "total_xp": userAch.currentProgress = currentProfile.totalXP; break;
+                        case "total_steps": userAch.currentProgress = currentProfile.totalSteps; break;
+                        case "total_workouts": userAch.currentProgress = currentProfile.totalWorkouts; break;
+                        case "total_calories": userAch.currentProgress = currentProfile.totalCaloriesBurned; break;
+
+                        // НОВЫЕ ТРЕКЕРЫ ЗДОРОВЬЯ
+                        case "total_weight_logs": userAch.currentProgress = currentProfile.totalWeightLogs; break;
+                        case "total_pulse_logs": userAch.currentProgress = currentProfile.totalPulseLogs; break;
+                        case "total_oxygen_logs": userAch.currentProgress = currentProfile.totalOxygenLogs; break;
+
+                        case "streak_steps": userAch.currentProgress = currentProfile.stepStreakDays; break;
+                        case "perfect_sleeps": userAch.currentProgress = currentProfile.perfectSleepDays; break;
+                        case "closed_rings_streak": userAch.currentProgress = currentProfile.closedRingsStreak; break;
+
+                        default: userAch.currentProgress = 0; break;
+                    }
+                }
             }
 
-            // Проверка достижения цели
             if (userAch.currentProgress >= userAch.target && userAch.target > 0) {
                 userAch.currentProgress = userAch.target;
-                userAch.isCompleted = true; // Задание выполнено физически
+                userAch.isCompleted = true;
             }
 
-            // Проверка наличия в коллекции (уже забрали награду)
             if (collectedIds.contains(userAch.id)) {
                 userAch.isCollected = true;
                 userAch.isCompleted = true;
                 userAch.isLocked = false;
             }
 
-            // Сохраняем во временные хранилища
             processedMap.put(userAch.id, userAch);
             tempList.add(userAch);
         }
 
-        // ==========================================
-        // ЭТАП 2: Проверка зависимостей (Цепочки)
-        // ==========================================
         List<Achievement> resultList = new ArrayList<>();
 
         for (Achievement userAch : tempList) {
-            // Если это не коллекция (коллекции не блокируются)
             if (!"collection".equals(userAch.type)) {
-
-                // Если есть требование предыдущего уровня
                 if (userAch.previousId != null && !userAch.previousId.isEmpty()) {
-
-                    // Находим предыдущее задание в уже рассчитанном списке
                     Achievement prevAch = processedMap.get(userAch.previousId);
 
                     if (prevAch != null) {
-                        // ГЛАВНОЕ ИЗМЕНЕНИЕ:
-                        // Разблокируем, если предыдущее ВЫПОЛНЕНО (isCompleted) ИЛИ СОБРАНО (isCollected)
                         boolean isPrevFinished = prevAch.isCompleted || prevAch.isCollected;
 
                         if (!isPrevFinished) {
-                            // Блокируем текущее
                             userAch.isLocked = true;
-                            userAch.currentProgress = 0; // Скрываем прогресс
-
-                            // Устанавливаем название требования
+                            userAch.currentProgress = 0;
                             userAch.requiredTitle = prevAch.title;
                         }
                     }
                 }
             }
 
-            // Защита: если само задание уже собрано, оно точно не заблокировано
             if (userAch.isCollected) {
                 userAch.isLocked = false;
             }
@@ -237,10 +245,7 @@ public class AchievementsViewModel extends ViewModel {
         dest.xpReward = src.xpReward;
         dest.icon = src.icon;
         dest.previousId = src.previousId;
-
-        if (src.requiredIds != null) {
-            dest.requiredIds = new ArrayList<>(src.requiredIds);
-        }
+        if (src.requiredIds != null) dest.requiredIds = new ArrayList<>(src.requiredIds);
         return dest;
     }
 

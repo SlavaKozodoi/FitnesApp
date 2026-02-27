@@ -312,7 +312,7 @@ public class MainActivity extends AppCompatActivity {
         );
     }
 
-    private void syncHealthData() {
+    public void syncHealthData() {
         // Мы вызываем методы из Kotlin класса, который сам вычисляет диапазоны времени.
         // Это избавляет нас от ошибок с Instant на старых Android в Java коде.
 
@@ -577,16 +577,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // === Метод сохранения веса в Firebase ===
+// Ваш метод в MainActivity
     private void saveWeightToFirebase(double weight) {
         String uid = FirebaseAuth.getInstance().getCurrentUser() != null
                 ? FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
         if (uid == null) return;
 
-        // Ссылка на историю веса
         DatabaseReference weightRef = FirebaseDatabase.getInstance().getReference()
                 .child("users").child(uid).child("health_logs").child("weight_history");
 
-        // Создаем новую запись (push)
         String key = weightRef.push().getKey();
 
         if (key != null) {
@@ -599,8 +598,15 @@ public class MainActivity extends AppCompatActivity {
             weightMap.put("date", dateStr);
 
             weightRef.child(key).setValue(weightMap)
-                    .addOnSuccessListener(aVoid ->
-                            Toast.makeText(MainActivity.this, "Weight added!", Toast.LENGTH_SHORT).show())
+                    .addOnSuccessListener(aVoid -> {
+                        Toast.makeText(MainActivity.this, "Weight added!", Toast.LENGTH_SHORT).show();
+
+                        // === ДОБАВЬТЕ ВОТ ЭТИ ДВЕ СТРОЧКИ ===
+                        // Увеличиваем счетчик взвешиваний для АЧИВОК на +1
+                        FirebaseDatabase.getInstance().getReference().child("users").child(uid)
+                                .child("profile").child("totalWeightLogs").setValue(com.google.firebase.database.ServerValue.increment(1));
+                        // ====================================
+                    })
                     .addOnFailureListener(e ->
                             Toast.makeText(MainActivity.this, "Error adding weight", Toast.LENGTH_SHORT).show());
         }
@@ -612,22 +618,22 @@ public class MainActivity extends AppCompatActivity {
         DatabaseReference pulseRef = FirebaseDatabase.getInstance().getReference()
                 .child("users").child(uid).child("health_logs").child("pulse");
 
-        // Чтобы не дублировать данные при каждой синхронизации, можно использовать timestamp как ключ
         Map<String, Object> updates = new HashMap<>();
-
         for (com.example.fitnesapp.utils.HeartRateData item : pulseList) {
-            String key = String.valueOf(item.getTime()); // Ключ = время замера
-
+            String key = String.valueOf(item.getTime());
             Map<String, Object> map = new HashMap<>();
             map.put("time", item.getTime());
-            map.put("val", item.getBpm()); // HomeViewModel ждет поле "val"
-
+            map.put("val", item.getBpm());
             updates.put(key, map);
         }
 
-        pulseRef.updateChildren(updates);
+        pulseRef.updateChildren(updates).addOnSuccessListener(aVoid -> {
+            // === ДОБАВИТЬ ДЛЯ АЧИВОК ===
+            // Сколько новых замеров пульса пришло - столько и прибавляем к профилю
+            FirebaseDatabase.getInstance().getReference().child("users").child(uid)
+                    .child("profile").child("totalPulseLogs").setValue(com.google.firebase.database.ServerValue.increment(pulseList.size()));
+        });
     }
-
     private void saveOxygenToFirebase(List<com.example.fitnesapp.utils.OxygenData> oxygenList) {
         String uid = FirebaseAuth.getInstance().getCurrentUser() != null ? FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
         if (uid == null || oxygenList.isEmpty()) return;
@@ -636,20 +642,20 @@ public class MainActivity extends AppCompatActivity {
                 .child("users").child(uid).child("health_logs").child("oxygen");
 
         Map<String, Object> updates = new HashMap<>();
-
         for (com.example.fitnesapp.utils.OxygenData item : oxygenList) {
             String key = String.valueOf(item.getTime());
-
             Map<String, Object> map = new HashMap<>();
             map.put("time", item.getTime());
-            map.put("val", item.getPercentage()); // HomeViewModel ищет "val"
-
+            map.put("val", item.getPercentage());
             updates.put(key, map);
         }
 
-        oxyRef.updateChildren(updates);
+        oxyRef.updateChildren(updates).addOnSuccessListener(aVoid -> {
+            // === ДОБАВИТЬ ДЛЯ АЧИВОК ===
+            FirebaseDatabase.getInstance().getReference().child("users").child(uid)
+                    .child("profile").child("totalOxygenLogs").setValue(com.google.firebase.database.ServerValue.increment(oxygenList.size()));
+        });
     }
-
     private void saveSleepSessionsToFirebase(List<com.example.fitnesapp.utils.SleepSessionData> sessions) {
         String uid = FirebaseAuth.getInstance().getCurrentUser() != null ? FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
         if (uid == null || sessions.isEmpty()) return;
@@ -732,28 +738,45 @@ public class MainActivity extends AppCompatActivity {
         String uid = FirebaseAuth.getInstance().getCurrentUser() != null ? FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
         if (uid == null || workouts.isEmpty()) return;
 
-        // Сохраняем в папку "сегодняшнего дня"
+        // Папка сегодняшнего дня
         String todayDate = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(new java.util.Date());
-
         DatabaseReference workoutsRef = FirebaseDatabase.getInstance().getReference()
-                .child("users").child(uid)
-                .child("daily_data").child(todayDate).child("workouts");
+                .child("users").child(uid).child("daily_data").child(todayDate).child("workouts");
 
-        Map<String, Object> updates = new HashMap<>();
+        // 1. Сначала читаем, сколько тренировок УЖЕ сохранено сегодня
+        workoutsRef.addListenerForSingleValueEvent(new com.google.firebase.database.ValueEventListener() {
+            @Override
+            public void onDataChange(@androidx.annotation.NonNull com.google.firebase.database.DataSnapshot snapshot) {
+                long alreadySavedCount = snapshot.getChildrenCount(); // Сколько тренировок было до этого свайпа
+                long newCount = workouts.size(); // Сколько тренировок Health Connect отдает сейчас
 
-        for (com.example.fitnesapp.utils.WorkoutSessionData item : workouts) {
-            // Ключ - время начала
-            String key = String.valueOf(item.getStartTime());
+                // 2. Подготавливаем данные для записи
+                Map<String, Object> updates = new HashMap<>();
+                for (com.example.fitnesapp.utils.WorkoutSessionData item : workouts) {
+                    String key = String.valueOf(item.getStartTime());
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("type", item.getType());
+                    map.put("calories", item.getCalories());
+                    map.put("durationMin", item.getDurationMinutes());
+                    map.put("timestamp", item.getStartTime());
+                    updates.put(key, map);
+                }
 
-            Map<String, Object> map = new HashMap<>();
-            map.put("type", item.getType());
-            map.put("calories", item.getCalories());
-            map.put("durationMin", item.getDurationMinutes());
-            map.put("timestamp", item.getStartTime());
+                // 3. Обновляем тренировки в базе
+                workoutsRef.updateChildren(updates).addOnSuccessListener(aVoid -> {
+                    // 4. УМНЫЙ ПОДСЧЕТ ДЛЯ АЧИВОК:
+                    // Если появились новые тренировки (например, было 1, стало 2)
+                    if (newCount > alreadySavedCount) {
+                        long difference = newCount - alreadySavedCount; // Разница (например, +1)
 
-            updates.put(key, map);
-        }
+                        FirebaseDatabase.getInstance().getReference().child("users").child(uid)
+                                .child("profile").child("totalWorkouts")
+                                .setValue(com.google.firebase.database.ServerValue.increment(difference));
+                    }
+                });
+            }
 
-        workoutsRef.updateChildren(updates);
-    }
-}
+            @Override
+            public void onCancelled(@androidx.annotation.NonNull com.google.firebase.database.DatabaseError error) {}
+        });
+    }}
