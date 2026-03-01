@@ -4,10 +4,12 @@ public class Edvice {
     private int imageEdvice;
     private String title;
     private String time;
+    private String description;
 
-    public Edvice(int imageEdvice, String title, String time) {
+    public Edvice(int imageEdvice, String title,String description, String time) {
         this.imageEdvice = imageEdvice;
         this.title = title;
+        this.description = description;
         this.time = time;
     }
 
@@ -21,5 +23,9 @@ public class Edvice {
 
     public String getTime() {
         return time;
+    }
+
+    public String getDescription() {
+        return description;
     }
 }

@@ -10,7 +10,6 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.PagerSnapHelper;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.recyclerview.widget.SnapHelper;
 
 import com.example.fitnesapp.R;
 import com.example.fitnesapp.models.Edvice;
@@ -50,33 +49,33 @@ public class WorkoutsFeedAdapter extends RecyclerView.Adapter<WorkoutsFeedAdapte
         WorkoutSessionUI session = sessions.get(position);
 
         // 1. Заполняем тексты (Тип, Время)
-        holder.tvType.setText(session.workoutItem.type);
-        holder.tvCalories.setText(String.valueOf(session.workoutItem.calories));
+        holder.tvType.setText(session.workout.type);
+        holder.tvCalories.setText(String.valueOf(session.workout.calories));
 
-        int h = session.workoutItem.durationMin / 60;
-        int m = session.workoutItem.durationMin % 60;
+        int h = session.workout.durationMin / 60;
+        int m = session.workout.durationMin % 60;
         holder.tvDuration.setText(String.format(Locale.US, "%02d:%02d:00", h, m));
 
-        // 2. Расчет Дистанции и Темпа (логика из фрагмента переехала сюда)
-        double avgPaceVal = calculateAvgPaceVal(session.paceLogs);
+        // 2. Расчет Дистанции и Темпа
+        double avgPaceVal = calculateAvgPaceVal(session.pace);
 
         // Если логов темпа нет, используем грубый расчет по калориям
         double distance;
         if (avgPaceVal > 0) {
-            distance = session.workoutItem.durationMin / avgPaceVal;
+            distance = session.workout.durationMin / avgPaceVal;
             // Форматируем темп
             int pMin = (int) avgPaceVal;
             int pSec = (int) ((avgPaceVal - pMin) * 60);
             holder.tvPace.setText(String.format(Locale.US, "%d:%02d", pMin, pSec));
         } else {
-            distance = session.workoutItem.calories / 65.0; // Запасная формула
+            distance = session.workout.calories / 65.0; // Запасная формула
             holder.tvPace.setText("--:--");
         }
         holder.tvDistance.setText(String.format(Locale.US, "%.2f", distance));
 
         // 3. Время старта/конца
-        long start = session.workoutItem.timestamp;
-        long end = start + (session.workoutItem.durationMin * 60000L);
+        long start = session.workout.timestamp;
+        long end = start + (session.workout.durationMin * 60000L);
         SimpleDateFormat sdf = new SimpleDateFormat("H:mm", Locale.US);
         holder.tvStart.setText("Start " + sdf.format(new Date(start)));
         holder.tvEnd.setText("End " + sdf.format(new Date(end)));
@@ -85,25 +84,27 @@ public class WorkoutsFeedAdapter extends RecyclerView.Adapter<WorkoutsFeedAdapte
         setupStatsCarousel(holder.recyclerStats, session);
 
         // 5. Внутренний RecyclerView для Советов
-        setupAdviceList(holder.recyclerAdvice);
+        // ПЕРЕДАЕМ текущую сессию для генерации реальных советов
+        setupAdviceList(holder.recyclerAdvice, session);
     }
 
     private void setupStatsCarousel(RecyclerView recycler, WorkoutSessionUI session) {
         List<TrainingStat> data = new ArrayList<>();
 
         // Пульс
-        ChartDataResult pRes = convert(session.pulseLogs);
-        String avgPulse = calcAvg(session.pulseLogs);
+        ChartDataResult pRes = convert(session.pulse);
+        String avgPulse = calcAvg(session.pulse);
         data.add(new TrainingStat("Pulse", avgPulse, R.drawable.ic_heart_icon, R.color.pulse_start, R.color.pulse_end, pRes.entries, pRes.labels));
 
         // Кислород
-        ChartDataResult oxRes = convert(session.oxygenLogs);
-        String avgOx = calcAvg(session.oxygenLogs);
+        ChartDataResult oxRes = convert(session.oxygen);
+        String avgOx = calcAvg(session.oxygen);
         data.add(new TrainingStat("Blood oxygen", avgOx, R.drawable.ic_heart_oxygen_icon, R.color.oxygen_start, R.color.oxygen_end, oxRes.entries, oxRes.labels));
 
         // Темп
-        ChartDataResult pcRes = convert(session.paceLogs);
-        data.add(new TrainingStat("Temp", "Avg", R.drawable.ic_temp, R.color.temp_start, R.color.temp_end, pcRes.entries, pcRes.labels));
+        ChartDataResult pcRes = convert(session.pace);
+        String avgPace = calcAvg(session.pace);
+        data.add(new TrainingStat("Temp", avgPace, R.drawable.ic_temp, R.color.temp_start, R.color.temp_end, pcRes.entries, pcRes.labels));
 
         TrainingAdapter adapter = new TrainingAdapter(context, data);
         recycler.setLayoutManager(new LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false));
@@ -116,15 +117,45 @@ public class WorkoutsFeedAdapter extends RecyclerView.Adapter<WorkoutsFeedAdapte
         }
     }
 
-    private void setupAdviceList(RecyclerView recycler) {
-        List<Edvice> dummyList = new ArrayList<>();
-        dummyList.add(new Edvice(R.drawable.ic_heart_oxygen_icon, "Workout Finished!", "End"));
-        dummyList.add(new Edvice(R.drawable.ic_advice_history, "Good job!", "Middle"));
+    // ==========================================
+    // ЛОГИКА УМНЫХ СОВЕТОВ (ВИРТУАЛЬНЫЙ ТРЕНЕР)
+    // ==========================================
+    private void setupAdviceList(RecyclerView recycler, WorkoutSessionUI session) {
+        List<Edvice> adviceListForAdapter = new ArrayList<>();
 
-        AdviceHistoryAdapter adapter = new AdviceHistoryAdapter(context, dummyList);
+        // Проверяем, есть ли сгенерированные советы от ViewModel
+        if (session.advices != null && !session.advices.isEmpty()) {
+            for (WorkoutSessionUI.WorkoutAdvice advice : session.advices) {
+                // Преобразуем эмодзи в красивую иконку из ресурсов
+                int iconResId = getIconForAdvice(advice.icon);
+
+                // Создаем объект совета, передавая заголовок, ОПИСАНИЕ и время
+                adviceListForAdapter.add(new Edvice(iconResId, advice.title, advice.description, advice.timing));
+            }
+        } else {
+            // Фолбэк-заглушка, если советов почему-то нет
+            adviceListForAdapter.add(new Edvice(R.drawable.ic_advice_history, "Workout Finished!", "Тренировка успешно сохранена в историю. Так держать!", "End"));
+        }
+
+        AdviceHistoryAdapter adapter = new AdviceHistoryAdapter(context, adviceListForAdapter);
         recycler.setLayoutManager(new LinearLayoutManager(context));
         recycler.setAdapter(adapter);
         recycler.setRecycledViewPool(viewPool);
+    }
+
+    // Хелпер для сопоставления эмодзи с вашими векторными иконками
+    private int getIconForAdvice(String emoji) {
+        switch (emoji) {
+            case "⚡": return R.drawable.ic_temp; // Иконка для темпа/скорости/пика
+            case "🔥": return R.drawable.ic_heart_icon; // Иконка для пульса/сжигания
+            case "🏆": return R.drawable.ic_heart_oxygen_icon; // Иконка успеха/кислорода
+            case "💧": // Если у вас появится иконка воды, вставьте ее сюда, пока используем стандартную:
+            case "🚶":
+            case "🌙":
+            case "☀️":
+            case "🥩":
+            default: return R.drawable.ic_advice_history; // Стандартная зеленая иконка
+        }
     }
 
     @Override
