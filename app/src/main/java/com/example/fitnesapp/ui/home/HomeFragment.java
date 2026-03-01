@@ -456,6 +456,7 @@ public class HomeFragment extends Fragment {
         binding.cvWeight.setOnClickListener(v -> Navigation.findNavController(v).navigate(R.id.weightFragment));
         binding.cvOxygen.setOnClickListener(v -> Navigation.findNavController(v).navigate(R.id.oxygenFragment));
         binding.cvDayActivity.setOnClickListener(v -> Navigation.findNavController(v).navigate(R.id.dayActivityFragment));
+        binding.IVwater.setOnClickListener(v -> Navigation.findNavController(v).navigate(R.id.water));
     }
 
     @Override

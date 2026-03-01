@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    >
+
+    <TextView
+        android:id="@+id/tvWaterTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="130dp"
+        android:fontFamily="@font/nobile_bold"
+        android:text="Hydration"
+        android:textColor="@android:color/white"
+        android:textSize="24sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/tvWaterVolume"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:fontFamily="@font/nobile_bold"
+        android:text="1250 / 2500 ml"
+        android:textColor="@color/blue_end"
+        android:textSize="20sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tvWaterTitle" />
+
+    <FrameLayout
+        android:id="@+id/frameSilhouette"
+        android:layout_width="0dp"
+        android:layout_height="350dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tvWaterVolume">
+
+        <ImageView
+            android:id="@+id/ivBodyEmpty"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:src="@drawable/ic_water_body"
+            app:tint="#2A3A4A" />
+
+        <ImageView
+            android:id="@+id/ivBodyFill"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:src="@drawable/clip_water_body"
+            app:tint="@color/blue_start" />
+
+        <TextView
+            android:id="@+id/tvWaterPercent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:fontFamily="@font/nobile_bold"
+            android:shadowColor="#000000"
+            android:shadowDx="2"
+            android:shadowDy="2"
+            android:shadowRadius="4"
+            android:text="50%"
+            android:textColor="@android:color/white"
+            android:textSize="28sp" />
+    </FrameLayout>
+
+    <LinearLayout
+        android:id="@+id/cardAdvice"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="24dp"
+        android:layout_marginBottom="100dp"
+        android:background="#1AFFFFFF"
+        android:orientation="vertical"
+        android:padding="16dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/llWaterButtons">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/nobile_bold"
+            android:text="📊 Почему такая норма?"
+            android:textColor="#FFD54F"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/tvAdviceText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:fontFamily="@font/nobile"
+            android:text="You have a heavy workout planned today. Drink an extra 500ml to keep your muscles pumped!"
+            android:textColor="#DDDDDD"
+            android:textSize="14sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/llWaterButtons"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp"
+        android:gravity="bottom|center"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/frameSilhouette">
+
+        <ImageView
+            android:id="@+id/IVwater250"
+            android:layout_width="wrap_content"
+            android:layout_height="46dp"
+            android:layout_weight="1"
+            app:srcCompat="@drawable/ic_water_cup" />
+
+        <ImageView
+            android:id="@+id/IVwater500"
+            android:layout_width="wrap_content"
+            android:layout_height="50dp"
+            android:layout_weight="1"
+            app:srcCompat="@drawable/ic_water_mini_bottle" />
+
+        <ImageView
+            android:id="@+id/IVwater750"
+            android:layout_width="wrap_content"
+            android:layout_height="54dp"
+            android:layout_weight="1"
+            app:srcCompat="@drawable/ic_water_shaker" />
+
+        <ImageView
+            android:id="@+id/IVwater1000"
+            android:layout_width="wrap_content"
+            android:layout_height="58dp"
+            android:layout_weight="1"
+            app:srcCompat="@drawable/ic_water_big_bottle" />
+
+        <ImageView
+            android:id="@+id/IVwaterPlus"
+            android:layout_width="wrap_content"
+            android:layout_height="46dp"
+            android:layout_weight="1"
+            app:srcCompat="@drawable/ic_water_plus" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/llFeedback"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="24dp"
+        android:background="@drawable/bg_chart_dark"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@+id/frameSilhouette"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/nobile_bold"
+            android:text="Вечерний чек-ап: Как тебе норма на сегодня?"
+            android:textAlignment="center"
+            android:textColor="@android:color/white"
+            android:textSize="14sp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btnFeedbackTooMuch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:backgroundTint="#2A3A4A"
+                android:text="🥵 Много"
+                android:textColor="@color/white"
+                android:textSize="12sp" />
+
+            <Button
+                android:id="@+id/btnFeedbackPerfect"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:backgroundTint="@color/accent_color"
+                android:text="👍 Супер"
+                android:textColor="@color/secondary"
+                android:textSize="12sp" />
+
+            <Button
+                android:id="@+id/btnFeedbackThirsty"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:backgroundTint="#2A3A4A"
+                android:text="🐫 Мало"
+                android:textColor="@color/white"
+                android:textSize="12sp" />
+        </LinearLayout>
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -633,6 +633,18 @@
                     android:textColor="@color/text_smuf"
                     android:textSize="20sp" />
 
+                <ImageView
+                    android:id="@+id/IVwater"
+                    android:layout_width="62dp"
+                    android:layout_height="62dp"
+                    android:layout_alignTop="@+id/imageView3"
+                    android:layout_alignBottom="@+id/imageView3"
+                    android:layout_alignParentEnd="true"
+                    android:layout_marginTop="0dp"
+                    android:layout_marginEnd="23dp"
+                    android:layout_marginBottom="0dp"
+                    android:src="@drawable/ic_water" />
+
             </RelativeLayout>
         </ScrollView>
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>

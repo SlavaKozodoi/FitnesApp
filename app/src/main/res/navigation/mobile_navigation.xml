@@ -62,4 +62,8 @@
         android:name="com.example.fitnesapp.ui.settings.SettingsFragment"
         android:label="@string/text_settings"
         tools:layout="@layout/fragment_settings" />
+    <fragment
+        android:id="@+id/water"
+        android:name="com.example.fitnesapp.ui.water.WaterFragment"
+        android:label="Water" />
 </navigation>

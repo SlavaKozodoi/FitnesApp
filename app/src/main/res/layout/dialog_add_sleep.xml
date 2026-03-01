@@ -47,13 +47,14 @@
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
             android:layout_weight="1"
-            android:background="#1AFFFFFF"
+            android:background="?attr/selectableItemBackground"
             android:fontFamily="@font/nobile"
             android:padding="12dp"
             android:text="Select date"
             android:textAlignment="center"
-            android:textColor="@color/blue_start"
-            android:textSize="16sp" />
+            android:textColor="@color/accent_color"
+            android:textSize="20sp"
+            android:textStyle="bold" />
 
         <TextView
             android:id="@+id/tvBedTime"
@@ -61,13 +62,14 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_weight="1"
-            android:background="#1AFFFFFF"
+            android:background="?attr/selectableItemBackground"
             android:fontFamily="@font/nobile"
             android:padding="12dp"
             android:text="00:00"
             android:textAlignment="center"
-            android:textColor="@color/blue_start"
-            android:textSize="16sp" />
+            android:textColor="@color/accent_color"
+            android:textSize="20sp"
+            android:textStyle="bold" />
     </LinearLayout>
 
 
@@ -99,13 +101,14 @@
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
             android:layout_weight="1"
-            android:background="#1AFFFFFF"
+            android:background="?attr/selectableItemBackground"
             android:fontFamily="@font/nobile"
             android:padding="12dp"
             android:text="Select date"
             android:textAlignment="center"
-            android:textColor="@color/blue_end"
-            android:textSize="16sp" />
+            android:textColor="@color/accent_color"
+            android:textSize="20sp"
+            android:textStyle="bold" />
 
         <TextView
             android:id="@+id/tvWakeTime"
@@ -113,13 +116,14 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_weight="1"
-            android:background="#1AFFFFFF"
+            android:background="?attr/selectableItemBackground"
             android:fontFamily="@font/nobile"
             android:padding="12dp"
             android:text="00:00"
             android:textAlignment="center"
-            android:textColor="@color/blue_end"
-            android:textSize="16sp" />
+            android:textColor="@color/accent_color"
+            android:textSize="20sp"
+            android:textStyle="bold" />
     </LinearLayout>
 
 
@@ -128,6 +132,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="32dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
         android:fontFamily="@font/nobile"
         android:padding="12dp"
         android:text="Cancel"

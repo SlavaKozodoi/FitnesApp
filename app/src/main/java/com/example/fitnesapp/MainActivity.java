@@ -141,8 +141,6 @@ public class MainActivity extends AppCompatActivity {
 
     private void showAddSleepDialog() {
         android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this);
-
-        // Подключаем наш новый красивый макет
         View customView = LayoutInflater.from(this).inflate(R.layout.dialog_add_sleep, null);
 
         android.widget.TextView tvBedDate = customView.findViewById(R.id.tvBedDate);
@@ -153,12 +151,20 @@ public class MainActivity extends AppCompatActivity {
         View btnCancel = customView.findViewById(R.id.btnCancel);
         View btnSave = customView.findViewById(R.id.btnSave);
 
-        // Создаем два календаря для точного подсчета разницы во времени
-        java.util.Calendar bedCalendar = java.util.Calendar.getInstance();
+        // --- УСТАНАВЛИВАЕМ УМНЫЕ ДЕФОЛТЫ ---
+        // Пробуждение: текущее время
         java.util.Calendar wakeCalendar = java.util.Calendar.getInstance();
 
-        // Массив флагов, чтобы проверить, что пользователь заполнил все 4 поля
-        boolean[] isFilled = new boolean[4];
+        // Отбой: текущее время минус 8 часов
+        java.util.Calendar bedCalendar = java.util.Calendar.getInstance();
+        bedCalendar.add(java.util.Calendar.HOUR_OF_DAY, -8);
+
+        // Сразу отображаем значения по умолчанию на экране с нашей логикой Вчера/Сегодня
+        tvBedDate.setText(getFriendlyDateString(bedCalendar.get(java.util.Calendar.YEAR), bedCalendar.get(java.util.Calendar.MONTH), bedCalendar.get(java.util.Calendar.DAY_OF_MONTH)));
+        tvBedTime.setText(String.format(java.util.Locale.US, "%02d:%02d", bedCalendar.get(java.util.Calendar.HOUR_OF_DAY), bedCalendar.get(java.util.Calendar.MINUTE)));
+
+        tvWakeDate.setText(getFriendlyDateString(wakeCalendar.get(java.util.Calendar.YEAR), wakeCalendar.get(java.util.Calendar.MONTH), wakeCalendar.get(java.util.Calendar.DAY_OF_MONTH)));
+        tvWakeTime.setText(String.format(java.util.Locale.US, "%02d:%02d", wakeCalendar.get(java.util.Calendar.HOUR_OF_DAY), wakeCalendar.get(java.util.Calendar.MINUTE)));
 
         builder.setView(customView);
         android.app.AlertDialog dialog = builder.create();
@@ -173,8 +179,7 @@ public class MainActivity extends AppCompatActivity {
                 bedCalendar.set(java.util.Calendar.YEAR, year);
                 bedCalendar.set(java.util.Calendar.MONTH, month);
                 bedCalendar.set(java.util.Calendar.DAY_OF_MONTH, day);
-                tvBedDate.setText(String.format(java.util.Locale.US, "%02d/%02d/%d", day, month + 1, year));
-                isFilled[0] = true;
+                tvBedDate.setText(getFriendlyDateString(year, month, day));
             }, bedCalendar.get(java.util.Calendar.YEAR), bedCalendar.get(java.util.Calendar.MONTH), bedCalendar.get(java.util.Calendar.DAY_OF_MONTH)).show();
         });
 
@@ -184,7 +189,6 @@ public class MainActivity extends AppCompatActivity {
                 bedCalendar.set(java.util.Calendar.HOUR_OF_DAY, hour);
                 bedCalendar.set(java.util.Calendar.MINUTE, minute);
                 tvBedTime.setText(String.format(java.util.Locale.US, "%02d:%02d", hour, minute));
-                isFilled[1] = true;
             }, bedCalendar.get(java.util.Calendar.HOUR_OF_DAY), bedCalendar.get(java.util.Calendar.MINUTE), true).show();
         });
 
@@ -194,8 +198,7 @@ public class MainActivity extends AppCompatActivity {
                 wakeCalendar.set(java.util.Calendar.YEAR, year);
                 wakeCalendar.set(java.util.Calendar.MONTH, month);
                 wakeCalendar.set(java.util.Calendar.DAY_OF_MONTH, day);
-                tvWakeDate.setText(String.format(java.util.Locale.US, "%02d/%02d/%d", day, month + 1, year));
-                isFilled[2] = true;
+                tvWakeDate.setText(getFriendlyDateString(year, month, day));
             }, wakeCalendar.get(java.util.Calendar.YEAR), wakeCalendar.get(java.util.Calendar.MONTH), wakeCalendar.get(java.util.Calendar.DAY_OF_MONTH)).show();
         });
 
@@ -205,7 +208,6 @@ public class MainActivity extends AppCompatActivity {
                 wakeCalendar.set(java.util.Calendar.HOUR_OF_DAY, hour);
                 wakeCalendar.set(java.util.Calendar.MINUTE, minute);
                 tvWakeTime.setText(String.format(java.util.Locale.US, "%02d:%02d", hour, minute));
-                isFilled[3] = true;
             }, wakeCalendar.get(java.util.Calendar.HOUR_OF_DAY), wakeCalendar.get(java.util.Calendar.MINUTE), true).show();
         });
 
@@ -213,12 +215,6 @@ public class MainActivity extends AppCompatActivity {
         btnCancel.setOnClickListener(v -> dialog.dismiss());
 
         btnSave.setOnClickListener(v -> {
-            // Проверяем, что все поля заполнены
-            if (!isFilled[0] || !isFilled[1] || !isFilled[2] || !isFilled[3]) {
-                android.widget.Toast.makeText(this, "Please fill in all date and time fields", android.widget.Toast.LENGTH_SHORT).show();
-                return;
-            }
-
             long bedTimeMillis = bedCalendar.getTimeInMillis();
             long wakeTimeMillis = wakeCalendar.getTimeInMillis();
 
@@ -232,10 +228,7 @@ public class MainActivity extends AppCompatActivity {
             String bedTimeStr = tvBedTime.getText().toString();
             String wakeTimeStr = tvWakeTime.getText().toString();
 
-            // НОВОЕ: Достаем дату ПРОБУЖДЕНИЯ в формате "yyyy-MM-dd" из нашего календаря
             String selectedDateKey = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(wakeCalendar.getTime());
-
-            // Передаем эту дату первым параметром!
             saveSleepToFirebase(selectedDateKey, (int) durationMinutes, bedTimeStr, wakeTimeStr);
 
             dialog.dismiss();
@@ -243,7 +236,25 @@ public class MainActivity extends AppCompatActivity {
 
         dialog.show();
     }
-    private void saveSleepToFirebase(String dateKey, int durationMinutes, String bedTime, String wakeTime) {
+    // === НОВЫЙ ВСПОМОГАТЕЛЬНЫЙ МЕТОД (добавьте его прямо под showAddSleepDialog) ===
+    private String getFriendlyDateString(int year, int month, int day) {
+        java.util.Calendar today = java.util.Calendar.getInstance();
+        java.util.Calendar yesterday = java.util.Calendar.getInstance();
+        yesterday.add(java.util.Calendar.DAY_OF_YEAR, -1);
+
+        if (year == today.get(java.util.Calendar.YEAR) &&
+                month == today.get(java.util.Calendar.MONTH) &&
+                day == today.get(java.util.Calendar.DAY_OF_MONTH)) {
+            return "Today";
+        } else if (year == yesterday.get(java.util.Calendar.YEAR) &&
+                month == yesterday.get(java.util.Calendar.MONTH) &&
+                day == yesterday.get(java.util.Calendar.DAY_OF_MONTH)) {
+            return "Yesterday";
+        } else {
+            // Если дата другая, показываем в формате DD/MM/YYYY
+            return String.format(java.util.Locale.US, "%02d/%02d/%d", day, month + 1, year);
+        }
+    }    private void saveSleepToFirebase(String dateKey, int durationMinutes, String bedTime, String wakeTime) {
         String uid = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser() != null ?
                 com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
 

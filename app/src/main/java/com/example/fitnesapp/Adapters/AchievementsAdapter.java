@@ -58,7 +58,7 @@ public class AchievementsAdapter extends RecyclerView.Adapter<AchievementsAdapte
 
             // Иконка замка
             // Убедитесь, что у вас есть R.drawable.ic_lock, иначе замените на любую другую
-            holder.icon.setImageResource(R.drawable.ic_lock);
+            holder.icon.setImageResource(R.drawable.ic_ach_lock);
 
             // ВМЕСТО ПРОГРЕССА ПИШЕМ ТРЕБОВАНИЕ
             holder.goal.setText("Req: " + item.requiredTitle);
