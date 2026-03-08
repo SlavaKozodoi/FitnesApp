@@ -19,11 +19,19 @@ import java.time.ZoneId
 
 // === Data Classes ===
 
+data class SpeedPoint(
+    val time: Long,
+    val speedKmh: Double
+)
+
+// 2. Обновляем основную модель (добавили дистанцию и массив скоростей)
 data class WorkoutSessionData(
-    val type: String,       // "Running", "Gym", etc.
+    val type: String,
     val startTime: Long,
     val durationMinutes: Long,
-    val calories: Long      // Сожженные ккал
+    val calories: Long,
+    val distanceKm: Double,          // НОВОЕ: Общая дистанция
+    val speedData: List<SpeedPoint>  // НОВОЕ: Точки для графика
 )
 
 data class SleepSessionData(
@@ -75,7 +83,6 @@ class HealthConnectManager(private val context: Context) {
 
         scope.launch {
             try {
-                // 1. Читаем список сессий
                 val response = healthConnectClient.readRecords(
                     ReadRecordsRequest(
                         recordType = ExerciseSessionRecord::class,
@@ -85,21 +92,43 @@ class HealthConnectManager(private val context: Context) {
 
                 val workouts = ArrayList<WorkoutSessionData>()
 
-                // 2. Проходим циклом, чтобы посчитать калории для каждой тренировки отдельно
                 for (record in response.records) {
-                    val duration = java.time.Duration.between(record.startTime, record.endTime).toMinutes()
+                    val duration = java.time.Duration.between(record.startTime, record.endTime).toSeconds()
 
-                    // 3. АГРЕГАЦИЯ: Запрашиваем сумму калорий за время этой тренировки
+                    // АГРЕГАЦИЯ: Запрашиваем калории И ДИСТАНЦИЮ
                     val aggregationResult = healthConnectClient.aggregate(
                         AggregateRequest(
-                            metrics = setOf(TotalCaloriesBurnedRecord.ENERGY_TOTAL),
+                            metrics = setOf(
+                                TotalCaloriesBurnedRecord.ENERGY_TOTAL,
+                                DistanceRecord.DISTANCE_TOTAL // Добавили дистанцию!
+                            ),
                             timeRangeFilter = TimeRangeFilter.between(record.startTime, record.endTime)
                         )
                     )
 
-                    // 4. Достаем калории (или 0, если данных нет)
                     val energy = aggregationResult[TotalCaloriesBurnedRecord.ENERGY_TOTAL]
                     val cals = energy?.inKilocalories?.toLong() ?: 0L
+
+                    val dist = aggregationResult[DistanceRecord.DISTANCE_TOTAL]
+                    val distanceKm = dist?.inKilometers ?: 0.0
+
+                    // ЧТЕНИЕ ГРАФИКА: Запрашиваем записи скорости (SpeedRecord) для этой тренировки
+                    val speedPoints = ArrayList<SpeedPoint>()
+                    val speedResponse = healthConnectClient.readRecords(
+                        ReadRecordsRequest(
+                            recordType = SpeedRecord::class,
+                            timeRangeFilter = TimeRangeFilter.between(record.startTime, record.endTime)
+                        )
+                    )
+
+                    // Проходим по всем записям скорости и вытаскиваем сэмплы (точки)
+                    for (speedRecord in speedResponse.records) {
+                        for (sample in speedRecord.samples) {
+                            // Переводим м/с (стандарт Health Connect) в км/ч
+                            val speedKmh = sample.speed.inMetersPerSecond * 3.6
+                            speedPoints.add(SpeedPoint(sample.time.toEpochMilli(), speedKmh))
+                        }
+                    }
 
                     val typeName = getExerciseName(record.exerciseType)
 
@@ -108,7 +137,9 @@ class HealthConnectManager(private val context: Context) {
                             type = typeName,
                             startTime = record.startTime.toEpochMilli(),
                             durationMinutes = duration,
-                            calories = cals
+                            calories = cals,
+                            distanceKm = distanceKm,     // Передаем дистанцию
+                            speedData = speedPoints      // Передаем точки графика
                         )
                     )
                 }
@@ -120,7 +151,6 @@ class HealthConnectManager(private val context: Context) {
         }
         return future
     }
-
     private fun getExerciseName(type: Int): String {
         return when (type) {
             ExerciseSessionRecord.EXERCISE_TYPE_RUNNING -> "Running"
@@ -440,7 +470,7 @@ class HealthConnectManager(private val context: Context) {
                     ReadRecordsRequest(recordType = OxygenSaturationRecord::class, timeRangeFilter = TimeRangeFilter.between(startTime, endTime))
                 )
                 val records = response.records
-                if (records.isNotEmpty()) future.set(records.sumOf { it.percentage.value } / records.size) else future.set(0.0)
+                if (records.isNotEmpty()) future.set(records.sumOf { it.percentage.value } / records.size.toDouble()) else future.set(0.0)
             } catch (e: Exception) { future.setException(e) }
         }
         return future

@@ -61,7 +61,7 @@ public class ActiveTrenViewModel extends ViewModel {
 
                 for (WorkoutItem workout : workouts) {
                     long start = workout.timestamp;
-                    long end = start + (workout.durationMin * 60000L);
+                    long end = start + (workout.durationSeconds * 1000L);
 
                     List<HealthLogItem> p = filterLogs(snapshot.child("pulse"), start, end);
                     List<HealthLogItem> pc = filterLogs(snapshot.child("pace"), start, end);
@@ -133,7 +133,7 @@ public class ActiveTrenViewModel extends ViewModel {
         }
 
         // 4. Анализ длительности
-        if (workout.durationMin > 60) {
+        if (workout.durationSeconds > 3600) {
             advices.add(new WorkoutSessionUI.WorkoutAdvice("🥩", "Долгая тренировка", "Мышцы потратили много гликогена. Легкий углеводно-белковый перекус сейчас не повредит.", "End"));
         }
 

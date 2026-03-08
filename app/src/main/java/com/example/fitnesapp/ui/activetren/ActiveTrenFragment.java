@@ -13,13 +13,14 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.fitnesapp.Adapters.WorkoutsFeedAdapter;
 import com.example.fitnesapp.databinding.FragmentActiveTrenBinding;
+import com.example.fitnesapp.ui.base.BaseLoadingFragment;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 
-public class ActiveTrenFragment extends Fragment {
+public class ActiveTrenFragment extends BaseLoadingFragment {
 
     private ActiveTrenViewModel mViewModel;
     private FragmentActiveTrenBinding binding;
@@ -37,8 +38,6 @@ public class ActiveTrenFragment extends Fragment {
         mViewModel = new ViewModelProvider(this).get(ActiveTrenViewModel.class);
 
         // 1. Получаем дату (из Bundle или текущую)
-        // ВАЖНО: Календарь должен передавать строку даты "yyyy-MM-dd" в аргумент "dateString"
-        // Если передаются старые аргументы (timestamp), конвертируем их
         String dateKey;
         if (getArguments() != null && getArguments().containsKey("timestamp")) {
             long ts = getArguments().getLong("timestamp");
@@ -61,6 +60,9 @@ public class ActiveTrenFragment extends Fragment {
             WorkoutsFeedAdapter newAdapter = new WorkoutsFeedAdapter(getContext(), sessions);
             binding.recyclerWorkoutsFeed.setAdapter(newAdapter);
         });
+
+        startFakeLoading(view, 200);
+
     }
 
     @Override

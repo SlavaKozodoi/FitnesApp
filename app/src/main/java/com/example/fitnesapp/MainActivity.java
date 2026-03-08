@@ -377,7 +377,7 @@ public class MainActivity extends AppCompatActivity {
         Futures.addCallback(healthManager.readOxygenForToday(), new FutureCallback<Double>() {
             @Override
             public void onSuccess(Double result) {
-                if (result > 0) updateFirebaseNode("vitals_summary/spo2_avg", result.intValue());
+                if (result > 0) updateFirebaseNode("vitals_summary/spo2_avg", result.doubleValue());
             }
             @Override
             public void onFailure(Throwable t) { Log.e("HEALTH", "SPO2 fail", t); }
@@ -766,10 +766,27 @@ public class MainActivity extends AppCompatActivity {
                 for (com.example.fitnesapp.utils.WorkoutSessionData item : workouts) {
                     String key = String.valueOf(item.getStartTime());
                     Map<String, Object> map = new HashMap<>();
+
+                    // Старые данные
                     map.put("type", item.getType());
                     map.put("calories", item.getCalories());
-                    map.put("durationMin", item.getDurationMinutes());
+                    map.put("durationSeconds", item.getDurationMinutes());
                     map.put("timestamp", item.getStartTime());
+
+                    // НОВЫЕ ДАННЫЕ: Общая дистанция (чтобы вывести темп цифрами "12:54")
+                    map.put("distance", item.getDistanceKm());
+
+                    // НОВЫЕ ДАННЫЕ: Массив точек для графика (чтобы нарисовать кривую)
+                    Map<String, Double> speedMap = new HashMap<>();
+                    if (item.getSpeedData() != null) {
+                        // Проходим по всем точкам, которые нам прислал Kotlin
+                        for (com.example.fitnesapp.utils.SpeedPoint sp : item.getSpeedData()) {
+                            // Ключ - время (в миллисекундах), Значение - скорость в км/ч
+                            speedMap.put(String.valueOf(sp.getTime()), sp.getSpeedKmh());
+                        }
+                    }
+                    map.put("speed_data", speedMap);
+
                     updates.put(key, map);
                 }
 

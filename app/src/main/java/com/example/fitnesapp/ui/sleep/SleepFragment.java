@@ -15,6 +15,7 @@ import com.example.fitnesapp.R;
 import com.example.fitnesapp.databinding.FragmentSleepBinding;
 import com.example.fitnesapp.models.firebase.DailyData;
 import com.example.fitnesapp.models.firebase.SleepStageItem;
+import com.example.fitnesapp.ui.base.BaseLoadingFragment;
 import com.example.fitnesapp.utils.ChartHelper;
 import com.example.fitnesapp.utils.DateHelper;
 import com.github.mikephil.charting.charts.PieChart;
@@ -34,7 +35,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-public class SleepFragment extends Fragment {
+public class SleepFragment extends BaseLoadingFragment {
 
     private SleepViewModel mViewModel;
     private FragmentSleepBinding binding;
@@ -68,6 +69,8 @@ public class SleepFragment extends Fragment {
 
         // 2. Данные о сне
         mViewModel.getSleepData().observe(getViewLifecycleOwner(), this::updateSleepUI);
+        startFakeLoading(view, 200);
+
     }
 
     private void updateSleepUI(DailyData.Sleep sleep) {

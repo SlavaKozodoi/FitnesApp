@@ -28,8 +28,9 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.fitnesapp.R;
+import com.example.fitnesapp.ui.base.BaseLoadingFragment;
 
-public class WaterFragment extends Fragment {
+public class WaterFragment extends BaseLoadingFragment {
 
     private WaterViewModel viewModel;
     private TextView tvWaterVolume, tvWaterPercent, tvAdviceText;
@@ -128,6 +129,9 @@ public class WaterFragment extends Fragment {
             viewModel.returnWater();
             return true;
         });
+
+        startFakeLoading(view, 200);
+
     }
 
     @SuppressLint("MissingPermission")

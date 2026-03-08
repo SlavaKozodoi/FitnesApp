@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
@@ -38,10 +39,10 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.HashMap;
 
 public class HomeFragment extends Fragment {
 
@@ -57,13 +58,27 @@ public class HomeFragment extends Fragment {
     private Map<String, Integer> cachedProgressMap = new HashMap<>(); // Проценты колец
 
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater,
-                             ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        binding = FragmentHomeBinding.inflate(inflater, container, false);
+        return binding.getRoot();
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
 
         homeViewModel = new ViewModelProvider(this).get(HomeViewModel.class);
-        binding = FragmentHomeBinding.inflate(inflater, container, false);
-        View root = binding.getRoot();
 
+        setupNavigation();
+        setupHistoryCalendar();
+        setupSwipeRefresh();
+        observeViewModelData();
+    }
+
+    // ==========================================
+    // 1. ИНИЦИАЛИЗАЦИЯ И НАБЛЮДЕНИЕ ЗА ДАННЫМИ
+    // ==========================================
+    private void observeViewModelData() {
         // Проверка авторизации
         homeViewModel.getRequireLogin().observe(getViewLifecycleOwner(), isRequired -> {
             if (isRequired) {
@@ -74,30 +89,12 @@ public class HomeFragment extends Fragment {
             }
         });
 
-        setupNavigation();
-        setupHistoryCalendar();
-
-        // --- Настройка Pull-to-Refresh ---
-        binding.swipeRefreshHome.setColorSchemeColors(Color.parseColor("#4CAF50"), Color.parseColor("#448AFF"));
-
-        binding.swipeRefreshHome.setOnRefreshListener(() -> {
-            if (getActivity() instanceof MainActivity) {
-                ((MainActivity) getActivity()).syncHealthData();
-                Toast.makeText(getContext(), "Synchronization...", Toast.LENGTH_SHORT).show();
-            }
-            new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
-                if (binding != null && binding.swipeRefreshHome != null) {
-                    binding.swipeRefreshHome.setRefreshing(false);
-                }
-            }, 2000);
-        });
-
-        // --- Дневная статистика ---
+        // Дневная статистика
         homeViewModel.getDailyData().observe(getViewLifecycleOwner(), dailyData -> {
             if (dailyData != null) updateDashboardWithRealData(dailyData);
         });
 
-        // --- Профиль (Имя) ---
+        // Профиль (Имя)
         homeViewModel.getUserProfile().observe(getViewLifecycleOwner(), profile -> {
             if (profile != null) {
                 if (binding.tvName != null) binding.tvName.setText(profile.firstName);
@@ -105,18 +102,18 @@ public class HomeFragment extends Fragment {
             }
         });
 
-        // --- График Пульса ---
+        // График Пульса
         homeViewModel.getPulseHistory().observe(getViewLifecycleOwner(), pulseList -> {
             setupPulseChart(pulseList);
         });
 
-        // --- Текст Пульса ---
+        // Текст Пульса
         homeViewModel.getTodayPulseValue().observe(getViewLifecycleOwner(), currentPulse -> {
             if (currentPulse != null) binding.tvPulse.setText(currentPulse + " bpm");
             else binding.tvPulse.setText("-- bpm");
         });
 
-        // --- График Веса + Текст ---
+        // График Веса + Текст
         homeViewModel.getWeightHistory().observe(getViewLifecycleOwner(), weightList -> {
             if (weightList != null && !weightList.isEmpty()) {
                 Collections.sort(weightList, (o1, o2) -> {
@@ -134,7 +131,7 @@ public class HomeFragment extends Fragment {
             }
         });
 
-        // --- КАЛЕНДАРЬ: Тренировки (Фиолетовый фон) ---
+        // КАЛЕНДАРЬ: Тренировки (Фиолетовый фон)
         homeViewModel.getActiveDays().observe(getViewLifecycleOwner(), dateStrings -> {
             if (dateStrings != null) {
                 cachedActiveDates = dateStrings;
@@ -142,18 +139,49 @@ public class HomeFragment extends Fragment {
             }
         });
 
-        // --- КАЛЕНДАРЬ: Кольца прогресса ---
+        // КАЛЕНДАРЬ: Кольца прогресса
         homeViewModel.getDailyProgressMap().observe(getViewLifecycleOwner(), map -> {
             if (map != null) {
                 cachedProgressMap = map;
                 updateCalendarDisplay();
             }
         });
-
-        return root;
     }
 
+    private void setupSwipeRefresh() {
+        binding.swipeRefreshHome.setColorSchemeColors(Color.parseColor("#4CAF50"), Color.parseColor("#448AFF"));
+        binding.swipeRefreshHome.setOnRefreshListener(() -> {
+            if (getActivity() instanceof MainActivity) {
+                ((MainActivity) getActivity()).syncHealthData();
+                Toast.makeText(getContext(), "Synchronization...", Toast.LENGTH_SHORT).show();
+            }
+            new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+                if (binding != null && binding.swipeRefreshHome != null) {
+                    binding.swipeRefreshHome.setRefreshing(false);
+                }
+            }, 2000);
+        });
+    }
+
+    private void setupNavigation() {
+        binding.cvSleep.setOnClickListener(v -> Navigation.findNavController(v).navigate(R.id.sleepFragment));
+        binding.cvPulse.setOnClickListener(v -> Navigation.findNavController(v).navigate(R.id.pulseFragment));
+        binding.cvWeight.setOnClickListener(v -> Navigation.findNavController(v).navigate(R.id.weightFragment));
+        binding.cvOxygen.setOnClickListener(v -> Navigation.findNavController(v).navigate(R.id.oxygenFragment));
+        binding.cvDayActivity.setOnClickListener(v -> Navigation.findNavController(v).navigate(R.id.dayActivityFragment));
+        binding.IVwater.setOnClickListener(v -> Navigation.findNavController(v).navigate(R.id.water));
+    }
+
+    // ==========================================
+    // 2. ОБНОВЛЕНИЕ ГЛАВНОГО ДАШБОРДА (DailyData)
+    // ==========================================
     private void updateDashboardWithRealData(DailyData data) {
+        updateRingsAndTexts(data);
+        updateOxygen(data);
+        updateSleep(data);
+    }
+
+    private void updateRingsAndTexts(DailyData data) {
         float caloriesGoal = data.caloriesGoal;
         float stepsGoal = data.stepsGoal;
         float nutritionGoal = (data.nutrition != null) ? data.nutrition.maxCalories : 0f;
@@ -200,57 +228,33 @@ public class HomeFragment extends Fragment {
 
         if (binding.tvNutritionValue != null) binding.tvNutritionValue.setText(String.valueOf((int) nutritionCurrent));
         if (binding.tvNutritionGoal != null) binding.tvNutritionGoal.setText("/" + (int) nutritionGoal + getString(R.string.short_text_calories));
+    }
 
-        // Сон и Кислород
-        if (data.oxygen != null && !data.oxygen.isEmpty()) {
-            HealthLogItem latestOxygen = null;
-            for (HealthLogItem item : data.oxygen.values()) {
-                if (latestOxygen == null || item.time > latestOxygen.time) {
-                    latestOxygen = item;
-                }
-            }
-            if (latestOxygen != null) {
-                binding.tvOxygen.setText(latestOxygen.val + "%");
-                if (latestOxygen.val >= 95) {
-                    binding.tvOxygenStatus.setText("Good");
-                    binding.tvOxygenStatus.setTextColor(Color.parseColor("#4CAF50"));
-                } else {
-                    binding.tvOxygenStatus.setText("Low");
-                    binding.tvOxygenStatus.setTextColor(Color.RED);
-                }
-            }
-        } else {
-            if (data.vitals_summary != null && data.vitals_summary.spo2_avg > 0) {
-                binding.tvOxygen.setText(data.vitals_summary.spo2_avg + "%");
-            } else {
-                binding.tvOxygen.setText("-- %");
-            }
-        }
+    private void updateOxygen(DailyData data) {
+        if (data.vitals_summary != null && data.vitals_summary.spo2_avg > 0) {
 
+            double avgOxygen = data.vitals_summary.spo2_avg;
+
+            // Выводим с одним знаком после точки
+            binding.tvOxygen.setText(String.format(Locale.US, "%.1f", avgOxygen) + "%");
+
+
+            }
+    }
+    private void updateSleep(DailyData data) {
         if (data.sleep != null && data.sleep.durationMinutes > 0) {
             int hours = data.sleep.durationMinutes / 60;
             int mins = data.sleep.durationMinutes % 60;
             binding.tvSleepTime.setText(hours + "h " + mins + "m");
-
-            if (data.sleep.quality != null && !data.sleep.quality.isEmpty()) {
-                binding.tvSleepStatus.setText(data.sleep.quality);
-                if (data.sleep.score >= 80) binding.tvSleepStatus.setTextColor(Color.parseColor("#4CAF50"));
-                else if (data.sleep.score >= 50) binding.tvSleepStatus.setTextColor(Color.parseColor("#448AFF"));
-                else if (data.sleep.score > 0) binding.tvSleepStatus.setTextColor(Color.parseColor("#F44336"));
-                else binding.tvSleepStatus.setTextColor(Color.parseColor("#B0BEC5"));
-            } else {
-                binding.tvSleepStatus.setText("--");
-                binding.tvSleepStatus.setTextColor(Color.parseColor("#B0BEC5"));
-            }
         } else {
             binding.tvSleepTime.setText("-- h -- m");
-            if (binding.tvSleepStatus != null) {
-                binding.tvSleepStatus.setText("--");
-                binding.tvSleepStatus.setTextColor(Color.parseColor("#B0BEC5"));
-            }
+
         }
     }
 
+    // ==========================================
+    // 3. ГРАФИКИ
+    // ==========================================
     private void setupPulseChart(List<HealthLogItem> allData) {
         BarChart chart = binding.chartPulse;
         if (chart == null) return;
@@ -354,14 +358,13 @@ public class HomeFragment extends Fragment {
         }
     }
 
-    // === КАЛЕНДАРЬ ===
+    // ==========================================
+    // 4. КАЛЕНДАРЬ
+    // ==========================================
     private void setupHistoryCalendar() {
         binding.recyclerCalendar.setLayoutManager(new GridLayoutManager(getContext(), 7));
 
-        // Передаем 3 параметра: Дни месяца, Дни с тренировками, Прогресс колец
         calendarAdapter = new CalendarAdapter(getContext(), new ArrayList<>(), new ArrayList<>(), new HashMap<>(), (day, hasWorkout) -> {
-
-            // Если в этот день была тренировка (фиолетовый фон), показываем ее
             if (hasWorkout) {
                 Calendar clickCal = (Calendar) currentCalendar.clone();
                 clickCal.set(Calendar.DAY_OF_MONTH, day);
@@ -375,7 +378,7 @@ public class HomeFragment extends Fragment {
                         Bundle bundle = new Bundle();
                         bundle.putString("type", workout.type);
                         bundle.putInt("calories", workout.calories);
-                        bundle.putInt("duration", workout.durationMin);
+                        bundle.putLong("duration", workout.durationSeconds);
                         bundle.putLong("timestamp", workout.timestamp);
                         bundle.putBoolean("isHistory", true);
 
@@ -410,15 +413,14 @@ public class HomeFragment extends Fragment {
         SimpleDateFormat sdfTitle = new SimpleDateFormat("MMMM", Locale.ENGLISH);
         binding.tvMonthName.setText(sdfTitle.format(currentCalendar.getTime()));
 
-        List<Integer> activeDaysInThisMonth = new ArrayList<>(); // Дни с тренировками
-        Map<Integer, Integer> progressInThisMonth = new HashMap<>(); // Кольца
+        List<Integer> activeDaysInThisMonth = new ArrayList<>();
+        Map<Integer, Integer> progressInThisMonth = new HashMap<>();
 
         SimpleDateFormat sdfParse = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
 
         int currentMonth = currentCalendar.get(Calendar.MONTH);
         int currentYear = currentCalendar.get(Calendar.YEAR);
 
-        // 1. Извлекаем дни с ТРЕНИРОВКАМИ
         for (String dateStr : cachedActiveDates) {
             try {
                 Calendar dateCal = Calendar.getInstance();
@@ -429,7 +431,6 @@ public class HomeFragment extends Fragment {
             } catch (Exception e) { e.printStackTrace(); }
         }
 
-        // 2. Извлекаем дни с ПРОГРЕССОМ КОЛЕЦ
         for (Map.Entry<String, Integer> entry : cachedProgressMap.entrySet()) {
             try {
                 Calendar dateCal = Calendar.getInstance();
@@ -444,19 +445,9 @@ public class HomeFragment extends Fragment {
         List<Integer> daysList = new ArrayList<>();
         for (int i = 1; i <= daysInMonth; i++) daysList.add(i);
 
-        // Передаем все в адаптер
         if (calendarAdapter != null) {
             calendarAdapter.updateData(daysList, activeDaysInThisMonth, progressInThisMonth);
         }
-    }
-
-    private void setupNavigation() {
-        binding.cvSleep.setOnClickListener(v -> Navigation.findNavController(v).navigate(R.id.sleepFragment));
-        binding.cvPulse.setOnClickListener(v -> Navigation.findNavController(v).navigate(R.id.pulseFragment));
-        binding.cvWeight.setOnClickListener(v -> Navigation.findNavController(v).navigate(R.id.weightFragment));
-        binding.cvOxygen.setOnClickListener(v -> Navigation.findNavController(v).navigate(R.id.oxygenFragment));
-        binding.cvDayActivity.setOnClickListener(v -> Navigation.findNavController(v).navigate(R.id.dayActivityFragment));
-        binding.IVwater.setOnClickListener(v -> Navigation.findNavController(v).navigate(R.id.water));
     }
 
     @Override

@@ -52,30 +52,44 @@ public class WorkoutsFeedAdapter extends RecyclerView.Adapter<WorkoutsFeedAdapte
         holder.tvType.setText(session.workout.type);
         holder.tvCalories.setText(String.valueOf(session.workout.calories));
 
-        int h = session.workout.durationMin / 60;
-        int m = session.workout.durationMin % 60;
-        holder.tvDuration.setText(String.format(Locale.US, "%02d:%02d:00", h, m));
+        long totalSecs = session.workout.durationSeconds;
+        long h = totalSecs / 3600;
+        long m = (totalSecs % 3600) / 60;
+        long s = totalSecs % 60;
+        holder.tvDuration.setText(String.format(Locale.US, "%02d:%02d:%02d", h, m,s));
 
-        // 2. Расчет Дистанции и Темпа
-        double avgPaceVal = calculateAvgPaceVal(session.pace);
+        // 2. Расчет Дистанции и Темпа (Берем точные данные из базы!)
+        double distance = session.workout.distance;
 
-        // Если логов темпа нет, используем грубый расчет по калориям
-        double distance;
-        if (avgPaceVal > 0) {
-            distance = session.workout.durationMin / avgPaceVal;
-            // Форматируем темп
-            int pMin = (int) avgPaceVal;
-            int pSec = (int) ((avgPaceVal - pMin) * 60);
+        holder.tvDistance.setText(String.format(Locale.US, "%.2f", distance));
+
+        // Если дистанция есть, считаем точный темп (в мин/км)
+        if (distance > 0 && session.workout.durationSeconds > 0) {
+
+            // 1. Переводим общее количество секунд в минуты с дробной частью (например, 374 сек = 6.233 мин)
+            double durationMinutesExact = session.workout.durationSeconds / 60.0;
+
+            // 2. Делим точное время на дистанцию (например, 6.233 / 0.5 = 12.466 мин/км)
+            double decimalPace = durationMinutesExact / distance;
+
+            // 3. Выделяем целые минуты и остаток в секундах
+            int pMin = (int) decimalPace;
+            int pSec = (int) Math.round((decimalPace - pMin) * 60);
+
+            // Защита от 60 секунд (например, 12:60 превратится в 13:00)
+            if (pSec == 60) {
+                pMin++;
+                pSec = 0;
+            }
+
             holder.tvPace.setText(String.format(Locale.US, "%d:%02d", pMin, pSec));
         } else {
-            distance = session.workout.calories / 65.0; // Запасная формула
             holder.tvPace.setText("--:--");
         }
-        holder.tvDistance.setText(String.format(Locale.US, "%.2f", distance));
 
         // 3. Время старта/конца
         long start = session.workout.timestamp;
-        long end = start + (session.workout.durationMin * 60000L);
+        long end = start + (session.workout.durationSeconds * 1000L);
         SimpleDateFormat sdf = new SimpleDateFormat("H:mm", Locale.US);
         holder.tvStart.setText("Start " + sdf.format(new Date(start)));
         holder.tvEnd.setText("End " + sdf.format(new Date(end)));
@@ -94,24 +108,38 @@ public class WorkoutsFeedAdapter extends RecyclerView.Adapter<WorkoutsFeedAdapte
         // Пульс
         ChartDataResult pRes = convert(session.pulse);
         String avgPulse = calcAvg(session.pulse);
-        data.add(new TrainingStat("Pulse", avgPulse, R.drawable.ic_heart_icon, R.color.pulse_start, R.color.pulse_end, pRes.entries, pRes.labels));
+        data.add(new TrainingStat("Pulse bpm", avgPulse, R.drawable.ic_heart_icon, R.color.pulse_start, R.color.pulse_end, pRes.entries, pRes.labels));
 
         // Кислород
         ChartDataResult oxRes = convert(session.oxygen);
         String avgOx = calcAvg(session.oxygen);
-        data.add(new TrainingStat("Blood oxygen", avgOx, R.drawable.ic_heart_oxygen_icon, R.color.oxygen_start, R.color.oxygen_end, oxRes.entries, oxRes.labels));
+        data.add(new TrainingStat("Blood oxygen %", avgOx, R.drawable.ic_heart_oxygen_icon, R.color.oxygen_start, R.color.oxygen_end, oxRes.entries, oxRes.labels));
 
         // Темп
-        ChartDataResult pcRes = convert(session.pace);
-        String avgPace = calcAvg(session.pace);
-        data.add(new TrainingStat("Temp", avgPace, R.drawable.ic_temp, R.color.temp_start, R.color.temp_end, pcRes.entries, pcRes.labels));
+        List<HealthLogItem> speedLogs = new ArrayList<>();
+
+        // Проверяем, есть ли данные о скорости внутри самой тренировки
+        if (session.workout.speed_data != null) {
+            List<String> keys = new ArrayList<>(session.workout.speed_data.keySet());
+            java.util.Collections.sort(keys);
+
+            for (String timeKey : keys) {
+                HealthLogItem item = new HealthLogItem();
+                item.time = Long.parseLong(timeKey);
+                item.val = session.workout.speed_data.get(timeKey); // Это скорость в км/ч
+                speedLogs.add(item);
+            }
+        }
+        ChartDataResult pcRes = convert(speedLogs);
+        String avgSpeed = calcAvg(speedLogs);
+        data.add(new TrainingStat("Speed km/h", avgSpeed, R.drawable.ic_temp, R.color.temp_start, R.color.temp_end, pcRes.entries, pcRes.labels));
 
         TrainingAdapter adapter = new TrainingAdapter(context, data);
         recycler.setLayoutManager(new LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false));
         recycler.setAdapter(adapter);
         recycler.setRecycledViewPool(viewPool); // Оптимизация
 
-        // SnapHelper (один раз)
+        // SnapHelper
         if (recycler.getOnFlingListener() == null) {
             new PagerSnapHelper().attachToRecyclerView(recycler);
         }

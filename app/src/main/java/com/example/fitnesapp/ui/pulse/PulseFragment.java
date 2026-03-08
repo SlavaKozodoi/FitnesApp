@@ -8,9 +8,10 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
+// 1. ИМПОРТИРУЕМ НАШ БАЗОВЫЙ КЛАСС ЗАГРУЗКИ
+import com.example.fitnesapp.ui.base.BaseLoadingFragment;
 import com.example.fitnesapp.R;
 import com.example.fitnesapp.databinding.FragmentPulseBinding;
 import com.example.fitnesapp.models.firebase.HealthLogItem;
@@ -24,7 +25,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-public class PulseFragment extends Fragment {
+// 2. МЕНЯЕМ НАСЛЕДОВАНИЕ С Fragment НА BaseLoadingFragment
+public class PulseFragment extends BaseLoadingFragment {
 
     private PulseViewModel mViewModel;
     private FragmentPulseBinding binding;
@@ -75,8 +77,6 @@ public class PulseFragment extends Fragment {
             }
         });
 
-
-
         // 5. ВЫЧИСЛЕННЫЕ ДАННЫЕ (Мин, Макс, Периоды)
         mViewModel.getAnalysisData().observe(getViewLifecycleOwner(), analysis -> {
             if (analysis != null) {
@@ -89,6 +89,13 @@ public class PulseFragment extends Fragment {
                 binding.tvRestPeriod.setText(analysis.restPeriod);
             }
         });
+
+        // ==========================================
+        // 3. МАГИЯ ЗАГРУЗКИ (Вызываем в самом конце)
+        // ==========================================
+        // view - это корень (binding.getRoot()), в котором лежат contentLayout и loadingOverlay
+        // 800 - это время загрузки в миллисекундах (0.8 секунды)
+        startFakeLoading(view, 200);
     }
 
     private void updateChartUI(List<HealthLogItem> logs) {
@@ -122,6 +129,7 @@ public class PulseFragment extends Fragment {
                 true
         );
     }
+
     private void setupCalendar() {
         DateHelper.setupHistoryCalendar(
                 requireContext(),

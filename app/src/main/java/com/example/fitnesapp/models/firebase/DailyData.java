@@ -49,7 +49,7 @@ public class DailyData {
     // === Вложенный класс: Средние показатели ===
     public static class VitalsSummary {
         public int pulse_avg;
-        public int spo2_avg;
+        public double spo2_avg;
         public double weight_today;
 
         public VitalsSummary() {}

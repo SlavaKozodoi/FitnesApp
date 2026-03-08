@@ -34,9 +34,9 @@ public class OxygenViewModel extends ViewModel {
 
     // Класс для хранения рассчитанной статистики
     public static class OxygenAnalysis {
-        public int min = 0;
-        public int max = 0;
-        public int avg = 0;
+        public double min = 0;
+        public double max = 0;
+        public double avg = 0;
         public String status = "--"; // "Excellent", "Normal", "Low"
     }
 
@@ -133,12 +133,12 @@ public class OxygenViewModel extends ViewModel {
             return;
         }
 
-        int min = 100;
-        int max = 0;
-        long sum = 0;
+        double min = 100;
+        double max = 0;
+        double sum = 0;
 
         for (HealthLogItem item : logs) {
-            int val = item.val; // Предполагаем, что это int (98, 99)
+            double val = item.val; // Предполагаем, что это int (98, 99)
             if (val < min) min = val;
             if (val > max) max = val;
             sum += val;
@@ -146,7 +146,7 @@ public class OxygenViewModel extends ViewModel {
 
         analysis.min = min;
         analysis.max = max;
-        analysis.avg = (int) (sum / logs.size());
+        analysis.avg =  sum / logs.size();
 
         // Определение статуса
         if (analysis.avg >= 95) analysis.status = "Very well";

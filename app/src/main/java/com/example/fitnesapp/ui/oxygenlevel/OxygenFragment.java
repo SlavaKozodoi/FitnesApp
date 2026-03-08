@@ -17,6 +17,7 @@ import androidx.lifecycle.ViewModelProvider;
 import com.example.fitnesapp.R;
 import com.example.fitnesapp.databinding.FragmentOxygenBinding;
 import com.example.fitnesapp.models.firebase.HealthLogItem;
+import com.example.fitnesapp.ui.base.BaseLoadingFragment;
 import com.example.fitnesapp.utils.ChartHelper;
 import com.example.fitnesapp.utils.DateHelper;
 import com.github.mikephil.charting.data.Entry;
@@ -27,7 +28,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-public class OxygenFragment extends Fragment {
+public class OxygenFragment extends BaseLoadingFragment {
 
     private OxygenViewModel mViewModel;
     private FragmentOxygenBinding binding;
@@ -68,6 +69,9 @@ public class OxygenFragment extends Fragment {
 
         // 4. Аналитика (Цифры + SeekBar)
         mViewModel.getAnalysisData().observe(getViewLifecycleOwner(), this::updateAnalysisUI);
+
+        startFakeLoading(view, 200);
+
     }
 
     private void updateAnalysisUI(OxygenViewModel.OxygenAnalysis analysis) {
@@ -80,20 +84,20 @@ public class OxygenFragment extends Fragment {
             return;
         }
 
-        // Основные цифры
-        binding.tvOxygenScore.setText(String.valueOf(analysis.avg));
-        binding.tvScoreOfOxygenStat.setText(String.valueOf(analysis.avg));
+        // --- ИСПРАВЛЕНО: Форматируем значения до 1 знака после запятой (00.0) ---
+        binding.tvOxygenScore.setText(String.format(Locale.US, "%.1f", analysis.avg));
+        binding.tvScoreOfOxygenStat.setText(String.format(Locale.US, "%.1f", analysis.avg));
         binding.tvOxygenQuality.setText(analysis.status);
 
-        binding.tvHighestOxygen.setText(String.valueOf(analysis.max));
-        binding.tvLowestOxygen.setText(String.valueOf(analysis.min));
+        binding.tvHighestOxygen.setText(String.format(Locale.US, "%.1f", analysis.max));
+        binding.tvLowestOxygen.setText(String.format(Locale.US, "%.1f", analysis.min));
 
         // --- ЛОГИКА SEEKBAR ---
         // Зеленый слева (0), Красный справа (100).
         // SpO2: 100% -> Идеально (0 на шкале)
         // SpO2: 90% -> Плохо (100 на шкале)
 
-        int oxygen = analysis.avg;
+        double oxygen = analysis.avg;
         int progress;
 
         if (oxygen >= 100) progress = 5; // Самый левый край
@@ -118,7 +122,7 @@ public class OxygenFragment extends Fragment {
 
         for (int i = 0; i < logs.size(); i++) {
             HealthLogItem item = logs.get(i);
-            entries.add(new Entry(i, item.val));
+            entries.add(new Entry(i, (float) item.val));
             labelsList.add(timeFormat.format(new Date(item.time)));
         }
 

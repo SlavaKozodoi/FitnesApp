@@ -180,61 +180,75 @@ public class WaterViewModel extends ViewModel {
                 UserProfile profile = snapshot.child("profile").getValue(UserProfile.class);
                 DailyData daily = snapshot.child("daily_data").child(todayDate).getValue(DailyData.class);
 
-                if (profile == null) return;
+                // Если профиля еще нет, используем безопасный дефолт (70 кг)
+                float weight = (profile != null && profile.weight > 0) ? profile.weight : 70f;
+                String gender = (profile != null && profile.gender != null) ? profile.gender : "Male";
 
-                // База
-                float weight = profile.weight > 0 ? profile.weight : 70f;
-                int baseGoal = (int) (weight * ("Female".equalsIgnoreCase(profile.gender) ? 30 : 35));
+                // 1. БАЗА (Медицинская норма: 30 мл/кг для женщин, 35 мл/кг для мужчин)
+                int baseGoal = (int) (weight * ("Female".equalsIgnoreCase(gender) ? 30 : 35));
 
-                // Активность
+                // 2. АКТИВНОСТЬ
                 int stepBonus = 0;
                 int workoutBonus = 0;
 
                 if (daily != null) {
-                    if (daily.steps > 0) stepBonus = (daily.steps / 5000) * 250;
+                    // Шаги: +50 мл за каждые 1000 шагов (более плавный рост)
+                    if (daily.steps > 0) {
+                        stepBonus = (daily.steps / 1000) * 50;
+                    }
+
+                    // Тренировки: +100 мл за каждые 15 минут (900 секунд) тренировки
                     if (daily.workouts != null) {
-                        int totalWorkoutMin = 0;
+                        long totalWorkoutSec = 0;
+                        // Используем durationSec, так как мы перешли на секунды!
                         for (com.example.fitnesapp.models.firebase.WorkoutItem w : daily.workouts.values()) {
-                            totalWorkoutMin += w.durationMin;
+                            totalWorkoutSec += w.durationSeconds;
                         }
-                        workoutBonus = (totalWorkoutMin / 30) * 300;
+                        workoutBonus = (int) ((totalWorkoutSec / 900) * 100);
                     }
                 }
                 int extraActivityWater = stepBonus + workoutBonus;
 
-                // Самообучаемый коэффициент (ML)
-                float multiplier = profile.waterMultiplier > 0 ? profile.waterMultiplier : 1.0f;
+                // 3. УМНЫЙ КОЭФФИЦИЕНТ (Обратная связь от пользователя)
+                float multiplier = (profile != null && profile.waterMultiplier > 0) ? profile.waterMultiplier : 1.0f;
+
+                // Считаем "чистый" итог
                 int rawTotal = baseGoal + extraActivityWater + weatherBonusMl;
+
+                // Применяем коэффициент обучения
                 int finalGoal = Math.round(rawTotal * multiplier);
 
-                // Ограничители
+                // 4. ОГРАНИЧИТЕЛИ (Защита от обезвоживания и гипергидратации)
                 if (finalGoal < 1500) finalGoal = 1500;
                 if (finalGoal > 5000) finalGoal = 5000;
 
-                // Формируем детальное объяснение
+                // 5. ФОРМИРУЕМ ОБЪЯСНЕНИЕ ДЛЯ UI
                 StringBuilder explanation = new StringBuilder();
                 explanation.append("🔹 База (от веса): ").append(baseGoal).append(" мл\n");
-                if (stepBonus > 0) explanation.append("🏃 Активность (шаги): +").append(stepBonus).append(" мл\n");
-                if (workoutBonus > 0) explanation.append("🏋️ Тренировка: +").append(workoutBonus).append(" мл\n");
+
+                if (stepBonus > 0) explanation.append("🏃 Шаги: +").append(stepBonus).append(" мл\n");
+                if (workoutBonus > 0) explanation.append("🏋️ Тренировки: +").append(workoutBonus).append(" мл\n");
                 if (weatherBonusMl > 0) explanation.append("☀️ Жаркая погода: +").append(weatherBonusMl).append(" мл\n");
 
                 if (multiplier != 1.0f) {
                     int mlDifference = finalGoal - rawTotal;
                     if (mlDifference != 0) {
                         String sign = mlDifference > 0 ? "+" : "";
-                        explanation.append("🧠 Умная подстройка: ").append(sign).append(mlDifference).append(" мл\n");
+                        explanation.append("🧠 Умная подстройка: ").append(sign).append(mlDifference).append(" мл");
                     }
                 }
 
+                // Отправляем данные в интерфейс и в базу
                 adviceText.setValue(explanation.toString().trim());
                 waterGoal.setValue(finalGoal);
+
+                // Сохраняем новую цель в Firebase
                 waterRef.child("goalMl").setValue(finalGoal);
             }
             @Override
             public void onCancelled(@NonNull DatabaseError error) {}
         });
     }
-
     // ==========================================
     // ОБРАТНАЯ СВЯЗЬ (ОБУЧЕНИЕ МОДЕЛИ)
     // ==========================================

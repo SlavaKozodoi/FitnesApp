@@ -23,6 +23,7 @@ import com.example.fitnesapp.models.firebase.DailyData;
 import com.example.fitnesapp.models.firebase.HourlyActivityItem;
 import com.example.fitnesapp.models.firebase.MealItem;
 import com.example.fitnesapp.models.firebase.UserProfile;
+import com.example.fitnesapp.ui.base.BaseLoadingFragment;
 import com.example.fitnesapp.utils.ChartHelper;
 import com.example.fitnesapp.utils.DateHelper;
 import com.github.mikephil.charting.data.Entry;
@@ -40,7 +41,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-public class DayActivityFragment extends Fragment {
+public class DayActivityFragment extends BaseLoadingFragment {
 
     private DayActivityViewModel mViewModel;
     private FragmentDayActivityBinding binding;
@@ -83,6 +84,8 @@ public class DayActivityFragment extends Fragment {
 
         // 3. ОБРАБОТЧИКИ НАЖАТИЙ (Изменение целей)
         setupClickListeners();
+        startFakeLoading(view, 200);
+
     }
 
     private void setupClickListeners() {

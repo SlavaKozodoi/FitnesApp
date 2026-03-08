@@ -13,6 +13,7 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.example.fitnesapp.ui.base.BaseLoadingFragment;
 import com.example.fitnesapp.R;
 import com.example.fitnesapp.databinding.FragmentWeightBinding;
 import com.example.fitnesapp.models.firebase.WeightHistoryItem; // Ваша модель
@@ -27,7 +28,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-public class WeightFragment extends Fragment {
+public class WeightFragment extends BaseLoadingFragment {
 
     private WeightViewModel mViewModel;
     private FragmentWeightBinding binding;
@@ -80,6 +81,8 @@ public class WeightFragment extends Fragment {
                 updateButtonVisuals(binding.button);
             }
         });
+
+        startFakeLoading(view, 200);
     }
 
     private void recalculateBMI() {
