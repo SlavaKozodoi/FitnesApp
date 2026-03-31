@@ -1,6 +1,7 @@
 package com.example.fitnesapp.ui.home;
 
 import android.app.Application;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
@@ -58,6 +59,7 @@ public class HomeViewModel extends AndroidViewModel {
     private Query historyQuery;
     private List<DailyData> currentWeekHistory = new ArrayList<>();
     private String todayDate;
+    private String uid;
 
     public boolean isDashboardAnimated() { return isDashboardAnimated; }
     public void setDashboardAnimated(boolean animated) { isDashboardAnimated = animated; }
@@ -74,7 +76,7 @@ public class HomeViewModel extends AndroidViewModel {
         mlPredictor = new MLPredictor(application);
 
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        String uid = user != null ? user.getUid() : null;
+        uid = user != null ? user.getUid() : null;
 
         if (uid == null) {
             requireLogin.setValue(true);
@@ -139,20 +141,77 @@ public class HomeViewModel extends AndroidViewModel {
         });
     }
 
+    // === ИЗМЕНЕНИЯ ЗДЕСЬ ===
     private void loadTodayStats() {
         userRef.child("daily_data").child(todayDate).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 DailyData data = snapshot.exists() ? snapshot.getValue(DailyData.class) : new DailyData();
-                if (data != null && data.sleep != null && data.sleep.durationMinutes > 0) {
-                    enrichSleepWithML(data.sleep);
+
+                if (data != null) {
+                    // ПРОВЕРКА НА НОВЫЙ ДЕНЬ: Если цели нулевые, копируем из вчерашнего дня
+                    if (data.stepsGoal == 0 || data.caloriesGoal == 0) {
+                        fetchYesterdayGoalsAndSaveToToday();
+                        return;
+                    }
+
+                    if (data.sleep != null && data.sleep.durationMinutes > 0) {
+                        enrichSleepWithML(data.sleep);
+                    }
+                    dailyData.setValue(data);
                 }
-                dailyData.setValue(data);
             }
             @Override
             public void onCancelled(@NonNull DatabaseError error) {}
         });
     }
+
+    // === НОВЫЙ МЕТОД ДЛЯ ПЕРЕНОСА ЦЕЛЕЙ ===
+    private void fetchYesterdayGoalsAndSaveToToday() {
+        if (uid == null || todayDate == null) return;
+
+        DatabaseReference dailyDataRef = userRef.child("daily_data");
+
+        // 1. Вычисляем вчерашнюю дату
+        Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.DAY_OF_YEAR, -1);
+        String yesterdayDate = new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(calendar.getTime());
+
+        // 2. Идем во вчерашний день
+        dailyDataRef.child(yesterdayDate).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                Map<String, Object> updates = new HashMap<>();
+
+                if (snapshot.exists()) {
+                    DailyData yesterdayData = snapshot.getValue(DailyData.class);
+                    if (yesterdayData != null) {
+                        // Берем вчерашние цели или дефолтные, если вчера тоже было пусто
+                        updates.put("stepsGoal", yesterdayData.stepsGoal > 0 ? yesterdayData.stepsGoal : 10000f);
+                        updates.put("caloriesGoal", yesterdayData.caloriesGoal > 0 ? yesterdayData.caloriesGoal : 500f);
+
+                        float oldNutritionGoal = (yesterdayData.nutrition != null && yesterdayData.nutrition.maxCalories > 0)
+                                ? yesterdayData.nutrition.maxCalories : 2000f;
+                        updates.put("nutrition/maxCalories", oldNutritionGoal);
+                    }
+                } else {
+                    // Если вчерашнего дня нет в базе вообще (новый пользователь)
+                    updates.put("stepsGoal", 10000f);
+                    updates.put("caloriesGoal", 500f);
+                    updates.put("nutrition/maxCalories", 2000f);
+                }
+
+                // 3. Сохраняем цели в СЕГОДНЯШНИЙ день
+                dailyDataRef.child(todayDate).updateChildren(updates);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.e("HomeViewModel", "Failed to fetch yesterday's goals", error.toException());
+            }
+        });
+    }
+    // ======================================
 
     private void enrichSleepWithML(DailyData.Sleep sleep) {
         if (sleep == null) return;
@@ -259,26 +318,43 @@ public class HomeViewModel extends AndroidViewModel {
                         }
 
                         // 2. Считаем прогресс (для кольца)
-                        float calG = data.caloriesGoal > 0 ? data.caloriesGoal : 2000f;
-                        float stepG = data.stepsGoal > 0 ? data.stepsGoal : 10000f;
-                        float nutG = (data.nutrition != null && data.nutrition.maxCalories > 0) ? data.nutrition.maxCalories : 0f;
+                        float calG = data.caloriesGoal;
+                        float stepG = data.stepsGoal;
+                        float nutG = (data.nutrition != null) ? data.nutrition.maxCalories : 0f;
 
-                        float calP = Math.min(data.caloriesBurned / calG, 1f);
-                        float stepP = Math.min(data.steps / stepG, 1f);
-                        float nutP = 0f;
+                        float totalPercent = 0f;
+                        int activeGoalsCount = 0;
 
-                        int count = 2;
-                        if (nutG > 0) {
-                            nutP = Math.min(data.nutrition.totalCalories / nutG, 1f);
-                            count = 3;
+                        // Считаем калории только если цель больше нуля
+                        if (calG > 0) {
+                            totalPercent += Math.min(data.caloriesBurned / calG, 1f);
+                            activeGoalsCount++;
                         }
 
-                        int finalPercent = Math.round(((calP + stepP + nutP) / count) * 100f);
+                        // Считаем шаги только если цель больше нуля
+                        if (stepG > 0) {
+                            totalPercent += Math.min(data.steps / stepG, 1f);
+                            activeGoalsCount++;
+                        }
 
+                        // Считаем питание только если цель больше нуля
+                        if (nutG > 0) {
+                            totalPercent += Math.min(data.nutrition.totalCalories / nutG, 1f);
+                            activeGoalsCount++;
+                        }
+
+                        // Вычисляем финальный процент без риска деления на ноль
+                        int finalPercent = 0;
+                        if (activeGoalsCount > 0) {
+                            finalPercent = Math.round((totalPercent / activeGoalsCount) * 100f);
+                        }
+
+                        // Если процент 0, но активность всё же была, показываем хотя бы 5% для мотивации
                         if (finalPercent == 0 && (data.steps > 0 || data.caloriesBurned > 0 || data.workouts != null)) {
                             finalPercent = 5;
                         }
 
+                        // Добавляем день в календарь, если есть хоть какой-то прогресс или тренировка
                         if (finalPercent > 0 || data.workouts != null) {
                             progressMap.put(daySnap.getKey(), finalPercent);
                         }
