@@ -85,7 +85,7 @@ public class HomeFragment extends Fragment {
                 Intent intent = new Intent(requireActivity(), RegisterActivity.class);
                 startActivity(intent);
                 requireActivity().finish();
-                Toast.makeText(getContext(),"Auto auth failed, pls try again", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), getString(R.string.home_auth_failed), Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -109,8 +109,11 @@ public class HomeFragment extends Fragment {
 
         // Текст Пульса
         homeViewModel.getTodayPulseValue().observe(getViewLifecycleOwner(), currentPulse -> {
-            if (currentPulse != null) binding.tvPulse.setText(currentPulse + " bpm");
-            else binding.tvPulse.setText("-- bpm");
+            if (currentPulse != null) {
+                binding.tvPulse.setText(getString(R.string.format_bpm, String.valueOf(currentPulse)));
+            } else {
+                binding.tvPulse.setText(getString(R.string.format_bpm_empty));
+            }
         });
 
         // График Веса + Текст
@@ -124,9 +127,9 @@ public class HomeFragment extends Fragment {
 
                 setupWeightChart(weightList);
                 WeightHistoryItem latestWeight = weightList.get(weightList.size() - 1);
-                binding.tvWeight.setText(String.format(Locale.US, "%.1f kg", latestWeight.val));
+                binding.tvWeight.setText(getString(R.string.format_kg, latestWeight.val));
             } else {
-                binding.tvWeight.setText("-- kg");
+                binding.tvWeight.setText(getString(R.string.format_kg_empty));
                 setupWeightChart(new ArrayList<>());
             }
         });
@@ -153,7 +156,7 @@ public class HomeFragment extends Fragment {
         binding.swipeRefreshHome.setOnRefreshListener(() -> {
             if (getActivity() instanceof MainActivity) {
                 ((MainActivity) getActivity()).syncHealthData();
-                Toast.makeText(getContext(), "Synchronization...", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), getString(R.string.home_syncing), Toast.LENGTH_SHORT).show();
             }
             new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
                 if (binding != null && binding.swipeRefreshHome != null) {
@@ -218,37 +221,31 @@ public class HomeFragment extends Fragment {
         } else {
             binding.progressCalories.setProgress(finalPercentVal);
         }
-        binding.tvGoalPercent.setText(Math.round(finalPercentVal) + "%");
+        binding.tvGoalPercent.setText(getString(R.string.format_percent, Math.round(finalPercentVal)));
 
         if (binding.tvCaloriesValue != null) binding.tvCaloriesValue.setText(String.valueOf((int) caloriesCurrent));
-        if (binding.tvCaloriesGoal != null) binding.tvCaloriesGoal.setText("/" + (int) caloriesGoal + getString(R.string.short_text_calories));
+        if (binding.tvCaloriesGoal != null) binding.tvCaloriesGoal.setText("/" + (int) caloriesGoal + " " + getString(R.string.short_text_calories));
 
         if (binding.tvStepsValue != null) binding.tvStepsValue.setText(String.valueOf((int) stepsCurrent));
-        if (binding.tvStepsGoal != null) binding.tvStepsGoal.setText("/" + (int) stepsGoal + getString(R.string.short_text_steps));
+        if (binding.tvStepsGoal != null) binding.tvStepsGoal.setText("/" + (int) stepsGoal + " " + getString(R.string.short_text_steps));
 
         if (binding.tvNutritionValue != null) binding.tvNutritionValue.setText(String.valueOf((int) nutritionCurrent));
-        if (binding.tvNutritionGoal != null) binding.tvNutritionGoal.setText("/" + (int) nutritionGoal + getString(R.string.short_text_calories));
+        if (binding.tvNutritionGoal != null) binding.tvNutritionGoal.setText("/" + (int) nutritionGoal + " " + getString(R.string.short_text_calories));
     }
 
     private void updateOxygen(DailyData data) {
         if (data.vitals_summary != null && data.vitals_summary.spo2_avg > 0) {
-
             double avgOxygen = data.vitals_summary.spo2_avg;
-
-            // Выводим с одним знаком после точки
             binding.tvOxygen.setText(String.format(Locale.US, "%.1f", avgOxygen) + "%");
-
-
-            }
+        }
     }
     private void updateSleep(DailyData data) {
         if (data.sleep != null && data.sleep.durationMinutes > 0) {
             int hours = data.sleep.durationMinutes / 60;
             int mins = data.sleep.durationMinutes % 60;
-            binding.tvSleepTime.setText(hours + "h " + mins + "m");
+            binding.tvSleepTime.setText(getString(R.string.format_sleep_time, hours, mins));
         } else {
-            binding.tvSleepTime.setText("-- h -- m");
-
+            binding.tvSleepTime.setText(getString(R.string.format_sleep_time_empty));
         }
     }
 
@@ -387,11 +384,11 @@ public class HomeFragment extends Fragment {
 
                     @Override
                     public void onNoWorkout() {
-                        Toast.makeText(getContext(), "В этот день тренировок не было", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), getString(R.string.home_no_workout), Toast.LENGTH_SHORT).show();
                     }
                 });
             } else {
-                Toast.makeText(getContext(), "В этот день тренировок не было", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), getString(R.string.home_no_workout), Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -410,7 +407,9 @@ public class HomeFragment extends Fragment {
     }
 
     private void updateCalendarDisplay() {
-        SimpleDateFormat sdfTitle = new SimpleDateFormat("MMMM", Locale.ENGLISH);
+        // Оставляем Locale.ENGLISH, если названия месяцев (January, February) должны оставаться на английском везде.
+        // Если хочешь чтобы переводились - поменяй Locale.ENGLISH на Locale.getDefault()
+        SimpleDateFormat sdfTitle = new SimpleDateFormat("MMMM", Locale.getDefault());
         binding.tvMonthName.setText(sdfTitle.format(currentCalendar.getTime()));
 
         List<Integer> activeDaysInThisMonth = new ArrayList<>();

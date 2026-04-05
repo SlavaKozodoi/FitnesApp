@@ -91,8 +91,8 @@ public class WorkoutsFeedAdapter extends RecyclerView.Adapter<WorkoutsFeedAdapte
         long start = session.workout.timestamp;
         long end = start + (session.workout.durationSeconds * 1000L);
         SimpleDateFormat sdf = new SimpleDateFormat("H:mm", Locale.US);
-        holder.tvStart.setText("Start " + sdf.format(new Date(start)));
-        holder.tvEnd.setText("End " + sdf.format(new Date(end)));
+        holder.tvStart.setText(R.string.item_workout_card_start + " " + sdf.format(new Date(start)));
+        holder.tvEnd.setText(R.string.item_workout_card_end + " " + sdf.format(new Date(end)));
 
         // 4. Внутренний RecyclerView для Графиков (Карусель)
         setupStatsCarousel(holder.recyclerStats, session);
@@ -108,12 +108,12 @@ public class WorkoutsFeedAdapter extends RecyclerView.Adapter<WorkoutsFeedAdapte
         // Пульс
         ChartDataResult pRes = convert(session.pulse);
         String avgPulse = calcAvg(session.pulse);
-        data.add(new TrainingStat("Pulse bpm", avgPulse, R.drawable.ic_heart_icon, R.color.pulse_start, R.color.pulse_end, pRes.entries, pRes.labels));
+        data.add(new TrainingStat(context.getString(R.string.item_workout_card_pulse) , avgPulse, R.drawable.ic_heart_icon, R.color.pulse_start, R.color.pulse_end, pRes.entries, pRes.labels));
 
         // Кислород
         ChartDataResult oxRes = convert(session.oxygen);
         String avgOx = calcAvg(session.oxygen);
-        data.add(new TrainingStat("Blood oxygen %", avgOx, R.drawable.ic_heart_oxygen_icon, R.color.oxygen_start, R.color.oxygen_end, oxRes.entries, oxRes.labels));
+        data.add(new TrainingStat(context.getString(R.string.item_workout_card_oxygen), avgOx, R.drawable.ic_heart_oxygen_icon, R.color.oxygen_start, R.color.oxygen_end, oxRes.entries, oxRes.labels));
 
         // Темп
         List<HealthLogItem> speedLogs = new ArrayList<>();
@@ -132,7 +132,7 @@ public class WorkoutsFeedAdapter extends RecyclerView.Adapter<WorkoutsFeedAdapte
         }
         ChartDataResult pcRes = convert(speedLogs);
         String avgSpeed = calcAvg(speedLogs);
-        data.add(new TrainingStat("Speed km/h", avgSpeed, R.drawable.ic_temp, R.color.temp_start, R.color.temp_end, pcRes.entries, pcRes.labels));
+        data.add(new TrainingStat(context.getString(R.string.item_workout_card_speed), avgSpeed, R.drawable.ic_temp, R.color.temp_start, R.color.temp_end, pcRes.entries, pcRes.labels));
 
         TrainingAdapter adapter = new TrainingAdapter(context, data);
         recycler.setLayoutManager(new LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false));
@@ -162,7 +162,7 @@ public class WorkoutsFeedAdapter extends RecyclerView.Adapter<WorkoutsFeedAdapte
             }
         } else {
             // Фолбэк-заглушка, если советов почему-то нет
-            adviceListForAdapter.add(new Edvice(R.drawable.ic_advice_history, "Workout Finished!", "Тренировка успешно сохранена в историю. Так держать!", "End"));
+            adviceListForAdapter.add(new Edvice(R.drawable.ic_advice_history, context.getString(R.string.advice_history_workout_finished), context.getString(R.string.advice_history_workout_finished_desc), context.getString(R.string.item_workout_card_end)));
         }
 
         AdviceHistoryAdapter adapter = new AdviceHistoryAdapter(context, adviceListForAdapter);
@@ -177,11 +177,11 @@ public class WorkoutsFeedAdapter extends RecyclerView.Adapter<WorkoutsFeedAdapte
             case "⚡": return R.drawable.ic_temp; // Иконка для темпа/скорости/пика
             case "🔥": return R.drawable.ic_heart_icon; // Иконка для пульса/сжигания
             case "🏆": return R.drawable.ic_heart_oxygen_icon; // Иконка успеха/кислорода
-            case "💧": // Если у вас появится иконка воды, вставьте ее сюда, пока используем стандартную:
-            case "🚶":
-            case "🌙":
-            case "☀️":
-            case "🥩":
+            case "💧": return R.drawable.ic_water_plus;
+            case "🚶": return R.drawable.ic_ach_steps_bronze;
+            case "🌙": return R.drawable.ic_ach_sleep_bear;
+            case "☀️": return R.drawable.ic_ach_total_cal_bronze;
+            case "🥩": return R.drawable.ic_ach_nutr_bronze;
             default: return R.drawable.ic_advice_history; // Стандартная зеленая иконка
         }
     }
@@ -191,14 +191,6 @@ public class WorkoutsFeedAdapter extends RecyclerView.Adapter<WorkoutsFeedAdapte
         return sessions.size();
     }
 
-    // --- Хелперы расчетов ---
-
-    private double calculateAvgPaceVal(List<HealthLogItem> logs) {
-        if (logs == null || logs.isEmpty()) return 0;
-        double sum = 0;
-        for (HealthLogItem item : logs) sum += item.val;
-        return sum / logs.size();
-    }
 
     private String calcAvg(List<HealthLogItem> logs) {
         if (logs == null || logs.isEmpty()) return "--";

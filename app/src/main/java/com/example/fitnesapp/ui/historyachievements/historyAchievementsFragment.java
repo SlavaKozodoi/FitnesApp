@@ -68,7 +68,8 @@ public class historyAchievementsFragment extends Fragment {
         LevelSystem.LevelInfo info = LevelSystem.calculate(profile.totalXP);
 
         // 1. Устанавливаем название ранга
-        binding.tvRankTitle.setText(info.currentRankTitle);
+        binding.tvRankTitle.setText(getString(info.currentRankTitleResId));
+        // Во фрагменте или Activity:
 
         // 2. Настраиваем прогресс-бар
         // Важно: мы ставим границы именно текущего уровня, чтобы полоска была "живой"

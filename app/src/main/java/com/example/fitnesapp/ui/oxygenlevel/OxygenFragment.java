@@ -144,7 +144,6 @@ public class OxygenFragment extends BaseLoadingFragment {
                 requireContext(),
                 binding.recyclerViewOxygen,
                 date -> {
-                    Toast.makeText(getContext(), "Selected: " + date.getDayNumber(), Toast.LENGTH_SHORT).show();
                     // Загружаем данные за выбранную дату
                     mViewModel.loadDataForDate(date.getDate());
                 }

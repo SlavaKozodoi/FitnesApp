@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#121212"
+    android:background="@color/bg2"
     android:padding="24dp"
     tools:context=".ui.setupprofile.SetupProfileActivity">
 
@@ -13,7 +13,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
-        android:text="What`s your name?"
+        android:text="@string/setup_profile_name"
         android:textColor="#A0A0A0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tvTitle" />
@@ -25,7 +25,7 @@
         android:layout_marginStart="24dp"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="24dp"
-        android:hint="Name"
+        android:hint="@string/setup_profile_surname"
         android:inputType="text"
         android:paddingStart="16dp"
         android:textColor="@android:color/white"
@@ -55,7 +55,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="40dp"
-        android:text="Let's know you better"
+        android:text="@string/setup_profile_lets_know_you_better"
         android:textColor="@android:color/white"
         android:textSize="28sp"
         android:textStyle="bold"
@@ -67,7 +67,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="48dp"
-        android:text="Gender"
+        android:text="@string/setup_profile_gender"
         android:textColor="#A0A0A0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/etSurname" />
@@ -90,7 +90,7 @@
             android:layout_height="wrap_content"
             android:layout_marginEnd="24dp"
             android:buttonTint="#4CAF50"
-            android:text="Male"
+            android:text="@string/setup_profile_gender_male"
             android:textColor="@android:color/white" />
 
         <RadioButton
@@ -98,7 +98,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:buttonTint="#4CAF50"
-            android:text="Female"
+            android:text="@string/setup_profile_gender_female"
             android:textColor="@android:color/white" />
     </RadioGroup>
 
@@ -109,7 +109,7 @@
         android:layout_marginStart="24dp"
         android:layout_marginTop="24dp"
         android:layout_marginEnd="24dp"
-        android:hint="Weight (kg)"
+        android:hint="@string/setup_profile_weight"
         android:inputType="numberDecimal"
         android:paddingStart="16dp"
         android:textColor="@android:color/white"
@@ -125,7 +125,7 @@
         android:layout_marginStart="24dp"
         android:layout_marginTop="16dp"
         android:layout_marginEnd="24dp"
-        android:hint="Height (cm)"
+        android:hint="@string/setup_profile_height"
         android:inputType="number"
         android:paddingStart="16dp"
         android:textColor="@android:color/white"
@@ -141,10 +141,10 @@
         android:layout_marginStart="24dp"
         android:layout_marginTop="16dp"
         android:layout_marginEnd="24dp"
-        android:hint="Date of Birth (DD.MM.YYYY)"
+        android:hint="@string/setup_date_of_birth"
         android:inputType="date"
-        android:paddingStart="16dp"
         android:maxLength="10"
+        android:paddingStart="16dp"
         android:textColor="@android:color/white"
         android:textColorHint="#808080"
         app:layout_constraintEnd_toEndOf="parent"
@@ -159,7 +159,7 @@
         android:layout_marginEnd="24dp"
         android:layout_marginBottom="24dp"
         android:backgroundTint="#4CAF50"
-        android:text="Next"
+        android:text="@string/setup_profile_next"
         app:cornerRadius="12dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

@@ -47,7 +47,7 @@ tools:context=".ui.settings.SettingsFragment">
                         android:layout_height="wrap_content"
                         android:background="@null"
                         android:fontFamily="@font/nobile_bold"
-                        android:hint="Name"
+                        android:hint="@string/setup_profile_name"
                         android:textColor="@color/white"
                         android:textSize="20sp" />
 
@@ -62,7 +62,7 @@ tools:context=".ui.settings.SettingsFragment">
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:background="@null"
-                        android:hint="Surname"
+                        android:hint="@string/setup_profile_surname"
                         android:textColor="#B0BEC5"
                         android:textSize="16sp" />
                 </LinearLayout>
@@ -104,7 +104,7 @@ tools:context=".ui.settings.SettingsFragment">
                                 android:id="@+id/etHeight"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:hint="Height (cm)"
+                                android:hint="@string/setup_profile_height"
                                 android:inputType="number"
                                 android:textColor="@color/white" />
                         </com.google.android.material.textfield.TextInputLayout>
@@ -117,13 +117,14 @@ tools:context=".ui.settings.SettingsFragment">
                             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
+                            android:textColorHint="#80FFFFFF"
                             android:layout_weight="1">
 
                             <com.google.android.material.textfield.TextInputEditText
                                 android:id="@+id/etWeight"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:hint="Weight (kg)"
+                                android:hint="@string/setup_profile_weight"
                                 android:inputType="numberDecimal"
                                 android:textColor="@color/white" />
                         </com.google.android.material.textfield.TextInputLayout>
@@ -133,7 +134,7 @@ tools:context=".ui.settings.SettingsFragment">
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="12dp"
-                        android:text="Gender"
+                        android:text="@string/setup_profile_gender"
                         android:textColor="#80FFFFFF" />
 
                     <RadioGroup
@@ -148,14 +149,14 @@ tools:context=".ui.settings.SettingsFragment">
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginEnd="20dp"
-                            android:text="Male"
+                            android:text="@string/setup_profile_gender_male"
                             android:textColor="@color/white" />
 
                         <RadioButton
                             android:id="@+id/rbFemale"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Female"
+                            android:text="@string/setup_profile_gender_female"
                             android:textColor="@color/white" />
                     </RadioGroup>
 
@@ -166,7 +167,7 @@ tools:context=".ui.settings.SettingsFragment">
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
-                android:text="Goals &amp; Activity"
+                android:text="@string/settings_goals_activity"
                 android:textColor="#B0BEC5" />
 
             <androidx.cardview.widget.CardView
@@ -184,7 +185,7 @@ tools:context=".ui.settings.SettingsFragment">
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Main Goal"
+                        android:text="@string/settings_main_goal"
                         android:textColor="#80FFFFFF"
                         android:textSize="12sp" />
 
@@ -193,7 +194,9 @@ tools:context=".ui.settings.SettingsFragment">
                         android:layout_width="match_parent"
                         android:layout_height="48dp"
                         android:layout_marginBottom="12dp"
-                        android:backgroundTint="@color/white" />
+                        android:backgroundTint="@color/white"
+
+                        android:popupBackground="@drawable/app_bar" />
 
                     <com.google.android.material.textfield.TextInputLayout
                         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
@@ -204,7 +207,7 @@ tools:context=".ui.settings.SettingsFragment">
                             android:id="@+id/etTargetWeight"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:hint="Target Weight (kg)"
+                            android:hint="@string/settings_target_weight"
                             android:inputType="numberDecimal"
                             android:textColor="@color/white" />
                     </com.google.android.material.textfield.TextInputLayout>
@@ -213,7 +216,7 @@ tools:context=".ui.settings.SettingsFragment">
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="16dp"
-                        android:text="Activity Level"
+                        android:text="@string/settings_activity_level"
                         android:textColor="#80FFFFFF"
                         android:textSize="12sp" />
 
@@ -221,7 +224,8 @@ tools:context=".ui.settings.SettingsFragment">
                         android:id="@+id/spinnerActivity"
                         android:layout_width="match_parent"
                         android:layout_height="48dp"
-                        android:backgroundTint="@color/white" />
+                        android:backgroundTint="@color/white"
+                        android:popupBackground="@drawable/app_bar" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -233,7 +237,7 @@ tools:context=".ui.settings.SettingsFragment">
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Recommended Daily Plan:"
+                            android:text="@string/settings_recommended_daily_plan"
                             android:textColor="@color/accent_color"
                             android:textStyle="bold" />
 
@@ -245,6 +249,15 @@ tools:context=".ui.settings.SettingsFragment">
                             android:weightSum="2">
 
                             <TextView
+                                android:id="@+id/tvAutoSteps"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="10,000 steps"
+                                android:textColor="@color/white"
+                                android:textSize="16sp" />
+
+                            <TextView
                                 android:id="@+id/tvAutoCalories"
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
@@ -253,19 +266,38 @@ tools:context=".ui.settings.SettingsFragment">
                                 android:textColor="@color/white"
                                 android:textSize="16sp" />
 
-                            <TextView
-                                android:id="@+id/tvAutoSteps"
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="10,000 steps"
-                                android:textColor="@color/white"
-                                android:textSize="16sp" />
                         </LinearLayout>
                     </LinearLayout>
 
                 </LinearLayout>
+
             </androidx.cardview.widget.CardView>
+
+            <Button
+                android:id="@+id/btnConnectHealth"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="16dp"
+                android:layout_marginTop="16dp"
+                android:backgroundTint="@color/blue_start"
+                android:text="@string/settings_connect_health"
+                android:textColor="@color/white"
+                app:cornerRadius="8dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_language_title"
+                android:textStyle="bold"
+                android:layout_marginTop="16dp"/>
+
+            <Spinner
+                android:id="@+id/spinnerLanguage"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="8dp"
+                android:backgroundTint="@color/white"
+                android:popupBackground="@color/background_50" />
 
             <com.google.android.material.switchmaterial.SwitchMaterial
                 android:id="@+id/switchNotif"
@@ -283,7 +315,7 @@ tools:context=".ui.settings.SettingsFragment">
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:text="Log Out"
+                android:text="@string/settings_logout"
                 android:textColor="#FF5252" />
 
         </LinearLayout>
@@ -295,7 +327,7 @@ tools:context=".ui.settings.SettingsFragment">
         android:layout_height="56dp"
         android:layout_marginBottom="100dp"
         android:backgroundTint="@color/accent_color"
-        android:text="Save Changes"
+        android:text="@string/settings_save_changes"
         app:layout_constraintBottom_toBottomOf="parent"
         tools:layout_editor_absoluteX="16dp" />
 

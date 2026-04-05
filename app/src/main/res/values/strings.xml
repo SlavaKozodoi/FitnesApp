@@ -1,5 +1,402 @@
 <resources>
-    <string name="app_name" translatable="false">FitnesApp</string>
+    //////activity register
+    <string name="auth_error_enter_email">Enter email</string>
+    <string name="auth_error_enter_password">Enter password</string>
+    <string name="auth_error_failed">Authentication failed: %1$s</string>
+    <string name="auth_error_google_failed">Google sign in failed code: %1$d</string>
+    <string name="auth_error_firebase_failed">Firebase Auth failed</string>
+    <string name="auth_error_loading">Loading error: %1$s</string>
+    <string name="register_create_account">Create Account</string>
+    <string name="register_name">Name</string>
+    <string name="register_email">Email</string>
+    <string name="register_password">Password</string>
+    <string name="register_sign_up">Sign Up</string>
+    <string name="register_already_have_account">Already have an account? Sign In</string>
+    <string name="register_start_your_fitness_journey_today">Start your fitness journey today</string>
+    <string name="register_error_enter_name">Enter name</string>
+    <string name="register_error_password_length">Password must be &gt; 6 chars</string>
+    <string name="register_error_failed">Error: %1$s</string>
+    <string name="register_error_profile_save">Failed to save profile</string>
+
+    //////activity setup profile
+    <string name="setup_profile_lets_know_you_better">Let`s know you better</string>
+    <string name="setup_profile_whats_your_name">What`s your name?</string>
+    <string name="setup_profile_name">Name</string>
+    <string name="setup_profile_surname">Surname</string>
+    <string name="setup_profile_gender">Gender</string>
+    <string name="setup_profile_gender_male">Male</string>
+    <string name="setup_profile_gender_female">Female</string>
+    <string name="setup_profile_weight">Weight (kg)</string>
+    <string name="setup_profile_height">Height (cm)</string>
+    <string name="setup_date_of_birth">Date of Birth (DD.MM.YYYY)</string>
+    <string name="setup_profile_next">NEXT</string>
+    <string name="setup_profile_error_fill_fields">Please fill all fields</string>
+    <string name="setup_profile_error_saving">Error saving data: %1$s</string>
+
+    ////// dialog achievement details
+    <string name="achievement_details_reward">Reward:</string>
+    <string name="achievement_details_got_it">Got it:</string>
+
+    ////// dialog add sleep
+    <string name="add_sleep_title">Add sleep</string>
+    <string name="add_sleep_bedtime">Going to bed</string>
+    <string name="add_sleep_wake_up">Wake-up time</string>
+    <string name="add_sleep_cancel">Cancel</string>
+    <string name="add_sleep_save">Save</string>
+    <string name="format_time_h_min">%1$dh %2$02d min</string>
+    <string name="format_time_min">%1$d min</string>
+    <string name="format_time_min_empty">-- min</string>
+
+    ////// dialog edit goal
+    <string name="edit_goal_title">Edit goal</string>
+    <string name="edit_goal_burn_calories_goal">Burn calories goal</string>
+    <string name="edit_goal_steps_goal">Steps goal</string>
+    <string name="edit_goal_nutrition_max_goal">Nutrition max goal</string>
+    <string name="edit_goal_nutrition_min_goal">Nutrition min goal</string>
+
+    ////// fragment achievements
+    <string name="achievements_recommended">Recommended</string>
+    <string name="achievements_collections">Collections</string>
+    <string name="achievements_milestones">Milestones</string>
+    <string name="achievements_legendary">Legendary</string>
+    <string name="achievements_complete">Complete</string>
+    <string name="achievements_completed">Completed</string>
+    <string name="achievements_first">first</string>
+    <string name="achievements_previous">Previous</string>
+
+    ////// fragment analytics
+    <string name="analytics_smart_suggestions">Smart suggestions based on your data</string>
+    <string name="analytics_all">All</string>
+    <string name="analytics_recovery">Recovery</string>
+    <string name="analytics_nutrition">Nutrition</string>
+    <string name="analytics_activity">Activity</string>
+    <string name="analytics_sleep">Sleep</string>
+    <string name="analytics_nodata">No data</string>
+    <string name="analytics_nodata_dec">There are no new tips in this category yet.</string>
+
+    ////// fragment oxygen
+    <string name="oxygen_highest">Highest</string>
+    <string name="oxygen_lowest">Lowest</string>
+    <string name="oxygen_avarage">Avarage</string>
+    <string name="oxygen_status">Status</string>
+    <string name="oxygen_status_very_well">Very well</string>
+    <string name="oxygen_status_normal">Normal</string>
+    <string name="oxygen_status_low">Low</string>
+    <string name="oxygen_status_critical">Critical!!</string>
+
+    ////// fragment pulse
+    <string name="pulse_heart_rate">Heart rate</string>
+    <string name="pulse_active_period">Active period</string>
+    <string name="pulse_rest_period">Rest period</string>
+    <string name="pulse_status_athletic">Athletic (Low)</string>
+    <string name="pulse_status_excellent">Excellent</string>
+    <string name="pulse_status_normal">Normal</string>
+    <string name="pulse_status_elevated">Elevated</string>
+    <string name="pulse_status_high">High</string>
+    <string name="pulse_status_intense">Intense / Active</string>
+
+    ////// fragment settings
+    <string name="settings_body_stats">Body Stats</string>
+    <string name="settings_goals_activity">Goals &amp; Activity</string>
+    <string name="settings_main_goal">Main Goal</string>
+    <string name="settings_target_weight">Target Weight (kg)</string>
+    <string name="settings_activity_level">Activity Level</string>
+    <string name="settings_recommended_daily_plan">Recommended Daily Plan:</string>
+    <string name="settings_notifications">Notifications</string>
+    <string name="settings_logout">Log Out</string>
+    <string name="settings_save_changes">Save Changes</string>
+    <string name="settings_connect_health">Health Connect</string>
+    <string-array name="settings_goals_array">
+        <item>Lose Weight</item>
+        <item>Maintain Weight</item>
+        <item>Gain Muscle</item>
+    </string-array>
+
+    <string-array name="settings_activity_array">
+        <item>Sedentary (No sport)</item>
+        <item>Light (1-3 days/week)</item>
+        <item>Moderate (3-5 days/week)</item>
+        <item>Active (Daily)</item>
+    </string-array>
+
+    <string name="settings_save_success">Settings saved successfully!</string>
+    <string name="settings_save_failed">Failed to save settings.</string>
+    <string name="settings_error_invalid_numbers">Please enter valid numbers for weight/height</string>
+    <string name="settings_health_connect_installed">Health Connect is installed and working</string>
+    <string name="settings_health_connect_update">Please update Health Connect</string>
+    <string name="settings_health_connect_not_installed">Health Connect is not installed</string>
+
+    <string name="settings_format_calories">%1$s %2$d kcal</string>
+    <string name="settings_format_steps">%1$s %2$d steps</string>
+
+    ////// fragment sleep
+    <string name="sleep_quality">Quality of sleep</string>
+    <string name="sleep_fall_asleep">Falling asleep</string>
+    <string name="sleep_sleep_time">Sleep time</string>
+    <string name="sleep_getting_into_bed">Getting into bed</string>
+    <string name="sleep_awaking">Awaking</string>
+    <string name="sleep_sleep_phases">Sleep phases</string>
+    <string name="sleep_fast">Fast</string>
+    <string name="sleep_awake">Awake</string>
+    <string name="sleep_surface">Surface</string>
+    <string name="sleep_deep">Deep</string>
+
+    ////// fragment weight
+    <string name="weight_month">month</string>
+    <string name="weight_bmi">BMI</string>
+    <string name="weight_status_underweight">Underweight</string>
+    <string name="weight_status_normal">Normal</string>
+    <string name="weight_status_overweight">Overweight</string>
+    <string name="weight_status_obese">Obese</string>
+
+    <string name="weight_btn_format">%1$d %2$s</string>
+
+    ////// fragment home
+    <string name="home_auth_failed">Auto auth failed, please try again</string>
+    <string name="home_syncing">Synchronization...</string>
+    <string name="home_no_workout">There were no workouts on this day</string>
+
+    <string name="format_bpm">%1$s bpm</string>
+    <string name="format_bpm_empty">-- bpm</string>
+    <string name="format_kg">%1$.1f kg</string>
+    <string name="format_kg_empty">-- kg</string>
+    <string name="format_sleep_time">%1$dh %2$dm</string>
+    <string name="format_sleep_time_empty">-- h -- m</string>
+    <string name="format_percent">%1$d%%</string>
+
+    ////// fragment water
+    <string name="water_warning_spam_title">Water overload?</string>
+    <string name="water_warning_spam_desc">You have already added a lot of water today (over 5 liters!). Excess water can lead to water intoxication and wash out salts. Add anyway?</string>
+    <string name="water_warning_yes_add">Yes, add</string>
+    <string name="water_warning_cancel">Cancel</string>
+
+    <string name="water_warning_caution_title">Caution!</string>
+    <string name="water_warning_caution_desc">Drinking more than 1.5 liters of water at once can be harmful to your kidneys. Are you sure you drank that much at once?</string>
+    <string name="water_warning_yes_drank">Yes, I drank that much</string>
+
+    <string name="water_dialog_custom_volume_title">Add custom volume (ml)</string>
+    <string name="water_dialog_edit_goal_title">Edit daily goal (ml)</string>
+
+    <string name="water_error_valid_amount">Enter a valid amount</string>
+    <string name="water_error_invalid_number">Invalid number</string>
+    <string name="water_error_empty_field">Field cannot be empty</string>
+    <string name="water_error_realistic_goal">Please enter a realistic goal</string>
+
+    <string name="water_toast_goal_updated">Goal updated!</string>
+
+    <string name="format_water_volume">%1$d / %2$d ml</string>
+
+    <string name="water_advice_goal_reached">💧 Goal reached! Your water balance is normal.</string>
+    <string name="water_advice_morning_empty">☀️ A glass of water in the morning kickstarts metabolism and cleanses the body.</string>
+    <string name="water_advice_morning_coffee">☕ Drinking coffee? Don\'t forget to compensate with a glass of pure water.</string>
+    <string name="water_advice_morning_good">💧 Great start to the day! Keep drinking in small portions.</string>
+    <string name="water_advice_day_dehydrated">⚠️ Dehydration causes fatigue. Take a few sips right now!</string>
+    <string name="water_advice_day_good">🌊 Your balance is normal. Try to keep a glass of water handy.</string>
+    <string name="water_advice_evening_behind">🌙 You are far behind your goal. Replenish your balance, but drink gradually.</string>
+    <string name="water_advice_evening_almost">🌙 Almost there! Limit water intake 1.5 hours before bed to avoid swelling.</string>
+
+    ////// fragment day activity
+    <string name="day_activity_goal">Goal: %1$d</string>
+    <string name="day_activity_max">Max: %1$d</string>
+    <string name="day_activity_carbs_val">Carbs: %1$dg</string>
+    <string name="day_activity_protein_val">Protein: %1$dg</string>
+    <string name="day_activity_fats_val">Fats: %1$dg</string>
+    <string name="day_activity_invalid_number">Invalid number</string>
+    <string name="day_activity_goal_updated">Goal updated!</string>
+    <string name="day_activity_error_updating">Error updating goal</string>
+
+    ////// item achievement
+    <string name="item_achievement_tier">tier</string>
+    <string name="item_achievement_colect_these_badges">Collect these badges</string>
+    <string name="item_achievement_locked">LOCKED!\nRequirement: Complete </string>
+    <string name="item_achievement_collect">COLLECT</string>
+
+    ////// item nutrition card
+    <string name="item_nutrition_card_carbs">Carbs</string>
+    <string name="item_nutrition_card_proteins">Proteins</string>
+    <string name="item_nutrition_card_fats">Fats</string>
+
+    ////// item workout card
+    <string name="item_workout_card_km">km</string>
+    <string name="item_workout_card_min_km">min/km</string>
+    <string name="item_workout_card_kcal">kcal</string>
+    <string name="item_workout_card_start">Start</string>
+    <string name="item_workout_card_end">End</string>
+    <string name="item_workout_card_pulse">Pulse bpm</string>
+    <string name="item_workout_card_oxygen">Blood oxygen %</string>
+    <string name="item_workout_card_speed">Speed km/h</string>
+    <string name="item_advice_history">Advice history</string>
+
+    // workout advices
+    <string name="advice_history_workout_finished">Workout Finished!</string>
+
+    <string name="advice_history_workout_finished_desc">The workout has been successfully saved to your history. Keep it up!</string>
+    <string name="advice_history_workout_energy_extreme">Energy intensity: Extreme</string>
+    <string name="advice_history_workout_energy_extreme_desc">Calorie burn: %1$.1f kcal/min. Primary fuel source: muscle glycogen. You\'ve significantly boosted your metabolism for the next few hours.</string>
+    <string name="advice_history_workout_energy_avarage">Energy intensity: Average</string>
+    <string name="advice_history_workout_energy_avarage_desc">Energy expenditure: %1f kcal/min. The body utilized carbohydrates and fat stores in a balanced manner for energy.</string>
+
+    <string name="advice_history_workout_energy_low">Energy intensity: Low</string>
+    <string name="advice_history_workout_energy_low_desc">Calorie burn: %1$.1f kcal/min. A gentle workout, ideal for recovery, fat burning, and improving blood circulation without putting stress on the central nervous system.</string>
+    <string name="advice_history_workout_pulse_rate_interval">Heart rate profile: Interval</string>
+    <string name="advice_history_workout_pulse_rate_interval_dec_1">Heart rate “fluctuations” (ranging from </string>
+    <string name="advice_history_workout_pulse_rate_interval_dec_2"> bpm) have been observed. These fluctuations are excellent for improving vascular elasticity.</string>
+
+    <string name="advice_history_workout_pulse_rate_steady">Heart rate profile: Steady</string>
+    <string name="advice_history_workout_pulse_rate_steady_dec_1">Heart rate stayed steady at around </string>
+    <string name="advice_history_workout_pulse_rate_steady_dec_2"> bpm. A steady workout to build muscular endurance.</string>
+
+    <string name="advice_history_workout_pulse_rate_myocardial">Myocardial load</string>
+    <string name="advice_history_workout_pulse_rate_myocardial_dec_1">You spent some time in the red zone (peak </string>
+    <string name="advice_history_workout_pulse_rate_myocardial_dec_2"> bpm). Your heart has received a powerful stimulus for growth; give it 48 hours to recover.</string>
+
+    <string name="advice_history_workout_explosive_power">Explosive power</string>
+    <string name="advice_history_workout_explosive_power_dec">Significant increases in acceleration have been recorded (peak: %.1f). This is excellent for developing fast-twitch muscle fibers and anaerobic strength.</string>
+
+    <string name="advice_history_workout_muscle_fatigue">Muscle fatigue</string>
+    <string name="advice_history_workout_muscle_fatigue_desc">Your speed noticeably dropped in the second half of the session. This is a classic sign of glycogen depletion in the legs.</string>
+
+    <string name="advice_history_workout_perfect_pacing">Perfect pacing</string>
+    <string name="advice_history_workout_perfect_pacing_desc">Excellent energy distribution! Your speed in the second half of the workout remained as stable as at the start.</string>
+
+    <string name="advice_history_workout_oxygen_debt">Oxygen debt</string>
+    <string name="advice_history_workout_oxygen_debt_desc">At peak load, SpO2 dropped to %1$d%%. You broke through your anaerobic threshold — it\'s in these moments that your peak endurance grows.</string>
+
+    <string name="advice_history_workout_cns_stress">CNS stress</string>
+    <string name="advice_history_workout_cns_stress_desc">A powerful evening session. Adrenaline and cortisol levels are high. Do some light stretching to calm your central nervous system before bed.</string>
+
+    <string name="advice_history_workout_activity_summary">Activity summary</string>
+    <string name="advice_history_workout_activity_summary_desc">Workout logged. Total energy expenditure was %1$d kcal.</string>
+
+    ////// analytics
+    <string name="analytics_no_data_title">No data</string>
+    <string name="analytics_no_data_desc">Waiting for today\'s data to load...</string>
+    <string name="analytics_all_good_title">Everything is on track</string>
+    <string name="analytics_all_good_desc">The day has just begun. Keep it up!</string>
+
+    <string name="sleep_quality_excellent">Excellent</string>
+    <string name="sleep_quality_normal">Normal</string>
+    <string name="sleep_quality_bad">Bad</string>
+
+    <string name="analytics_energy_title">Body energy: %1$d%%</string>
+    <string name="analytics_energy_high_desc">You are full of energy! Great time for an intense workout. Battery is at max.</string>
+    <string name="analytics_energy_med_desc">Battery is gradually draining due to activity. Normal energy level.</string>
+    <string name="analytics_energy_done_title">Day well spent (%1$d%%)</string>
+    <string name="analytics_energy_done_desc">Your battery is low, it\'s time to recover your strength in sleep.</string>
+    <string name="analytics_energy_low_title">Energy running out: %1$d%%</string>
+    <string name="analytics_energy_low_desc">Avoid heavy physical exertion and take a break.</string>
+
+    <string name="analytics_habit_ahead_title">Ahead of schedule</string>
+    <string name="analytics_habit_ahead_desc">You are way ahead! Today\'s goals will be easily achieved.</string>
+    <string name="analytics_habit_on_track_title">On track</string>
+    <string name="analytics_habit_on_track_desc">Your activity perfectly matches the day\'s schedule. Keep up the pace!</string>
+    <string name="analytics_habit_behind_title">Risk of falling behind</string>
+    <string name="analytics_habit_behind_desc">You are slightly behind the ideal activity schedule. Time is running out, time to move!</string>
+
+    <string name="analytics_macro_refill_title">Nutrition: Replenishing strength</string>
+    <string name="analytics_macro_refill_desc">You\'ve burned a lot of energy. Have a light protein snack.</string>
+    <string name="analytics_macro_energy_title">Nutrition: Replenishing energy</string>
+    <string name="analytics_macro_energy_desc">The body is exhausted from activity. Add complex carbs for recovery.</string>
+    <string name="analytics_macro_anabolic_title">Nutrition: Anabolic environment</string>
+    <string name="analytics_macro_anabolic_desc">Great calorie load! Ideal base for muscle gain.</string>
+    <string name="analytics_macro_overeat_title">Nutrition: Energy reserve</string>
+    <string name="analytics_macro_overeat_desc">You\'ve eaten very heavily for this time of day. Try to move more today.</string>
+    <string name="analytics_macro_perfect_title">Nutrition: Perfect balance</string>
+    <string name="analytics_macro_perfect_desc">Your diet perfectly matches your day\'s schedule and energy expenditure.</string>
+
+    <string name="analytics_why_lose">on a cut (to preserve muscle)</string>
+    <string name="analytics_why_gain">for muscle growth</string>
+
+    <string name="analytics_protein_norm_title">Protein norm: %1$d / %2$dg</string>
+    <string name="analytics_protein_left_desc">Need %1$dg more protein %2$s. This is about %3$dg of chicken breast (or fish/cottage cheese).</string>
+    <string name="analytics_protein_perfect_title">Perfect protein</string>
+    <string name="analytics_protein_perfect_desc">You got %1$dg of protein! Muscles received 100%% of the building material.</string>
+
+    <string name="analytics_fat_deficit_title">Fat deficit: %1$d / %2$dg</string>
+    <string name="analytics_fat_deficit_desc">You lack %1$dg of fats. Add nuts, cheese, or a spoonful of olive oil. This is critical for hormones.</string>
+    <string name="analytics_fat_excess_title">Excess fats</string>
+    <string name="analytics_fat_excess_desc">You have exceeded your fat limit for today. Try to choose leaner foods for dinner.</string>
+
+    <string name="analytics_carb_load_title">Carb loading</string>
+    <string name="analytics_carb_load_desc">For muscle gain, you need %1$dg more carbs. Eat another ~%2$dg of grains or pasta, otherwise weight won\'t grow.</string>
+    <string name="analytics_carb_limit_title">Carb limit</string>
+    <string name="analytics_carb_limit_desc">You significantly exceeded the carb limit for weight loss (%1$d / %2$dg). This will block fat burning for today.</string>
+
+    <string name="analytics_fast_start_title">Too fast start</string>
+    <string name="analytics_fast_start_desc">You ate %1$d kcal, even though the day just started. There is a strict limit left until night: only %2$d kcal. Plan a light dinner.</string>
+
+    <string name="analytics_sat_too_long_title">Sitting too long</string>
+    <string name="analytics_sat_too_long_desc">It is already %1$d:00, and only %2$d steps taken. Time to stretch!</string>
+
+    <string name="analytics_goal_close_title">Goal is close!</string>
+    <string name="analytics_goal_close_desc">Exactly %1$d steps left to reach your daily goal. A short evening walk will help close the ring.</string>
+
+    <string name="analytics_overtrain_risk_title">Overtraining risk</string>
+    <string name="analytics_overtrain_risk_desc">You took %1$d steps with only %2$dh of sleep. This is high stress. Go to bed before midnight today.</string>
+
+    <string name="analytics_sleep_index_title">Sleep index: %1$d%% (%2$s)</string>
+    <string name="analytics_sleep_exc_desc">Perfect phase combination! Nervous system and muscles are fully recovered. You are ready for a heavy workout.</string>
+    <string name="analytics_sleep_norm_desc">Acceptable sleep quality. Basic recovery achieved, you are ready for the workday.</string>
+    <string name="analytics_sleep_bad_desc">Critically low rest quality. If you have a workout today, make it light to avoid overloading the CNS.</string>
+
+    <string name="analytics_sleep_deep_deficit_title">Deep phase deficit</string>
+    <string name="analytics_sleep_deep_deficit_desc">Your deep sleep was only %1$d%%. This is what recovers muscles. Cool the room before bed.</string>
+
+    <string name="analytics_sleep_rem_deficit_title">REM phase deficit</string>
+    <string name="analytics_sleep_rem_deficit_desc">Lack of REM sleep (%1$d%%) reduces focus. Put your phone away an hour before bed.</string>
+
+    <string name="analytics_sleep_frag_title">Fragmented sleep</string>
+    <string name="analytics_sleep_frag_desc">According to the chart, you woke up %1$d times. Check noise and light levels in your bedroom.</string>
+
+    ////// levelsystem
+    <string name="rank_novice">Novice</string>
+    <string name="rank_beginner">Beginner</string>
+    <string name="rank_walker">Walker</string>
+    <string name="rank_hiker">Hiker</string>
+    <string name="rank_runner">Runner</string>
+    <string name="rank_sprinter">Sprinter</string>
+    <string name="rank_challenger">Challenger</string>
+    <string name="rank_athlete">Athlete</string>
+    <string name="rank_warrior">Warrior</string>
+    <string name="rank_step_master">Step Master</string>
+    <string name="rank_iron_body">Iron Body</string>
+    <string name="rank_elite">Elite</string>
+    <string name="rank_champion">Champion</string>
+    <string name="rank_titan">Titan</string>
+    <string name="rank_legend">Legend</string>
+
+    ////// main activity
+    <string name="main_health_permissions_required">Health permissions required</string>
+    <string name="main_add_weight_title">Add Weight (kg)</string>
+    <string name="main_invalid_number_format">Invalid number format</string>
+    <string name="main_weight_added">Weight added!</string>
+    <string name="main_error_adding_weight">Error adding weight</string>
+    <string name="main_wake_after_bedtime">Wake-up time must be after bedtime</string>
+    <string name="main_today">Today</string>
+    <string name="main_yesterday">Yesterday</string>
+    <string name="main_user_not_authorized">User not authorized</string>
+    <string name="main_sleep_data_saved">Sleep data saved!</string>
+    <string name="main_error_saving_data">Error saving data</string>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <string name="app_name" translatable="false">Optima</string>
     <string name="title_home">Profile</string>
     <string name="title_progress">Progress</string>
     <string name="title_achievements">Achievements</string>
@@ -16,15 +413,234 @@
     <string name="text_good">good</string>
     <string name="text_bad">bad</string>
     <string name="text_training">Training</string>
-    <string name="text_advice_history">Advice history</string>
     <string name="text_day_activity">Day activity</string>
     <string name="text_settings">Settings</string>
     <string name="text_total">Total</string>
     <string name="text_carbs">Carbs</string>
     <string name="text_proteins">Proteins</string>
     <string name="text_fats">Fats</string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="text_to">to</string>
+
+    <string name="settings_language_title">Language</string>
+    <string-array name="settings_language_array">
+        <item>English</item>
+        <item>Українська</item>
+    </string-array>
+
+    <string name="ach_cal_daily_01_title">Light warm-up</string>
+    <string name="ach_cal_daily_01_desc">Burn 300 active calories in a day.</string>
+    <string name="ach_cal_daily_02_title">Fire inside</string>
+    <string name="ach_cal_daily_02_desc">Burn 500 active calories in a day.</string>
+    <string name="ach_cal_daily_03_title">Calorie furnace</string>
+    <string name="ach_cal_daily_03_desc">Burn 1000 active calories in one day. Great job!</string>
+    <string name="ach_cal_daily_04_title">Incinerator</string>
+    <string name="ach_cal_daily_04_desc">Burn 1500 active calories in one day. Beast mode activated!</string>
+    <string name="ach_cal_daily_05_title">Superhuman</string>
+    <string name="ach_cal_daily_05_desc">Burn 2000 active calories in one day. Are you even human?</string>
+    <string name="ach_cal_daily_06_title">Nuclear reactor</string>
+    <string name="ach_cal_daily_06_desc">Burn 2500 active calories in one day. You\'re a portable nuclear reactor!</string>
+
+    <string name="ach_cal_total_01_title">Fat Burner I</string>
+    <string name="ach_cal_total_01_desc">Burn 10,000 calories all-time.</string>
+    <string name="ach_cal_total_02_title">Fat Burner II</string>
+    <string name="ach_cal_total_02_desc">Burn 50,000 calories all-time.</string>
+    <string name="ach_cal_total_03_title">Fat Burner III</string>
+    <string name="ach_cal_total_03_desc">Burn 100,000 calories all-time.</string>
+    <string name="ach_cal_total_mid_1_title">Fat Burner IV</string>
+    <string name="ach_cal_total_mid_1_desc">Burn 250,000 calories all-time.</string>
+    <string name="ach_cal_total_04_title">Metabolism Master</string>
+    <string name="ach_cal_total_04_desc">Burn 500,000 calories all-time.</string>
+    <string name="ach_cal_total_05_title">Fire Lord</string>
+    <string name="ach_cal_total_05_desc">Burn 1,000,000 calories! You burned energy equivalent to a ton of coal.</string>
+    <string name="ach_cal_total_06_title">Supernova</string>
+    <string name="ach_cal_total_06_desc">Burn 2,000,000 calories all-time. Incredible result!</string>
+
+    <string name="ach_nutr_01_title">Mindful eating</string>
+    <string name="ach_nutr_01_desc">Log at least 1500 kcal in your food diary for a day.</string>
+    <string name="ach_nutr_02_title">Chef</string>
+    <string name="ach_nutr_02_desc">Log 2000 kcal in your food diary. Balance found!</string>
+    <string name="ach_nutr_03_title">Cheat meal</string>
+    <string name="ach_nutr_03_desc">Log 3500 kcal. Load day or great bulking!</string>
+    <string name="ach_nutr_04_title">Gargantua</string>
+    <string name="ach_nutr_04_desc">Log 4500 kcal for the day. Epic bulking!</string>
+    <string name="ach_nutr_05_title">Black hole</string>
+    <string name="ach_nutr_05_desc">Log 5000 kcal for the day. You consume matter like a black hole.</string>
+
+    <string name="ach_oxy_01_title">Pure Oxygen I</string>
+    <string name="ach_oxy_01_desc">Measure blood oxygen level (SpO2) for the first time.</string>
+    <string name="ach_oxy_02_title">Pure Oxygen II</string>
+    <string name="ach_oxy_02_desc">Measure oxygen 50 times.</string>
+    <string name="ach_oxy_03_title">Air Catcher</string>
+    <string name="ach_oxy_03_desc">Measure oxygen 100 times.</string>
+
+    <string name="ach_pulse_01_title">Listening to the heart I</string>
+    <string name="ach_pulse_01_desc">Take your first heart rate measurement.</string>
+    <string name="ach_pulse_02_title">Listening to the heart II</string>
+    <string name="ach_pulse_02_desc">Take 50 heart rate measurements.</string>
+    <string name="ach_pulse_03_title">Rhythm of life</string>
+    <string name="ach_pulse_03_desc">Measure heart rate 100 times.</string>
+
+    <string name="ach_rings_01_title">Perfect day</string>
+    <string name="ach_rings_01_desc">Close all 3 daily rings (Steps, Calories, Nutrition) in one day.</string>
+    <string name="ach_rings_streak_01_title">Perfectionist I</string>
+    <string name="ach_rings_streak_01_desc">Close all 3 rings 7 days in a row. Flawless week!</string>
+    <string name="ach_rings_streak_02_title">Perfectionist II</string>
+    <string name="ach_rings_streak_02_desc">Close all 3 rings 30 days in a row.</string>
+    <string name="ach_rings_streak_03_title">Perfectionist III</string>
+    <string name="ach_rings_streak_03_desc">Close all 3 rings 100 days in a row. Iron character!</string>
+    <string name="ach_rings_streak_04_title">Fitness Ambassador</string>
+    <string name="ach_rings_streak_04_desc">Close all 3 rings for a whole year (365 days). Unattainable ideal.</string>
+    <string name="ach_rings_streak_05_title">Lord of the Rings</string>
+    <string name="ach_rings_streak_05_desc">Close all 3 rings 500 days in a row. No one dares to challenge you.</string>
+
+    <string name="ach_sleep_01_title">Battery charge</string>
+    <string name="ach_sleep_01_desc">Sleep exactly or more than 7 hours (420 minutes).</string>
+    <string name="ach_sleep_02_title">Sweet dreams</string>
+    <string name="ach_sleep_02_desc">Sleep exactly or more than 8 hours (480 minutes). Healthy minimum!</string>
+    <string name="ach_sleep_03_title">Sleeping beauty</string>
+    <string name="ach_sleep_03_desc">Sleep exactly or more than 9 hours (540 minutes). Real rest!</string>
+    <string name="ach_sleep_04_title">Marmot mode</string>
+    <string name="ach_sleep_04_desc">Sleep 10 hours (600 minutes) after a hard week.</string>
+    <string name="ach_sleep_05_title">Sleeping cat</string>
+    <string name="ach_sleep_05_desc">Sleep 12 hours (720 minutes). A real day off!</string>
+    <string name="ach_sleep_06_title">Hibernation</string>
+    <string name="ach_sleep_06_desc">Sleep 14 hours (840 minutes) in one day. Did you go into hibernation?</string>
+
+    <string name="ach_sleep_streak_01_title">Recovery Master I</string>
+    <string name="ach_sleep_streak_01_desc">Sleep perfectly (\'Excellent\' score or meet the norm) 3 days in a row.</string>
+    <string name="ach_sleep_streak_02_title">Recovery Master II</string>
+    <string name="ach_sleep_streak_02_desc">Sleep perfectly 7 days in a row. Your body will thank you!</string>
+    <string name="ach_sleep_streak_03_title">Meditation Guru</string>
+    <string name="ach_sleep_streak_03_desc">Sleep perfectly 30 days in a row.</string>
+    <string name="ach_sleep_streak_04_title">True Zen</string>
+    <string name="ach_sleep_streak_04_desc">Get an \'Excellent\' sleep score 100 days in a row.</string>
+    <string name="ach_sleep_streak_05_title">Lord of Dreams</string>
+    <string name="ach_sleep_streak_05_desc">Get an \'Excellent\' sleep score 365 days in a row. Your brain works at 200%%.</string>
+
+    <string name="ach_steps_daily_01_title">First step</string>
+    <string name="ach_steps_daily_01_desc">Walk 1,000 steps in one day. Great start!</string>
+    <string name="ach_steps_daily_02_title">Warm-up</string>
+    <string name="ach_steps_daily_02_desc">Walk 5,000 steps in a day. You are warming up!</string>
+    <string name="ach_steps_daily_mid_1_title">Steady pace</string>
+    <string name="ach_steps_daily_mid_1_desc">Walk 7,500 steps in a day.</string>
+    <string name="ach_steps_daily_03_title">Norm met</string>
+    <string name="ach_steps_daily_03_desc">Walk 10,000 steps. The gold standard of health!</string>
+    <string name="ach_steps_daily_mid_2_title">Above the norm</string>
+    <string name="ach_steps_daily_mid_2_desc">Walk 12,500 steps in a day.</string>
+    <string name="ach_steps_daily_04_title">Advanced walker</string>
+    <string name="ach_steps_daily_04_desc">Walk 15,000 steps. Excellent result!</string>
+    <string name="ach_steps_daily_05_title">Half marathon</string>
+    <string name="ach_steps_daily_05_desc">Walk 20,000 steps in one day. A real half marathon!</string>
+    <string name="ach_steps_daily_06_title">Marathon runner</string>
+    <string name="ach_steps_daily_06_desc">Walk 30,000 steps in one day. Are you sure you\'re not tired?</string>
+    <string name="ach_steps_daily_07_title">Steel calves</string>
+    <string name="ach_steps_daily_07_desc">Walk 40,000 steps in one day. Steel calves!</string>
+    <string name="ach_steps_daily_08_title">Tireless</string>
+    <string name="ach_steps_daily_08_desc">Walk 50,000 steps in one day. Tireless cyborg!</string>
+    <string name="ach_steps_daily_09_title">Cyborg runner</string>
+    <string name="ach_steps_daily_09_desc">Walk 60,000 steps in a day. Your legs are now officially made of titanium.</string>
+
+    <string name="ach_steps_streak_01_title">Steady pace I</string>
+    <string name="ach_steps_streak_01_desc">Meet your step goal 3 days in a row.</string>
+    <string name="ach_steps_streak_02_title">Steady pace II</string>
+    <string name="ach_steps_streak_02_desc">Meet your step goal 7 days in a row. Great week!</string>
+    <string name="ach_steps_streak_03_title">Month in motion</string>
+    <string name="ach_steps_streak_03_desc">Meet your step goal 30 days in a row. A whole month of activity!</string>
+    <string name="ach_steps_streak_04_title">Discipline Legend</string>
+    <string name="ach_steps_streak_04_desc">Meet your step goal 100 days in a row. Iron discipline!</string>
+    <string name="ach_steps_streak_05_title">Unbending will</string>
+    <string name="ach_steps_streak_05_desc">Meet your step goal 180 days in a row. Half a year of perfect discipline!</string>
+    <string name="ach_steps_streak_06_title">Year in motion</string>
+    <string name="ach_steps_streak_06_desc">Meet your step goal 365 days in a row. You are in the top 1%% of users!</string>
+
+    <string name="ach_steps_total_01_title">Wanderer I</string>
+    <string name="ach_steps_total_01_desc">Accumulate 50,000 steps all-time.</string>
+    <string name="ach_steps_total_02_title">Wanderer II</string>
+    <string name="ach_steps_total_02_desc">Accumulate 100,000 steps all-time.</string>
+    <string name="ach_steps_total_03_title">Wanderer III</string>
+    <string name="ach_steps_total_03_desc">Accumulate 500,000 steps all-time.</string>
+    <string name="ach_steps_total_04_title">Millionaire</string>
+    <string name="ach_steps_total_04_desc">Walk 1,000,000 steps! You\'ve walked the distance from Paris to Berlin.</string>
+    <string name="ach_steps_total_05_title">Lord of the roads</string>
+    <string name="ach_steps_total_05_desc">Walk 5,000,000 steps. A true walking legend!</string>
+    <string name="ach_steps_total_06_title">Earth Ambassador</string>
+    <string name="ach_steps_total_06_desc">Accumulate 10,000,000 steps all-time. You walked around the globe!</string>
+    <string name="ach_steps_total_07_title">Galaxy Marathoner</string>
+    <string name="ach_steps_total_07_desc">Accumulate 20,000,000 steps all-time. You\'ve reached orbit!</string>
+
+    <string name="ach_weight_01_title">First weigh-in</string>
+    <string name="ach_weight_01_desc">Log your weight in the app for the first time. Starting point!</string>
+    <string name="ach_weight_02_title">Mass control I</string>
+    <string name="ach_weight_02_desc">Log your weight 10 times. You are tracking your dynamics perfectly.</string>
+    <string name="ach_weight_03_title">Mass control II</string>
+    <string name="ach_weight_03_desc">Log your weight 50 times.</string>
+    <string name="ach_weight_04_title">Strong argument</string>
+    <string name="ach_weight_04_desc">Log your weight 100 times. Gravity is heartless, but you are in control!</string>
+
+    <string name="ach_workout_01_title">Ready, set, go!</string>
+    <string name="ach_workout_01_desc">Complete your very first workout in the app. The start is made!</string>
+    <string name="ach_workout_02_title">Amateur</string>
+    <string name="ach_workout_02_desc">Complete 10 workouts all-time.</string>
+    <string name="ach_workout_mid_1_title">Getting into it</string>
+    <string name="ach_workout_mid_1_desc">Complete 25 workouts.</string>
+    <string name="ach_workout_03_title">Athlete I</string>
+    <string name="ach_workout_03_desc">Complete 50 workouts. Sport has become your habit!</string>
+    <string name="ach_workout_04_title">Athlete II</string>
+    <string name="ach_workout_04_desc">Complete 100 workouts. You are in great shape!</string>
+    <string name="ach_workout_mid_2_title">Professional</string>
+    <string name="ach_workout_mid_2_desc">Complete 250 workouts.</string>
+    <string name="ach_workout_05_title">Terminator</string>
+    <string name="ach_workout_05_desc">Complete 500 workouts. Fitness machine!</string>
+    <string name="ach_workout_lucky_title">Jackpot!</string>
+    <string name="ach_workout_lucky_desc">Complete exactly 777 workouts all-time.</string>
+    <string name="ach_workout_06_title">God of Olympus</string>
+    <string name="ach_workout_06_desc">Complete 1000 workouts. Your perseverance is inspiring!</string>
+    <string name="ach_workout_07_title">Sensei</string>
+    <string name="ach_workout_07_desc">Complete 2000 workouts. Fitness is your life.</string>
+    <string name="ach_workout_08_title">Iron Will</string>
+    <string name="ach_workout_08_desc">Complete 3000 workouts all-time.</string>
+
+    <string name="ach_xp_01_title">Adventurer</string>
+    <string name="ach_xp_01_desc">Earn your first 1,000 XP in the app.</string>
+    <string name="ach_xp_02_title">Experienced Athlete</string>
+    <string name="ach_xp_02_desc">Accumulate 5,000 XP.</string>
+    <string name="ach_xp_03_title">Fitness Elite</string>
+    <string name="ach_xp_03_desc">Accumulate 10,000 XP. You are becoming a legend!</string>
+    <string name="ach_xp_04_title">Gym Boss</string>
+    <string name="ach_xp_04_desc">Accumulate 50,000 XP. Level: God of Olympus.</string>
+    <string name="ach_xp_05_title">Grandmaster</string>
+    <string name="ach_xp_05_desc">Accumulate 100,000 XP. No one will go this far.</string>
+    <string name="ach_xp_06_title">Living Legend</string>
+    <string name="ach_xp_06_desc">Accumulate 250,000 XP. The most dedicated user of the app.</string>
+    <string name="ach_xp_07_title">Demigod</string>
+    <string name="ach_xp_07_desc">Accumulate 500,000 XP.</string>
+    <string name="ach_xp_08_title">Absolute</string>
+    <string name="ach_xp_08_desc">Accumulate 1,000,000 XP. Game over. You completed fitness.</string>
+    <string name="ach_xp_09_title">Guardian of Fitness</string>
+    <string name="ach_xp_09_desc">Accumulate 2,000,000 XP.</string>
+    <string name="ach_xp_10_title">God of the Game</string>
+    <string name="ach_xp_10_desc">Accumulate 5,000,000 XP. A level unattainable for mere mortals.</string>
+
+    <string name="col_100_percent_title">Platinum (100%%)</string>
+    <string name="col_100_percent_desc">Collect the hardest collections and max XP level. You beat this game!</string>
+    <string name="col_beast_mode_title">Beast Mode</string>
+    <string name="col_beast_mode_desc">Collect achievements for 60k steps, 2500 kcal, and Gargantua diet.</string>
+    <string name="col_health_tracker_title">Biohacker</string>
+    <string name="col_health_tracker_desc">Collect badges for measuring weight, heart rate, and oxygen.</string>
+    <string name="col_immortal_title">Immortal</string>
+    <string name="col_immortal_desc">Collect badges for yearly streaks of rings, steps, and perfect sleep.</string>
+    <string name="col_iron_man_title">Iron Man</string>
+    <string name="col_iron_man_desc">Collect achievements for extreme calorie burning and workouts.</string>
+    <string name="col_master_walker_title">King of the Roads</string>
+    <string name="col_master_walker_desc">Collect all basic step badges to become a Walking Master.</string>
+    <string name="col_perfect_machine_title">Perfect Machine</string>
+    <string name="col_perfect_machine_desc">Collect gold streak badges (steps, sleep, and rings).</string>
+    <string name="col_sleep_master_title">Sleeping Guardian</string>
+    <string name="col_sleep_master_desc">Prove that you are a master of recovery and healthy sleep.</string>
+    <string name="col_ultimate_athlete_title">Ultimate Champion</string>
+    <string name="col_ultimate_athlete_desc">Unlock Legendary levels in all activity categories.</string>
+    <string name="col_year_of_health_title">Year of Health</string>
+    <string name="col_year_of_health_desc">Collect achievements for yearly streaks (steps and perfect sleep).</string>
 
 
 </resources>

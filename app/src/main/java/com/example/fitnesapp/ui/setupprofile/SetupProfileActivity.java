@@ -116,7 +116,7 @@ public class SetupProfileActivity extends AppCompatActivity {
         String birthDate = etBirthDate.getText().toString();
 
         if (weightStr.isEmpty() || heightStr.isEmpty() || birthDate.isEmpty()) {
-            Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.setup_profile_error_fill_fields), Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -132,7 +132,6 @@ public class SetupProfileActivity extends AppCompatActivity {
         Map<String, Object> allUpdates = new HashMap<>();
 
         // 1. Данные ПРОФИЛЯ (пишем в папку "profile")
-        // Заметьте: weight мы сюда НЕ пишем
         allUpdates.put("profile/firstName", nameStr);
         allUpdates.put("profile/secondName", surnameStr);
         allUpdates.put("profile/height", heightVal);
@@ -143,7 +142,6 @@ public class SetupProfileActivity extends AppCompatActivity {
         allUpdates.put("profile/notificationsEnabled", true);
 
         // 2. Данные ИСТОРИИ ВЕСА (пишем в папку "health_logs/weight_history")
-        // Генерируем уникальный ключ
         String weightKey = mDatabase.child("health_logs").child("weight_history").push().getKey();
 
         long timestamp = System.currentTimeMillis();
@@ -165,7 +163,7 @@ public class SetupProfileActivity extends AppCompatActivity {
                 startActivity(new Intent(SetupProfileActivity.this, MainActivity.class));
                 finishAffinity();
             } else {
-                Toast.makeText(this, "Error saving data: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getString(R.string.setup_profile_error_saving, task.getException().getMessage()), Toast.LENGTH_SHORT).show();
             }
         });
     }

@@ -97,7 +97,7 @@ public class AnalyticsFragment extends Fragment {
         // Если после фильтрации список пуст, можно показать сообщение-заглушку
         if (filteredList.isEmpty()) {
             filteredList.add(new InsightItem(InsightItem.Type.TIP, InsightItem.Category.GENERAL,
-                    "Нет данных", "В этой категории пока нет новых подсказок."));
+                    getString(R.string.analytics_nodata) , getString(R.string.analytics_nodata_dec) ));
         }
 
         // Передаем отфильтрованный список в ваш адаптер!

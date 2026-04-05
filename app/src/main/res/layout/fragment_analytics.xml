@@ -15,7 +15,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="20dp"
         android:layout_marginTop="150dp"
-        android:text="Умные подсказки на основе ваших данных"
+        android:text="@string/analytics_smart_suggestions"
         android:textColor="#B0BEC5"
         android:textSize="14sp"
         app:layout_constraintStart_toStartOf="parent"
@@ -45,35 +45,35 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:checked="true"
-                android:text="Все" />
+                android:text="@string/analytics_all" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chipRecovery"
                 style="@style/Widget.MaterialComponents.Chip.Choice"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Энергия" />
+                android:text="@string/analytics_recovery" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chipNutrition"
                 style="@style/Widget.MaterialComponents.Chip.Choice"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Питание" />
+                android:text="@string/analytics_nutrition" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chipActivity"
                 style="@style/Widget.MaterialComponents.Chip.Choice"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Активность" />
+                android:text="@string/analytics_activity" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chipSleep"
                 style="@style/Widget.MaterialComponents.Chip.Choice"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Сон" />
+                android:text="@string/analytics_sleep" />
 
         </com.google.android.material.chip.ChipGroup>
     </HorizontalScrollView>

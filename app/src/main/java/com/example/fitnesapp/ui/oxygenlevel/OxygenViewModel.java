@@ -1,10 +1,13 @@
 package com.example.fitnesapp.ui.oxygenlevel;
 
+import android.app.Application;
+
 import androidx.annotation.NonNull;
+import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.ViewModel;
 
+import com.example.fitnesapp.R;
 import com.example.fitnesapp.models.firebase.DailyData;
 import com.example.fitnesapp.models.firebase.HealthLogItem;
 import com.example.fitnesapp.models.firebase.UserProfile;
@@ -22,7 +25,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-public class OxygenViewModel extends ViewModel {
+// ИЗМЕНЕНИЕ: Наследуемся от AndroidViewModel
+public class OxygenViewModel extends AndroidViewModel {
 
     private final MutableLiveData<UserProfile> userProfile = new MutableLiveData<>();
     private final MutableLiveData<List<HealthLogItem>> oxygenHistory = new MutableLiveData<>();
@@ -37,10 +41,12 @@ public class OxygenViewModel extends ViewModel {
         public double min = 0;
         public double max = 0;
         public double avg = 0;
-        public String status = "--"; // "Excellent", "Normal", "Low"
+        public String status = "--";
     }
 
-    public OxygenViewModel() {
+    // ИЗМЕНЕНИЕ: Конструктор теперь принимает Application
+    public OxygenViewModel(@NonNull Application application) {
+        super(application);
         String uid = FirebaseAuth.getInstance().getCurrentUser() != null
                 ? FirebaseAuth.getInstance().getCurrentUser().getUid()
                 : null;
@@ -128,6 +134,9 @@ public class OxygenViewModel extends ViewModel {
 
     private void calculateAnalysis(List<HealthLogItem> logs) {
         OxygenAnalysis analysis = new OxygenAnalysis();
+
+        analysis.status = "--";
+
         if (logs == null || logs.isEmpty()) {
             analysisData.setValue(analysis);
             return;
@@ -138,7 +147,7 @@ public class OxygenViewModel extends ViewModel {
         double sum = 0;
 
         for (HealthLogItem item : logs) {
-            double val = item.val; // Предполагаем, что это int (98, 99)
+            double val = item.val;
             if (val < min) min = val;
             if (val > max) max = val;
             sum += val;
@@ -146,12 +155,18 @@ public class OxygenViewModel extends ViewModel {
 
         analysis.min = min;
         analysis.max = max;
-        analysis.avg =  sum / logs.size();
+        analysis.avg = sum / logs.size();
 
-        // Определение статуса
-        if (analysis.avg >= 95) analysis.status = "Very well";
-        else if (analysis.avg >= 90) analysis.status = "Normal";
-        else analysis.status = "Low";
+        // ИЗМЕНЕНИЕ: Определение статуса через локализованные строки
+        if (analysis.avg >= 95) {
+            analysis.status = getApplication().getString(R.string.oxygen_status_very_well);
+        } else if (analysis.avg >= 93) {
+            analysis.status = getApplication().getString(R.string.oxygen_status_normal);
+        } else if (analysis.avg >= 90) {
+            analysis.status = getApplication().getString(R.string.oxygen_status_low);
+        } else {
+            analysis.status = getApplication().getString(R.string.oxygen_status_critical);
+        }
 
         analysisData.setValue(analysis);
     }

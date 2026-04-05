@@ -38,9 +38,16 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHold
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Achievement item = items.get(position);
 
-        holder.title.setText(item.title);
+        // ИСПРАВЛЕНИЕ 1: Динамически переводим заголовок
+        String translatedTitle = getTranslatedText(item.id, item.title, "_title");
+        holder.title.setText(translatedTitle);
+
         holder.tier.setText(item.tier);
-        holder.goal.setText(item.description);
+
+        // ИСПРАВЛЕНИЕ 2: Динамически переводим описание (оно выводится вместо прогресса)
+        String translatedDesc = getTranslatedText(item.id, item.description, "_desc");
+        holder.goal.setText(translatedDesc);
+
         int resId = item.getIconResId(context);
         if (resId != 0) {
             holder.icon.setImageResource(resId);
@@ -48,14 +55,14 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHold
             // Картинка по умолчанию, если имя файла не найдено
             holder.icon.setImageResource(R.drawable.ic_achievement);
         }
+
         holder.prize.setText("+" + item.xpReward + "xp");
 
         // Для истории всегда показываем дату и скрываем элементы "в процессе"
         holder.date.setVisibility(View.VISIBLE);
         holder.date.setText(item.unlockedDate);
 
-        holder.goal.setVisibility(View.VISIBLE); // Скрываем цель (2000/2000), оставляем только дату
-        // Или можно написать holder.goal.setText("Completed");
+        holder.goal.setVisibility(View.VISIBLE); // Показываем переведенное описание
 
         holder.progressBar.setVisibility(View.GONE);
         holder.btnCollect.setVisibility(View.GONE);
@@ -64,6 +71,24 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHold
     @Override
     public int getItemCount() {
         return items.size();
+    }
+
+    // ==========================================
+    // ВСПОМОГАТЕЛЬНЫЙ МЕТОД ДЛЯ ПЕРЕВОДОВ
+    // ==========================================
+    private String getTranslatedText(String achievementId, String fallback, String suffix) {
+        if (achievementId == null || achievementId.isEmpty()) {
+            return fallback; // Защита от Null
+        }
+
+        // Ищем ID строки вида "ach_cal_daily_01_title" или "ach_cal_daily_01_desc"
+        int resId = context.getResources().getIdentifier(achievementId + suffix, "string", context.getPackageName());
+
+        if (resId != 0) {
+            return context.getString(resId); // Нашли перевод!
+        } else {
+            return fallback; // Не нашли (берем из базы Firebase)
+        }
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {

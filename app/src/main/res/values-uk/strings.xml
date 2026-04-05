@@ -1,5 +1,362 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="auth_error_enter_email">Введіть email</string>
+    <string name="auth_error_enter_password">Введіть пароль</string>
+    <string name="auth_error_failed">Помилка автентифікації: %1$s</string>
+    <string name="auth_error_google_failed">Помилка входу через Google, код: %1$d</string>
+    <string name="auth_error_firebase_failed">Помилка Firebase Auth</string>
+    <string name="auth_error_loading">Помилка завантаження: %1$s</string>
+    <string name="register_create_account">Створити акаунт</string>
+    <string name="register_name">Ім\'я</string>
+    <string name="register_email">Email</string>
+    <string name="register_password">Пароль</string>
+    <string name="register_sign_up">Зареєструватися</string>
+    <string name="register_already_have_account">Вже є акаунт? Увійти</string>
+    <string name="register_start_your_fitness_journey_today">Почніть свій фітнес-шлях сьогодні</string>
+    <string name="register_error_enter_name">Введіть ім\'я</string>
+    <string name="register_error_password_length">Пароль має бути &gt; 6 символів</string>
+    <string name="register_error_failed">Помилка: %1$s</string>
+    <string name="register_error_profile_save">Не вдалося зберегти профіль</string>
+
+    <string name="setup_profile_lets_know_you_better">Давайте познайомимося ближче</string>
+    <string name="setup_profile_whats_your_name">Як вас звати?</string>
+    <string name="setup_profile_name">Ім\'я</string>
+    <string name="setup_profile_surname">Прізвище</string>
+    <string name="setup_profile_gender">Стать</string>
+    <string name="setup_profile_gender_male">Чоловіча</string>
+    <string name="setup_profile_gender_female">Жіноча</string>
+    <string name="setup_profile_weight">Вага (кг)</string>
+    <string name="setup_profile_height">Зріст (см)</string>
+    <string name="setup_date_of_birth">Дата народження (ДД.ММ.РРРР)</string>
+    <string name="setup_profile_next">ДАЛІ</string>
+    <string name="setup_profile_error_fill_fields">Будь ласка, заповніть усі поля</string>
+    <string name="setup_profile_error_saving">Помилка збереження даних: %1$s</string>
+
+    <string name="achievement_details_reward">Нагорода:</string>
+    <string name="achievement_details_got_it">Отримано:</string>
+
+    <string name="add_sleep_title">Додати сон</string>
+    <string name="add_sleep_bedtime">Час відходу до сну</string>
+    <string name="add_sleep_wake_up">Час пробудження</string>
+    <string name="add_sleep_cancel">Скасувати</string>
+    <string name="add_sleep_save">Зберегти</string>
+    <string name="format_time_h_min">%1$dг %2$02d хв</string>
+    <string name="format_time_min">%1$d хв</string>
+    <string name="format_time_min_empty">-- хв</string>
+
+    <string name="edit_goal_title">Редагувати ціль</string>
+    <string name="edit_goal_burn_calories_goal">Ціль спалених калорій</string>
+    <string name="edit_goal_steps_goal">Ціль кроків</string>
+    <string name="edit_goal_nutrition_max_goal">Максимум калорій (харчування)</string>
+    <string name="edit_goal_nutrition_min_goal">Мінімум калорій (харчування)</string>
+
+    <string name="achievements_recommended">Рекомендовані</string>
+    <string name="achievements_collections">Колекції</string>
+    <string name="achievements_milestones">Етапи</string>
+    <string name="achievements_legendary">Легендарні</string>
+    <string name="achievements_complete">Виконати</string>
+    <string name="achievements_completed">Виконано</string>
+    <string name="achievements_first">перший</string>
+    <string name="achievements_previous">Попередній</string>
+
+    <string name="analytics_smart_suggestions">Розумні поради на основі ваших даних</string>
+    <string name="analytics_all">Всі</string>
+    <string name="analytics_recovery">Відновлення</string>
+    <string name="analytics_nutrition">Харчування</string>
+    <string name="analytics_activity">Активність</string>
+    <string name="analytics_sleep">Сон</string>
+    <string name="analytics_nodata">Немає даних</string>
+    <string name="analytics_nodata_dec">У цій категорії поки що немає нових порад.</string>
+
+    <string name="oxygen_highest">Найвищий</string>
+    <string name="oxygen_lowest">Найнижчий</string>
+    <string name="oxygen_avarage">Середній</string>
+    <string name="oxygen_status">Статус</string>
+    <string name="oxygen_status_very_well">Відмінно</string>
+    <string name="oxygen_status_normal">Норма</string>
+    <string name="oxygen_status_low">Низький</string>
+    <string name="oxygen_status_critical">Критично!!</string>
+
+    <string name="pulse_heart_rate">Частота серцевих скорочень</string>
+    <string name="pulse_active_period">Активний період</string>
+    <string name="pulse_rest_period">Період спокою</string>
+    <string name="pulse_status_athletic">Спортивний (Низький)</string>
+    <string name="pulse_status_excellent">Відмінний</string>
+    <string name="pulse_status_normal">Норма</string>
+    <string name="pulse_status_elevated">Підвищений</string>
+    <string name="pulse_status_high">Високий</string>
+    <string name="pulse_status_intense">Інтенсивний / Активний</string>
+
+    <string name="settings_body_stats">Параметри тіла</string>
+    <string name="settings_goals_activity">Цілі та Активність</string>
+    <string name="settings_main_goal">Головна ціль</string>
+    <string name="settings_target_weight">Цільова вага (кг)</string>
+    <string name="settings_activity_level">Рівень активності</string>
+    <string name="settings_recommended_daily_plan">Рекомендований денний план:</string>
+    <string name="settings_notifications">Сповіщення</string>
+    <string name="settings_logout">Вийти</string>
+    <string name="settings_save_changes">Зберегти зміни</string>
+    <string name="settings_connect_health">Health Connect</string>
+    <string-array name="settings_goals_array">
+        <item>Схуднути</item>
+        <item>Підтримувати вагу</item>
+        <item>Набрати м\'язову масу</item>
+    </string-array>
+
+    <string-array name="settings_activity_array">
+        <item>Сидячий (Без спорту)</item>
+        <item>Легкий (1-3 дні/тиж)</item>
+        <item>Помірний (3-5 днів/тиж)</item>
+        <item>Активний (Щодня)</item>
+    </string-array>
+
+    <string name="settings_save_success">Налаштування успішно збережено!</string>
+    <string name="settings_save_failed">Не вдалося зберегти налаштування.</string>
+    <string name="settings_error_invalid_numbers">Будь ласка, введіть коректні числа для ваги/зросту</string>
+    <string name="settings_health_connect_installed">Health Connect встановлено та працює</string>
+    <string name="settings_health_connect_update">Будь ласка, оновіть Health Connect</string>
+    <string name="settings_health_connect_not_installed">Health Connect не встановлено</string>
+
+    <string name="settings_format_calories">%1$s %2$d ккал</string>
+    <string name="settings_format_steps">%1$s %2$d кроків</string>
+
+    <string name="sleep_quality">Якість сну</string>
+    <string name="sleep_fall_asleep">Засинання</string>
+    <string name="sleep_sleep_time">Час сну</string>
+    <string name="sleep_getting_into_bed">Відбій</string>
+    <string name="sleep_awaking">Пробудження</string>
+    <string name="sleep_sleep_phases">Фази сну</string>
+    <string name="sleep_fast">Швидка</string>
+    <string name="sleep_awake">Пробудження</string>
+    <string name="sleep_surface">Поверхнева</string>
+    <string name="sleep_deep">Глибока</string>
+
+    <string name="weight_month">міс</string>
+    <string name="weight_bmi">ІМТ</string>
+    <string name="weight_status_underweight">Недостатня вага</string>
+    <string name="weight_status_normal">Норма</string>
+    <string name="weight_status_overweight">Надмірна вага</string>
+    <string name="weight_status_obese">Ожиріння</string>
+
+    <string name="weight_btn_format">%1$d %2$s</string>
+
+    <string name="home_auth_failed">Помилка авто-входу, спробуйте ще раз</string>
+    <string name="home_syncing">Синхронізація...</string>
+    <string name="home_no_workout">У цей день тренувань не було</string>
+
+    <string name="format_bpm">%1$s уд/хв</string>
+    <string name="format_bpm_empty">-- уд/хв</string>
+    <string name="format_kg">%1$.1f кг</string>
+    <string name="format_kg_empty">-- кг</string>
+    <string name="format_sleep_time">%1$dг %2$dхв</string>
+    <string name="format_sleep_time_empty">-- г -- хв</string>
+    <string name="format_percent">%1$d%%</string>
+
+    <string name="water_warning_spam_title">Перебір із водою?</string>
+    <string name="water_warning_spam_desc">Ви вже додали дуже багато води за сьогодні (більше 5 літрів!). Надлишок води може призвести до водної інтоксикації та вимивання солей. Додати все одно?</string>
+    <string name="water_warning_yes_add">Так, додати</string>
+    <string name="water_warning_cancel">Скасувати</string>
+
+    <string name="water_warning_caution_title">Обережно!</string>
+    <string name="water_warning_caution_desc">Випити понад 1.5 літра води за один раз може бути шкідливо для нирок. Ви впевнені, що випили так багато за раз?</string>
+    <string name="water_warning_yes_drank">Так, я випив стільки</string>
+
+    <string name="water_dialog_custom_volume_title">Додати свій об\'єм (мл)</string>
+    <string name="water_dialog_edit_goal_title">Редагувати денну норму (мл)</string>
+
+    <string name="water_error_valid_amount">Введіть коректний об\'єм</string>
+    <string name="water_error_invalid_number">Некоректне число</string>
+    <string name="water_error_empty_field">Поле не може бути порожнім</string>
+    <string name="water_error_realistic_goal">Будь ласка, введіть реалістичну ціль</string>
+
+    <string name="water_toast_goal_updated">Норму оновлено!</string>
+
+    <string name="format_water_volume">%1$d / %2$d мл</string>
+
+    <string name="water_advice_goal_reached">💧 Ціль виконано! Ваш водний баланс у нормі.</string>
+    <string name="water_advice_morning_empty">☀️ Склянка води зранку запускає метаболізм і очищає організм.</string>
+    <string name="water_advice_morning_coffee">☕ П\'єте каву? Не забувайте компенсувати її склянкою чистої води.</string>
+    <string name="water_advice_morning_good">💧 Чудовий початок дня! Продовжуйте пити невеликими порціями.</string>
+    <string name="water_advice_day_dehydrated">⚠️ Зневоднення викликає втому. Зробіть пару ковтків прямо зараз!</string>
+    <string name="water_advice_day_good">🌊 Ваш баланс у нормі. Намагайтеся тримати склянку води під рукою.</string>
+    <string name="water_advice_evening_behind">🌙 Ви сильно відстаєте від норми. Поповніть баланс, але пийте поступово.</string>
+    <string name="water_advice_evening_almost">🌙 Майже біля цілі! Обмежте споживання води за 1.5 години до сну, щоб уникнути набряків.</string>
+
+    <string name="day_activity_goal">Ціль: %1$d</string>
+    <string name="day_activity_max">Макс: %1$d</string>
+    <string name="day_activity_carbs_val">Вуглеводи: %1$dг</string>
+    <string name="day_activity_protein_val">Білки: %1$dг</string>
+    <string name="day_activity_fats_val">Жири: %1$dг</string>
+    <string name="day_activity_invalid_number">Некоректне число</string>
+    <string name="day_activity_goal_updated">Ціль оновлено!</string>
+    <string name="day_activity_error_updating">Помилка оновлення цілі</string>
+
+    <string name="item_achievement_tier">рівень</string>
+    <string name="item_achievement_colect_these_badges">Зберіть ці значки</string>
+    <string name="item_achievement_locked">ЗАБЛОКОВАНО!\nВимога: Виконати </string>
+    <string name="item_achievement_collect">ЗІБРАТИ</string>
+
+    <string name="item_nutrition_card_carbs">Вуглеводи</string>
+    <string name="item_nutrition_card_proteins">Білки</string>
+    <string name="item_nutrition_card_fats">Жири</string>
+
+    <string name="item_workout_card_km">км</string>
+    <string name="item_workout_card_min_km">хв/км</string>
+    <string name="item_workout_card_kcal">ккал</string>
+    <string name="item_workout_card_start">Початок</string>
+    <string name="item_workout_card_end">Кінець</string>
+    <string name="item_workout_card_pulse">Пульс уд/хв</string>
+    <string name="item_workout_card_oxygen">Кисень у крові %</string>
+    <string name="item_workout_card_speed">Швидкість км/год</string>
+    <string name="item_advice_history">Історія порад</string>
+
+    <string name="advice_history_workout_finished">Тренування завершено!</string>
+
+    <string name="advice_history_workout_finished_desc">Тренування успішно збережено у вашій історії. Так тримати!</string>
+    <string name="advice_history_workout_energy_extreme">Енергетична інтенсивність: Екстремальна</string>
+    <string name="advice_history_workout_energy_extreme_desc">Витрата: %1$.1f ккал/хв. Основне паливо — м\'язовий глікоген. Ви потужно розігнали метаболізм на найближчі години.</string>
+    <string name="advice_history_workout_energy_avarage">Енергетична інтенсивність: Середня</string>
+    <string name="advice_history_workout_energy_avarage_desc">Витрата енергії: %1$f ккал/хв. Організм збалансовано використовував вуглеводи та запаси жиру для енергії.</string>
+
+    <string name="advice_history_workout_energy_low">Енергетична інтенсивність: Низька</string>
+    <string name="advice_history_workout_energy_low_desc">Витрата: %1$.1f ккал/хв. Легке тренування, ідеальне для відновлення, жироспалювання та покращення кровообігу без стресу для ЦНС.</string>
+    <string name="advice_history_workout_pulse_rate_interval">Профіль пульсу: Інтервальний</string>
+    <string name="advice_history_workout_pulse_rate_interval_dec_1">Зафіксовано "коливання" серцевого ритму (в діапазоні від </string>
+    <string name="advice_history_workout_pulse_rate_interval_dec_2"> уд/хв). Ці коливання чудово покращують еластичність судин.</string>
+
+    <string name="advice_history_workout_pulse_rate_steady">Профіль пульсу: Стабільний</string>
+    <string name="advice_history_workout_pulse_rate_steady_dec_1">Пульс залишався стабільним на рівні близько </string>
+    <string name="advice_history_workout_pulse_rate_steady_dec_2"> уд/хв. Рівне тренування для розбудови м\'язової витривалості.</string>
+
+    <string name="advice_history_workout_pulse_rate_myocardial">Навантаження на міокард</string>
+    <string name="advice_history_workout_pulse_rate_myocardial_dec_1">Ви провели деякий час у червоній зоні (пік </string>
+    <string name="advice_history_workout_pulse_rate_myocardial_dec_2"> уд/хв). Ваше серце отримало потужний стимул для росту; дайте йому 48 годин на відновлення.</string>
+
+    <string name="advice_history_workout_explosive_power">Вибухова сила</string>
+    <string name="advice_history_workout_explosive_power_dec">Зафіксовано значне зростання прискорення (пік: %.1f). Це чудово для розвитку швидких м\'язових волокон та анаеробної сили.</string>
+
+    <string name="advice_history_workout_muscle_fatigue">М\'язова втома</string>
+    <string name="advice_history_workout_muscle_fatigue_desc">У другій половині сесії швидкість помітно знизилася. Це класична ознака виснаження запасів глікогену в ногах.</string>
+
+    <string name="advice_history_workout_perfect_pacing">Ідеальний пейсинг</string>
+    <string name="advice_history_workout_perfect_pacing_desc">Шикарний розподіл сил! Ваша швидкість у другій половині тренування залишилася такою ж стабільною, як і на старті.</string>
+
+    <string name="advice_history_workout_oxygen_debt">Кисневий борг</string>
+    <string name="advice_history_workout_oxygen_debt_desc">На піку навантаження SpO2 падало до %1$d%%. Ви пробивали свій анаеробний поріг — саме в такі секунди росте ваша пікова витривалість.</string>
+
+    <string name="advice_history_workout_cns_stress">Стрес ЦНС</string>
+    <string name="advice_history_workout_cns_stress_desc">Потужна вечірня сесія. У крові високий рівень адреналіну та кортизолу. Зробіть легку розтяжку, щоб заспокоїти центральну нервову систему перед сном.</string>
+
+    <string name="advice_history_workout_activity_summary">Зведення активності</string>
+    <string name="advice_history_workout_activity_summary_desc">Тренування зафіксовано. Загальна витрата енергії склала %1$d ккал.</string>
+
+    <string name="analytics_no_data_title">Немає даних</string>
+    <string name="analytics_no_data_desc">Чекаємо на завантаження даних за сьогодні...</string>
+    <string name="analytics_all_good_title">Все йде за планом</string>
+    <string name="analytics_all_good_desc">День тільки розпочався. Продовжуйте в тому ж дусі!</string>
+
+    <string name="sleep_quality_excellent">Відмінно</string>
+    <string name="sleep_quality_normal">Норма</string>
+    <string name="sleep_quality_bad">Погано</string>
+
+    <string name="analytics_energy_title">Енергія тіла: %1$d%%</string>
+    <string name="analytics_energy_high_desc">Ви сповнені сил! Чудовий час для інтенсивного тренування. Заряд на максимумі.</string>
+    <string name="analytics_energy_med_desc">Заряд поступово знижується через активність. Нормальний рівень енергії.</string>
+    <string name="analytics_energy_done_title">День прожито не дарма (%1$d%%)</string>
+    <string name="analytics_energy_done_desc">Ваша батарейка розряджена, саме час відновлювати сили уві сні.</string>
+    <string name="analytics_energy_low_title">Енергія вичерпується: %1$d%%</string>
+    <string name="analytics_energy_low_desc">Уникайте важких фізичних навантажень і дайте собі перепочити.</string>
+
+    <string name="analytics_habit_ahead_title">Випередження графіка</string>
+    <string name="analytics_habit_ahead_desc">Ви йдете з сильним випередженням! Цілі на сьогодні будуть легко досягнуті.</string>
+    <string name="analytics_habit_on_track_title">Йдемо за планом</string>
+    <string name="analytics_habit_on_track_desc">Ваша активність ідеально збігається з графіком дня. Тримайте поточний темп!</string>
+    <string name="analytics_habit_behind_title">Ризик відставання</string>
+    <string name="analytics_habit_behind_desc">Ви трохи відстаєте від ідеального графіка активності. Час іде, час розім\'ятися!</string>
+
+    <string name="analytics_macro_refill_title">Харчування: Відновлення сил</string>
+    <string name="analytics_macro_refill_desc">Ви витратили багато енергії. Зробіть легкий білковий перекус.</string>
+    <string name="analytics_macro_energy_title">Харчування: Відновлення енергії</string>
+    <string name="analytics_macro_energy_desc">Організм виснажений активністю. Додайте складні вуглеводи для відновлення.</string>
+    <string name="analytics_macro_anabolic_title">Харчування: Анаболічний фон</string>
+    <string name="analytics_macro_anabolic_desc">Відмінне завантаження калоріями! Ідеальна база для набору маси.</string>
+    <string name="analytics_macro_overeat_title">Харчування: Запас енергії</string>
+    <string name="analytics_macro_overeat_desc">Ви дуже щільно поїли для цього часу доби. Намагайтеся більше рухатися сьогодні.</string>
+    <string name="analytics_macro_perfect_title">Харчування: Відмінний баланс</string>
+    <string name="analytics_macro_perfect_desc">Ваш раціон ідеально збігається з графіком дня та енерговитратами.</string>
+
+    <string name="analytics_why_lose">на сушці (щоб зберегти м\'язи)</string>
+    <string name="analytics_why_gain">для росту м\'язів</string>
+
+    <string name="analytics_protein_norm_title">Білкова норма: %1$d / %2$dг</string>
+    <string name="analytics_protein_left_desc">Залишилося добрати %1$dг білка %2$s. Це приблизно %3$dг курячого філе (або риби/сиру).</string>
+    <string name="analytics_protein_perfect_title">Ідеальний білок</string>
+    <string name="analytics_protein_perfect_desc">Ви набрали %1$dг білка! М\'язи отримали 100%% будівельного матеріалу.</string>
+
+    <string name="analytics_fat_deficit_title">Дефіцит жирів: %1$d / %2$dг</string>
+    <string name="analytics_fat_deficit_desc">Вам не вистачає %1$dг жирів. Додайте горіхи, сир або ложку оливкової олії. Це критично важливо для гормонального фону.</string>
+    <string name="analytics_fat_excess_title">Перебір із жирами</string>
+    <string name="analytics_fat_excess_desc">Ви перевищили вашу норму жирів на сьогодні. Намагайтеся обирати більш пісні продукти на вечерю.</string>
+
+    <string name="analytics_carb_load_title">Вуглеводне завантаження</string>
+    <string name="analytics_carb_load_desc">Для набору маси не вистачає %1$dг вуглеводів. З\'їжте ще ~%2$dг крупи або макаронів, інакше вага не зростатиме.</string>
+    <string name="analytics_carb_limit_title">Ліміт вуглеводів</string>
+    <string name="analytics_carb_limit_desc">Ви значно перевищили норму вуглеводів для схуднення (%1$d / %2$dг). Це заблокує жироспалювання на сьогодні.</string>
+
+    <string name="analytics_fast_start_title">Занадто швидкий старт</string>
+    <string name="analytics_fast_start_desc">Ви з\'їли %1$d ккал, хоча день тільки почався. До ночі залишився жорсткий ліміт: лише %2$d ккал. Плануйте легку вечерю.</string>
+
+    <string name="analytics_sat_too_long_title">Засиділися</string>
+    <string name="analytics_sat_too_long_desc">На годиннику вже %1$d:00, а пройдено всього %2$d кроків. Саме час розім\'ятися!</string>
+
+    <string name="analytics_goal_close_title">Ціль близько!</string>
+    <string name="analytics_goal_close_desc">Залишилося пройти рівно %1$d кроків до денної норми. Невелика вечірня прогулянка допоможе закрити кільце.</string>
+
+    <string name="analytics_overtrain_risk_title">Ризик перетренованості</string>
+    <string name="analytics_overtrain_risk_desc">Ви пройшли %1$d кроків на тлі всього %2$dг сну. Це сильний стрес. Лягайте сьогодні до півночі.</string>
+
+    <string name="analytics_sleep_index_title">Індекс сну: %1$d%% (%2$s)</string>
+    <string name="analytics_sleep_exc_desc">Ідеальне поєднання фаз! Нервова система та м\'язи повністю відновилися. Ви готові до важкого тренування.</string>
+    <string name="analytics_sleep_norm_desc">Допустима якість сну. Базове відновлення пройдено, ви готові до робочого дня.</string>
+    <string name="analytics_sleep_bad_desc">Критично низька якість відпочинку. Якщо сьогодні є тренування, зробіть його легким, щоб не перевантажити ЦНС.</string>
+
+    <string name="analytics_sleep_deep_deficit_title">Дефіцит глибокої фази</string>
+    <string name="analytics_sleep_deep_deficit_desc">Ваша глибока фаза склала всього %1$d%%. Саме вона відновлює м\'язи. Охолодіть кімнату перед сном.</string>
+
+    <string name="analytics_sleep_rem_deficit_title">Дефіцит REM-фази</string>
+    <string name="analytics_sleep_rem_deficit_desc">Брак швидкого сну (%1$d%%) знижує фокус уваги. Відкладіть телефон за годину до сну.</string>
+
+    <string name="analytics_sleep_frag_title">Фрагментований сон</string>
+    <string name="analytics_sleep_frag_desc">Судячи з графіка, ви прокидалися %1$d разів. Перевірте рівень шуму та світла у спальні.</string>
+
+    <string name="rank_novice">Новачок</string>
+    <string name="rank_beginner">Початківець</string>
+    <string name="rank_walker">Пішохід</string>
+    <string name="rank_hiker">Мандрівник</string>
+    <string name="rank_runner">Бігун</string>
+    <string name="rank_sprinter">Спринтер</string>
+    <string name="rank_challenger">Претендент</string>
+    <string name="rank_athlete">Атлет</string>
+    <string name="rank_warrior">Воїн</string>
+    <string name="rank_step_master">Майстер кроків</string>
+    <string name="rank_iron_body">Залізне тіло</string>
+    <string name="rank_elite">Еліта</string>
+    <string name="rank_champion">Чемпіон</string>
+    <string name="rank_titan">Титан</string>
+    <string name="rank_legend">Легенда</string>
+
+    <string name="main_health_permissions_required">Потрібні дозволи Health Connect</string>
+    <string name="main_add_weight_title">Додати вагу (кг)</string>
+    <string name="main_invalid_number_format">Некоректний формат числа</string>
+    <string name="main_weight_added">Вагу додано!</string>
+    <string name="main_error_adding_weight">Помилка додавання ваги</string>
+    <string name="main_wake_after_bedtime">Час пробудження має бути після часу відходу до сну</string>
+    <string name="main_today">Сьогодні</string>
+    <string name="main_yesterday">Вчора</string>
+    <string name="main_user_not_authorized">Користувач не авторизований</string>
+    <string name="main_sleep_data_saved">Дані про сон збережено!</string>
+    <string name="main_error_saving_data">Помилка збереження даних</string>
+
+    <string name="app_name" translatable="false">Optima</string>
     <string name="title_home">Профіль</string>
     <string name="title_progress">Прогрес</string>
     <string name="title_achievements">Досягнення</string>
@@ -16,11 +373,232 @@
     <string name="text_good">добре</string>
     <string name="text_bad">погано</string>
     <string name="text_training">Тренування</string>
-    <string name="text_advice_history">Історія порад</string>
-    <string name="text_day_activity">Дена активність</string>
+    <string name="text_day_activity">Денна активність</string>
     <string name="text_settings">Налаштування</string>
     <string name="text_total">Всього</string>
     <string name="text_carbs">Вуглеводи</string>
     <string name="text_proteins">Білки</string>
     <string name="text_fats">Жири</string>
+    <string name="text_to">до</string>
+
+    <string name="settings_language_title">Language</string>
+    <string-array name="settings_language_array">
+        <item>English</item>
+        <item>Українська</item>
+    </string-array>
+
+    <string name="ach_cal_daily_01_title">Легка розминка</string>
+    <string name="ach_cal_daily_01_desc">Спаліть 300 активних калорій за день.</string>
+    <string name="ach_cal_daily_02_title">Вогонь всередині</string>
+    <string name="ach_cal_daily_02_desc">Спаліть 500 активних калорій за день.</string>
+    <string name="ach_cal_daily_03_title">Піч для калорій</string>
+    <string name="ach_cal_daily_03_desc">Спаліть 1000 активних калорій за один день. Відмінна робота!</string>
+    <string name="ach_cal_daily_04_title">Спопелювач</string>
+    <string name="ach_cal_daily_04_desc">Спаліть 1500 активних калорій за один день. Режим звіра активовано!</string>
+    <string name="ach_cal_daily_05_title">Надлюдина</string>
+    <string name="ach_cal_daily_05_desc">Спаліть 2000 активних калорій за один день. Ви взагалі людина?</string>
+    <string name="ach_cal_daily_06_title">Ядерний реактор</string>
+    <string name="ach_cal_daily_06_desc">Спаліть 2500 активних калорій за один день. Ви просто портативний ядерний реактор!</string>
+
+    <string name="ach_cal_total_01_title">Жироспалювач I</string>
+    <string name="ach_cal_total_01_desc">Спаліть 10 000 калорій за весь час.</string>
+    <string name="ach_cal_total_02_title">Жироспалювач II</string>
+    <string name="ach_cal_total_02_desc">Спаліть 50 000 калорій за весь час.</string>
+    <string name="ach_cal_total_03_title">Жироспалювач III</string>
+    <string name="ach_cal_total_03_desc">Спаліть 100 000 калорій за весь час.</string>
+    <string name="ach_cal_total_mid_1_title">Жироспалювач IV</string>
+    <string name="ach_cal_total_mid_1_desc">Спаліть 250 000 калорій за весь час.</string>
+    <string name="ach_cal_total_04_title">Майстер метаболізму</string>
+    <string name="ach_cal_total_04_desc">Спаліть 500 000 калорій за весь час.</string>
+    <string name="ach_cal_total_05_title">Володар Вогню</string>
+    <string name="ach_cal_total_05_desc">Спаліть 1 000 000 калорій! Ви спалили енергію, еквівалентну тонні вугілля.</string>
+    <string name="ach_cal_total_06_title">Наднова зірка</string>
+    <string name="ach_cal_total_06_desc">Спаліть 2 000 000 калорій за весь час. Неймовірний результат!</string>
+
+    <string name="ach_nutr_01_title">Усвідомлене харчування</string>
+    <string name="ach_nutr_01_desc">Запишіть мінімум 1500 ккал у щоденник харчування за день.</string>
+    <string name="ach_nutr_02_title">Шеф-кухар</string>
+    <string name="ach_nutr_02_desc">Запишіть 2000 ккал у щоденник харчування. Баланс знайдено!</string>
+    <string name="ach_nutr_03_title">Чітміл</string>
+    <string name="ach_nutr_03_desc">Запишіть 3500 ккал. День завантаження або чудовий набір маси!</string>
+    <string name="ach_nutr_04_title">Гаргантюа</string>
+    <string name="ach_nutr_04_desc">Запишіть 4500 ккал за день. Епічний набір маси!</string>
+    <string name="ach_nutr_05_title">Чорна діра</string>
+    <string name="ach_nutr_05_desc">Запишіть 5000 ккал за день. Ви поглинаєте матерію як чорна діра.</string>
+
+    <string name="ach_oxy_01_title">Чистий кисень I</string>
+    <string name="ach_oxy_01_desc">Виміряйте рівень кисню в крові (SpO2) вперше.</string>
+    <string name="ach_oxy_02_title">Чистий кисень II</string>
+    <string name="ach_oxy_02_desc">Виміряйте кисень 50 разів.</string>
+    <string name="ach_oxy_03_title">Ловець повітря</string>
+    <string name="ach_oxy_03_desc">Виміряйте кисень 100 разів.</string>
+
+    <string name="ach_pulse_01_title">Слухаючи серце I</string>
+    <string name="ach_pulse_01_desc">Зробіть перше вимірювання пульсу.</string>
+    <string name="ach_pulse_02_title">Слухаючи серце II</string>
+    <string name="ach_pulse_02_desc">Зробіть 50 вимірювань пульсу.</string>
+    <string name="ach_pulse_03_title">Ритм життя</string>
+    <string name="ach_pulse_03_desc">Виміряйте пульс 100 разів.</string>
+
+    <string name="ach_rings_01_title">Ідеальний день</string>
+    <string name="ach_rings_01_desc">Закрийте всі 3 денних кільця (Кроки, Калорії, Харчування) за один день.</string>
+    <string name="ach_rings_streak_01_title">Перфекціоніст I</string>
+    <string name="ach_rings_streak_01_desc">Закривайте всі 3 кільця 7 днів поспіль. Бездоганна неділя!</string>
+    <string name="ach_rings_streak_02_title">Перфекціоніст II</string>
+    <string name="ach_rings_streak_02_desc">Закривайте всі 3 кільця 30 днів поспіль.</string>
+    <string name="ach_rings_streak_03_title">Перфекціоніст III</string>
+    <string name="ach_rings_streak_03_desc">Закривайте всі 3 кільця 100 днів поспіль. Залізний характер!</string>
+    <string name="ach_rings_streak_04_title">Амбасадор фітнесу</string>
+    <string name="ach_rings_streak_04_desc">Закривайте всі 3 кільця цілий рік (365 днів). Недосяжний ідеал.</string>
+    <string name="ach_rings_streak_05_title">Володар Кілець</string>
+    <string name="ach_rings_streak_05_desc">Закривайте всі 3 кільця 500 днів поспіль. Ніхто не сміє кинути вам виклик.</string>
+
+    <string name="ach_sleep_01_title">Заряд батареї</string>
+    <string name="ach_sleep_01_desc">Поспіть рівно або більше 7 годин (420 хвилин).</string>
+    <string name="ach_sleep_02_title">Солодкі сни</string>
+    <string name="ach_sleep_02_desc">Поспіть рівно або більше 8 годин (480 хвилин). Здоровий мінімум!</string>
+    <string name="ach_sleep_03_title">Спляча красуня</string>
+    <string name="ach_sleep_03_desc">Поспіть рівно або більше 9 годин (540 хвилин). Справжній відпочинок!</string>
+    <string name="ach_sleep_04_title">Режим бабака</string>
+    <string name="ach_sleep_04_desc">Поспіть 10 годин (600 хвилин) після важкого тижня.</string>
+    <string name="ach_sleep_05_title">Сплячий кіт</string>
+    <string name="ach_sleep_05_desc">Поспіть 12 годин (720 хвилин). Справжній вихідний!</string>
+    <string name="ach_sleep_06_title">Зимова сплячка</string>
+    <string name="ach_sleep_06_desc">Поспіть 14 годин (840 хвилин) за одну добу. Ви впали в зимову сплячку?</string>
+
+    <string name="ach_sleep_streak_01_title">Майстер відновлення I</string>
+    <string name="ach_sleep_streak_01_desc">Ідеально висипайтеся (оцінка \'Відмінно\' або виконання норми) 3 дні поспіль.</string>
+    <string name="ach_sleep_streak_02_title">Майстер відновлення II</string>
+    <string name="ach_sleep_streak_02_desc">Ідеально висипайтеся 7 днів поспіль. Ваш організм скаже дякую!</string>
+    <string name="ach_sleep_streak_03_title">Гуру Медитації</string>
+    <string name="ach_sleep_streak_03_desc">Ідеально висипайтеся 30 днів поспіль.</string>
+    <string name="ach_sleep_streak_04_title">Істинний Дзен</string>
+    <string name="ach_sleep_streak_04_desc">Отримуйте оцінку сну \'Відмінно\' 100 днів поспіль.</string>
+    <string name="ach_sleep_streak_05_title">Повелитель Снів</string>
+    <string name="ach_sleep_streak_05_desc">Отримуйте оцінку сну \'Відмінно\' 365 днів поспіль. Ваш мозок працює на 200%%.</string>
+
+    <string name="ach_steps_daily_01_title">Перший крок</string>
+    <string name="ach_steps_daily_01_desc">Пройдіть 1 000 кроків за один день. Чудовий початок!</string>
+    <string name="ach_steps_daily_02_title">Розминка</string>
+    <string name="ach_steps_daily_02_desc">Пройдіть 5 000 кроків за день. Ви розігріваєтесь!</string>
+    <string name="ach_steps_daily_mid_1_title">Впевнений темп</string>
+    <string name="ach_steps_daily_mid_1_desc">Пройдіть 7 500 кроків за день.</string>
+    <string name="ach_steps_daily_03_title">Норму виконано</string>
+    <string name="ach_steps_daily_03_desc">Пройдіть 10 000 кроків. Золотий стандарт здоров\'я!</string>
+    <string name="ach_steps_daily_mid_2_title">Більше норми</string>
+    <string name="ach_steps_daily_mid_2_desc">Пройдіть 12 500 кроків за день.</string>
+    <string name="ach_steps_daily_04_title">Просунутий ходок</string>
+    <string name="ach_steps_daily_04_desc">Пройдіть 15 000 кроків. Відмінний результат!</string>
+    <string name="ach_steps_daily_05_title">Напівмарафон</string>
+    <string name="ach_steps_daily_05_desc">Пройдіть 20 000 кроків за один день. Справжній напівмарафон!</string>
+    <string name="ach_steps_daily_06_title">Марафонець</string>
+    <string name="ach_steps_daily_06_desc">Пройдіть 30 000 кроків за один день. Ви точно не втомилися?</string>
+    <string name="ach_steps_daily_07_title">Сталеві литки</string>
+    <string name="ach_steps_daily_07_desc">Пройдіть 40 000 кроків за один день. Сталеві литки!</string>
+    <string name="ach_steps_daily_08_title">Невтомний</string>
+    <string name="ach_steps_daily_08_desc">Пройдіть 50 000 кроків за один день. Невтомний кіборг!</string>
+    <string name="ach_steps_daily_09_title">Кіборг-бігун</string>
+    <string name="ach_steps_daily_09_desc">Пройдіть 60 000 кроків за день. Ваші ноги тепер офіційно зроблені з титану.</string>
+
+    <string name="ach_steps_streak_01_title">Стабільний темп I</string>
+    <string name="ach_steps_streak_01_desc">Виконуйте ціль щодо кроків 3 дні поспіль.</string>
+    <string name="ach_steps_streak_02_title">Стабільний темп II</string>
+    <string name="ach_steps_streak_02_desc">Виконуйте ціль щодо кроків 7 днів поспіль. Чудовий тиждень!</string>
+    <string name="ach_steps_streak_03_title">Місяць у русі</string>
+    <string name="ach_steps_streak_03_desc">Виконуйте ціль щодо кроків 30 днів поспіль. Цілий місяць активності!</string>
+    <string name="ach_steps_streak_04_title">Легенда дисципліни</string>
+    <string name="ach_steps_streak_04_desc">Виконуйте ціль щодо кроків 100 днів поспіль. Залізна дисципліна!</string>
+    <string name="ach_steps_streak_05_title">Незламна воля</string>
+    <string name="ach_steps_streak_05_desc">Виконуйте ціль щодо кроків 180 днів поспіль. Півроку ідеальної дисципліни!</string>
+    <string name="ach_steps_streak_06_title">Рік у русі</string>
+    <string name="ach_steps_streak_06_desc">Виконуйте ціль щодо кроків 365 днів поспіль. Ви входите в 1%% найкращих користувачів!</string>
+
+    <string name="ach_steps_total_01_title">Мандрівник I</string>
+    <string name="ach_steps_total_01_desc">Назбирайте 50 000 кроків за весь час використання додатку.</string>
+    <string name="ach_steps_total_02_title">Мандрівник II</string>
+    <string name="ach_steps_total_02_desc">Назбирайте 100 000 кроків за весь час.</string>
+    <string name="ach_steps_total_03_title">Мандрівник III</string>
+    <string name="ach_steps_total_03_desc">Назбирайте 500 000 кроків за весь час.</string>
+    <string name="ach_steps_total_04_title">Мільйонер</string>
+    <string name="ach_steps_total_04_desc">Пройдіть 1 000 000 кроків! Ви пройшли відстань від Парижа до Берліна.</string>
+    <string name="ach_steps_total_05_title">Володар доріг</string>
+    <string name="ach_steps_total_05_desc">Пройдіть 5 000 000 кроків. Справжня легенда ходьби!</string>
+    <string name="ach_steps_total_06_title">Амбасадор Землі</string>
+    <string name="ach_steps_total_06_desc">Назбирайте 10 000 000 кроків за весь час. Ви обійшли земну кулю!</string>
+    <string name="ach_steps_total_07_title">Марафонець Галактики</string>
+    <string name="ach_steps_total_07_desc">Назбирайте 20 000 000 кроків за весь час. Ви вийшли на орбіту!</string>
+
+    <string name="ach_weight_01_title">Перше зважування</string>
+    <string name="ach_weight_01_desc">Внесіть свою вагу в додаток вперше. Точка відліку!</string>
+    <string name="ach_weight_02_title">Контроль маси I</string>
+    <string name="ach_weight_02_desc">Запишіть вагу 10 разів. Ви чудово стежите за динамікою.</string>
+    <string name="ach_weight_03_title">Контроль маси II</string>
+    <string name="ach_weight_03_desc">Запишіть вагу 50 разів.</string>
+    <string name="ach_weight_04_title">Вагомий аргумент</string>
+    <string name="ach_weight_04_desc">Запишіть свою вагу 100 разів. Гравітація до вас безсердечна, але ви все контролюєте!</string>
+
+    <string name="ach_workout_01_title">На старт!</string>
+    <string name="ach_workout_01_desc">Виконайте своє найперше тренування у додатку. Початок покладено!</string>
+    <string name="ach_workout_02_title">Аматор</string>
+    <string name="ach_workout_02_desc">Виконайте 10 тренувань за весь час.</string>
+    <string name="ach_workout_mid_1_title">Втягуємось</string>
+    <string name="ach_workout_mid_1_desc">Виконайте 25 тренувань.</string>
+    <string name="ach_workout_03_title">Атлет I</string>
+    <string name="ach_workout_03_desc">Виконайте 50 тренувань. Спорт став вашою звичкою!</string>
+    <string name="ach_workout_04_title">Атлет II</string>
+    <string name="ach_workout_04_desc">Виконайте 100 тренувань. Ви у відмінній формі!</string>
+    <string name="ach_workout_mid_2_title">Професіонал</string>
+    <string name="ach_workout_mid_2_desc">Виконайте 250 тренувань.</string>
+    <string name="ach_workout_05_title">Термінатор</string>
+    <string name="ach_workout_05_desc">Виконайте 500 тренувань. Машина для фітнесу!</string>
+    <string name="ach_workout_lucky_title">Джекпот!</string>
+    <string name="ach_workout_lucky_desc">Виконайте рівно 777 тренувань за весь час.</string>
+    <string name="ach_workout_06_title">Бог Олімпу</string>
+    <string name="ach_workout_06_desc">Виконайте 1000 тренувань. Ваша завзятість надихає!</string>
+    <string name="ach_workout_07_title">Сенсей</string>
+    <string name="ach_workout_07_desc">Виконайте 2000 тренувань. Фітнес — це ваше життя.</string>
+    <string name="ach_workout_08_title">Залізна Воля</string>
+    <string name="ach_workout_08_desc">Виконайте 3000 тренувань за весь час.</string>
+
+    <string name="ach_xp_01_title">Шукач пригод</string>
+    <string name="ach_xp_01_desc">Заробіть свої перші 1 000 XP у додатку.</string>
+    <string name="ach_xp_02_title">Досвідчений Атлет</string>
+    <string name="ach_xp_02_desc">Назбирайте 5 000 XP.</string>
+    <string name="ach_xp_03_title">Еліта фітнесу</string>
+    <string name="ach_xp_03_desc">Назбирайте 10 000 XP. Ви стаєте легендою!</string>
+    <string name="ach_xp_04_title">Бос Качалки</string>
+    <string name="ach_xp_04_desc">Назбирайте 50 000 XP. Рівень: Бог Олімпу.</string>
+    <string name="ach_xp_05_title">Грандмайстер</string>
+    <string name="ach_xp_05_desc">Назбирайте 100 000 XP. Ніхто не зайде так далеко.</string>
+    <string name="ach_xp_06_title">Жива Легенда</string>
+    <string name="ach_xp_06_desc">Назбирайте 250 000 XP. Найвідданіший користувач додатку.</string>
+    <string name="ach_xp_07_title">Напівбог</string>
+    <string name="ach_xp_07_desc">Назбирайте 500 000 XP.</string>
+    <string name="ach_xp_08_title">Абсолют</string>
+    <string name="ach_xp_08_desc">Назбирайте 1 000 000 XP. Кінець гри. Ви пройшли фітнес.</string>
+    <string name="ach_xp_09_title">Охоронець Фітнесу</string>
+    <string name="ach_xp_09_desc">Назбирайте 2 000 000 XP.</string>
+    <string name="ach_xp_10_title">Бог Гри</string>
+    <string name="ach_xp_10_desc">Назбирайте 5 000 000 XP. Рівень, недосяжний для простих смертних.</string>
+
+    <string name="col_100_percent_title">Платина (100%%)</string>
+    <string name="col_100_percent_desc">Зберіть найскладніші колекції та максимальний рівень XP. Ви пройшли цю гру!</string>
+    <string name="col_beast_mode_title">Режим Звіра</string>
+    <string name="col_beast_mode_desc">Зберіть досягнення за 60к кроків, 2500 ккал і раціон Гаргантюа.</string>
+    <string name="col_health_tracker_title">Біохакер</string>
+    <string name="col_health_tracker_desc">Зберіть значки за вимірювання ваги, пульсу та кисню.</string>
+    <string name="col_immortal_title">Безсмертний</string>
+    <string name="col_immortal_desc">Зберіть значки за річні серії кілець, кроків та ідеального сну.</string>
+    <string name="col_iron_man_title">Залізна Людина</string>
+    <string name="col_iron_man_desc">Зберіть досягнення з екстремального спалювання калорій та тренувань.</string>
+    <string name="col_master_walker_title">Король Доріг</string>
+    <string name="col_master_walker_desc">Зберіть усі базові значки за кроками, щоб стати Майстром ходьби.</string>
+    <string name="col_perfect_machine_title">Ідеальна Машина</string>
+    <string name="col_perfect_machine_desc">Зберіть золоті значки серій (кроки, сон та кільця).</string>
+    <string name="col_sleep_master_title">Сплячий Вартовий</string>
+    <string name="col_sleep_master_desc">Доведіть, що ви майстер відновлення та здорового сну.</string>
+    <string name="col_ultimate_athlete_title">Абсолютний Чемпіон</string>
+    <string name="col_ultimate_athlete_desc">Відкрийте Легендарні рівні в усіх категоріях активності.</string>
+    <string name="col_year_of_health_title">Рік Здоров\'я</string>
+    <string name="col_year_of_health_desc">Зберіть досягнення за річні серії (кроки та ідеальний сон).</string>
 </resources>

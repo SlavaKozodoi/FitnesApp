@@ -10,18 +10,15 @@ import androidx.lifecycle.MutableLiveData;
 
 import com.example.fitnesapp.models.firebase.DailyData;
 import com.example.fitnesapp.models.firebase.HealthLogItem;
-import com.example.fitnesapp.models.firebase.SleepStageItem;
 import com.example.fitnesapp.models.firebase.UserProfile;
 import com.example.fitnesapp.models.firebase.WeightHistoryItem;
 import com.example.fitnesapp.models.firebase.WorkoutItem;
-import com.example.fitnesapp.utils.MLPredictor;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import java.text.SimpleDateFormat;
@@ -55,9 +52,6 @@ public class HomeViewModel extends AndroidViewModel {
     private boolean isPulseChartAnimated = false;
     private boolean isWeightChartAnimated = false;
 
-    private MLPredictor mlPredictor;
-    private Query historyQuery;
-    private List<DailyData> currentWeekHistory = new ArrayList<>();
     private String todayDate;
     private String uid;
 
@@ -73,7 +67,6 @@ public class HomeViewModel extends AndroidViewModel {
 
     public HomeViewModel(@NonNull Application application) {
         super(application);
-        mlPredictor = new MLPredictor(application);
 
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         uid = user != null ? user.getUid() : null;
@@ -84,10 +77,7 @@ public class HomeViewModel extends AndroidViewModel {
             userRef = FirebaseDatabase.getInstance().getReference("users").child(uid);
             todayDate = new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(new Date());
 
-            historyQuery = userRef.child("daily_data").orderByKey().limitToLast(8);
-
             loadProfile();
-            loadHistoryForML();
             loadTodayStats();
             loadChartsHistory();
             loadActiveDays();
@@ -116,32 +106,6 @@ public class HomeViewModel extends AndroidViewModel {
         });
     }
 
-    private void loadHistoryForML() {
-        historyQuery.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                List<DailyData> history = new ArrayList<>();
-                for (DataSnapshot child : snapshot.getChildren()) {
-                    String key = child.getKey();
-                    if (key != null && !key.equals(todayDate)) {
-                        DailyData d = child.getValue(DailyData.class);
-                        if (d != null) history.add(d);
-                    }
-                }
-                currentWeekHistory = history;
-
-                DailyData current = dailyData.getValue();
-                if (current != null && current.sleep != null && current.sleep.durationMinutes > 0) {
-                    enrichSleepWithML(current.sleep);
-                    dailyData.setValue(current);
-                }
-            }
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {}
-        });
-    }
-
-    // === ИЗМЕНЕНИЯ ЗДЕСЬ ===
     private void loadTodayStats() {
         userRef.child("daily_data").child(todayDate).addValueEventListener(new ValueEventListener() {
             @Override
@@ -155,9 +119,6 @@ public class HomeViewModel extends AndroidViewModel {
                         return;
                     }
 
-                    if (data.sleep != null && data.sleep.durationMinutes > 0) {
-                        enrichSleepWithML(data.sleep);
-                    }
                     dailyData.setValue(data);
                 }
             }
@@ -166,7 +127,6 @@ public class HomeViewModel extends AndroidViewModel {
         });
     }
 
-    // === НОВЫЙ МЕТОД ДЛЯ ПЕРЕНОСА ЦЕЛЕЙ ===
     private void fetchYesterdayGoalsAndSaveToToday() {
         if (uid == null || todayDate == null) return;
 
@@ -210,50 +170,6 @@ public class HomeViewModel extends AndroidViewModel {
                 Log.e("HomeViewModel", "Failed to fetch yesterday's goals", error.toException());
             }
         });
-    }
-    // ======================================
-
-    private void enrichSleepWithML(DailyData.Sleep sleep) {
-        if (sleep == null) return;
-        long totalSleep = sleep.durationMinutes;
-        long deepSleep = sleep.phases != null ? sleep.phases.deep : 0;
-        long remSleep = sleep.phases != null ? sleep.phases.rem : 0;
-
-        int awakenings = 0;
-        if (sleep.hypnogram != null && !sleep.hypnogram.isEmpty()) {
-            int previousStage = -1;
-            for (SleepStageItem item : sleep.hypnogram.values()) {
-                int currentStage = item.stage;
-                if (currentStage == 4 && previousStage != 4 && previousStage != -1) {
-                    awakenings++;
-                }
-                previousStage = currentStage;
-            }
-            if (awakenings > 0) awakenings--;
-        }
-
-        long totalHistorySleep = 0;
-        int validDays = 0;
-        for (DailyData day : currentWeekHistory) {
-            if (day.sleep != null && day.sleep.durationMinutes > 0) {
-                totalHistorySleep += day.sleep.durationMinutes;
-                validDays++;
-            }
-        }
-        long avgHistory = validDays > 0 ? totalHistorySleep / validDays : 420;
-
-        float mlScore = mlPredictor.predictSleepQuality(totalSleep, deepSleep, remSleep, awakenings, avgHistory);
-
-        if (mlScore >= 0f) {
-            sleep.score = Math.round(mlScore * 100);
-            if (mlScore >= 0.8f) sleep.quality = "Отлично";
-            else if (mlScore >= 0.5f) sleep.quality = "Норма";
-            else sleep.quality = "Плохо";
-        } else {
-            if ("Excellent".equalsIgnoreCase(sleep.quality)) sleep.quality = "Отлично";
-            else if ("Good".equalsIgnoreCase(sleep.quality)) sleep.quality = "Норма";
-            else if ("Poor".equalsIgnoreCase(sleep.quality)) sleep.quality = "Плохо";
-        }
     }
 
     private void loadChartsHistory() {
@@ -402,8 +318,5 @@ public class HomeViewModel extends AndroidViewModel {
     @Override
     protected void onCleared() {
         super.onCleared();
-        if (mlPredictor != null) {
-            mlPredictor.close();
-        }
     }
 }

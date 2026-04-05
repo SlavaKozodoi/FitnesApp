@@ -10,7 +10,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.ViewModelProvider;
 
-// 1. ИМПОРТИРУЕМ НАШ БАЗОВЫЙ КЛАСС ЗАГРУЗКИ
 import com.example.fitnesapp.ui.base.BaseLoadingFragment;
 import com.example.fitnesapp.R;
 import com.example.fitnesapp.databinding.FragmentPulseBinding;
@@ -25,7 +24,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-// 2. МЕНЯЕМ НАСЛЕДОВАНИЕ С Fragment НА BaseLoadingFragment
 public class PulseFragment extends BaseLoadingFragment {
 
     private PulseViewModel mViewModel;
@@ -60,18 +58,12 @@ public class PulseFragment extends BaseLoadingFragment {
             // 1. Рисуем график (как и было)
             updateChartUI(logs);
 
-            // 2. НОВАЯ ЛОГИКА: Обновляем цифру пульса последним значением
+            // 2. Обновляем цифру пульса последним значением
             if (logs != null && !logs.isEmpty()) {
-                // Берем последний элемент списка (самый свежий по времени)
                 HealthLogItem lastItem = logs.get(logs.size() - 1);
-
-                // Обновляем большую цифру
                 binding.tvPulseScore.setText(String.valueOf((int) lastItem.val));
-
-                // Обновляем статус (Very well / High и т.д.)
                 binding.tvPulseQuality.setText(getPulseStatus((int) lastItem.val));
             } else {
-                // Если истории нет, ставим прочерки
                 binding.tvPulseScore.setText("--");
                 binding.tvPulseQuality.setText("--");
             }
@@ -80,11 +72,15 @@ public class PulseFragment extends BaseLoadingFragment {
         // 5. ВЫЧИСЛЕННЫЕ ДАННЫЕ (Мин, Макс, Периоды)
         mViewModel.getAnalysisData().observe(getViewLifecycleOwner(), analysis -> {
             if (analysis != null) {
-                // Максимальный и минимальный
-                binding.tvHighestPulse.setText(analysis.maxPulse > 0 ? analysis.maxPulse + " bpm" : "--");
-                binding.tvLowestPulse.setText(analysis.minPulse > 0 ? analysis.minPulse + " bpm" : "--");
+                // Используем format_bpm и format_bpm_empty из HomeFragment
+                binding.tvHighestPulse.setText(analysis.maxPulse > 0
+                        ? getString(R.string.format_bpm, String.valueOf(analysis.maxPulse))
+                        : getString(R.string.format_bpm_empty));
 
-                // Периоды
+                binding.tvLowestPulse.setText(analysis.minPulse > 0
+                        ? getString(R.string.format_bpm, String.valueOf(analysis.minPulse))
+                        : getString(R.string.format_bpm_empty));
+
                 binding.tvActivePeriod.setText(analysis.activePeriod);
                 binding.tvRestPeriod.setText(analysis.restPeriod);
             }
@@ -93,8 +89,6 @@ public class PulseFragment extends BaseLoadingFragment {
         // ==========================================
         // 3. МАГИЯ ЗАГРУЗКИ (Вызываем в самом конце)
         // ==========================================
-        // view - это корень (binding.getRoot()), в котором лежат contentLayout и loadingOverlay
-        // 800 - это время загрузки в миллисекундах (0.8 секунды)
         startFakeLoading(view, 200);
     }
 
@@ -103,7 +97,6 @@ public class PulseFragment extends BaseLoadingFragment {
         ArrayList<String> labelsList = new ArrayList<>();
         SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm", Locale.getDefault());
 
-        // Просто парсим то, что пришло (если пришел пустой список, цикл просто не запустится)
         if (logs != null) {
             for (int i = 0; i < logs.size(); i++) {
                 HealthLogItem item = logs.get(i);
@@ -118,7 +111,6 @@ public class PulseFragment extends BaseLoadingFragment {
 
         String[] labels = labelsList.toArray(new String[0]);
 
-        // Отправляем в Хелпер. Он сам проверит: если entries пустой — нарисует красивую прямую линию!
         ChartHelper.setupUnifiedChart(
                 requireContext(),
                 binding.chartPulseInfo,
@@ -134,23 +126,40 @@ public class PulseFragment extends BaseLoadingFragment {
         DateHelper.setupHistoryCalendar(
                 requireContext(),
                 binding.recyclerViewPulse,
-                calendarDate -> {
-                    // При клике обновляем ViewModel
-                    // calendarDate.getDate() возвращает объект Date
-                    mViewModel.loadDataForDate(calendarDate.getDate());
-
-                    Toast.makeText(getContext(), "Date selected: " + calendarDate.getDayNumber(), Toast.LENGTH_SHORT).show();
-                }
+                calendarDate -> mViewModel.loadDataForDate(calendarDate.getDate())
         );
     }
 
-    // TODO: 13.01.2026 сделать лучшую оценку
     private String getPulseStatus(int pulse) {
-        if (pulse == 0) return "--";
-        if (pulse < 60) return "Low";
-        if (pulse < 85) return "Normal";
-        if (pulse < 100) return "Elevated";
-        return "High";
+        if (pulse <= 0) return "--";
+
+        // Спортивное сердце (Брадикардия здорового человека)
+        if (pulse < 55) {
+            return getString(R.string.pulse_status_athletic);
+        }
+
+        // Идеальный пульс здорового человека в покое
+        if (pulse >= 55 && pulse <= 70) {
+            return getString(R.string.pulse_status_excellent);
+        }
+
+        // Абсолютная медицинская норма
+        if (pulse > 70 && pulse <= 85) {
+            return getString(R.string.pulse_status_normal);
+        }
+
+        // Повышенный (после еды, кофе, легкий стресс или ходьба)
+        if (pulse > 85 && pulse <= 100) {
+            return getString(R.string.pulse_status_elevated);
+        }
+
+        // Выше 100 (Тахикардия в покое или легкая разминка)
+        if (pulse > 100 && pulse <= 120) {
+            return getString(R.string.pulse_status_high);
+        }
+
+        // Явная физическая нагрузка или сильный стресс
+        return getString(R.string.pulse_status_intense);
     }
 
     @Override

@@ -53,7 +53,6 @@ public class CalendarPagerAdapter extends RecyclerView.Adapter<CalendarPagerAdap
     public int getItemCount() {
         return weeks.size();
     }
-    // В классе CalendarPagerAdapter
 
     public void setSelectedDate(CalendarDate date) {
         this.selectedDateGlobal = date;

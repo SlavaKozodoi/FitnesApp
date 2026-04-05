@@ -74,7 +74,7 @@
                         android:layout_marginStart="14dp"
                         android:layout_marginTop="15dp"
                         android:fontFamily="@font/nobile"
-                        android:text="Heart rate"
+                        android:text="@string/pulse_heart_rate"
                         android:textColor="@color/text"
                         android:textSize="16sp"
                         app:layout_constraintBottom_toTopOf="@+id/tvPulseQuality"
@@ -128,7 +128,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="14dp"
                                 android:fontFamily="@font/nobile_bold"
-                                android:text="Rest period"
+                                android:text="@string/pulse_rest_period"
                                 android:textColor="@color/text"
                                 android:textSize="16sp"
                                 app:layout_constraintStart_toStartOf="@+id/guideline3"
@@ -155,7 +155,7 @@
                                 android:layout_marginStart="14dp"
                                 android:layout_marginTop="14dp"
                                 android:fontFamily="@font/nobile_bold"
-                                android:text="Active period"
+                                android:text="@string/pulse_active_period"
                                 android:textColor="@color/text"
                                 android:textSize="16sp"
                                 app:layout_constraintStart_toStartOf="parent"
@@ -201,7 +201,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="14dp"
                                 android:fontFamily="@font/nobile_bold"
-                                android:text="Lowest"
+                                android:text="@string/oxygen_lowest"
                                 android:textColor="@color/text"
                                 app:layout_constraintStart_toStartOf="@+id/guideline3"
                                 app:layout_constraintTop_toTopOf="parent" />
@@ -213,7 +213,7 @@
                                 android:layout_marginStart="14dp"
                                 android:layout_marginTop="14dp"
                                 android:fontFamily="@font/nobile_bold"
-                                android:text="Highest"
+                                android:text="@string/oxygen_highest"
                                 android:textColor="@color/text"
                                 android:textSize="16sp"
                                 app:layout_constraintStart_toStartOf="parent"
@@ -256,7 +256,7 @@
                 android:layout_marginStart="10dp"
                 android:layout_marginTop="21dp"
                 android:layout_toEndOf="@+id/imageView3"
-                android:text="Name"
+                android:text="@string/setup_profile_name"
                 android:textColor="@color/text_smuf"
                 android:textSize="20sp" />
 
@@ -268,7 +268,7 @@
                 android:layout_marginStart="10dp"
                 android:layout_marginTop="50dp"
                 android:layout_toEndOf="@+id/imageView3"
-                android:text="Secondname"
+                android:text="@string/setup_profile_surname"
                 android:textColor="@color/text_smuf"
                 android:textSize="20sp" />
 
@@ -279,7 +279,9 @@
         android:id="@+id/loadingOverlay"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#121212" android:elevation="10dp"
+        android:background="#121212"
+        android:elevation="10dp"
+        android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -287,8 +289,12 @@
 
         <com.airbnb.lottie.LottieAnimationView
             android:id="@+id/lottieAnimation"
-            android:layout_width="150dp"  android:layout_height="150dp"
+            android:layout_width="150dp"
+            android:layout_height="150dp"
             android:layout_gravity="center"
-            app:lottie_rawRes="@raw/loading_anim" app:lottie_autoPlay="true" app:lottie_loop="true" />  </FrameLayout>
+            app:lottie_autoPlay="true"
+            app:lottie_loop="true"
+            app:lottie_rawRes="@raw/loading_anim" />
+    </FrameLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

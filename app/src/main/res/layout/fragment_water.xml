@@ -86,14 +86,6 @@
         app:layout_constraintTop_toBottomOf="@+id/llWaterButtons">
 
         <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:fontFamily="@font/nobile_bold"
-            android:text="📊 Почему такая норма?"
-            android:textColor="#FFD54F"
-            android:textSize="14sp" />
-
-        <TextView
             android:id="@+id/tvAdviceText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -153,70 +145,12 @@
 
     </LinearLayout>
 
-    <LinearLayout
-        android:id="@+id/llFeedback"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="24dp"
-        android:background="@drawable/bg_chart_dark"
-        android:orientation="vertical"
-        android:padding="16dp"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="@+id/frameSilhouette"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent">
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:fontFamily="@font/nobile_bold"
-            android:text="Вечерний чек-ап: Как тебе норма на сегодня?"
-            android:textAlignment="center"
-            android:textColor="@android:color/white"
-            android:textSize="14sp" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:gravity="center"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/btnFeedbackTooMuch"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:backgroundTint="#2A3A4A"
-                android:text="🥵 Много"
-                android:textColor="@color/white"
-                android:textSize="12sp" />
-
-            <Button
-                android:id="@+id/btnFeedbackPerfect"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:backgroundTint="@color/accent_color"
-                android:text="👍 Супер"
-                android:textColor="@color/secondary"
-                android:textSize="12sp" />
-
-            <Button
-                android:id="@+id/btnFeedbackThirsty"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:backgroundTint="#2A3A4A"
-                android:text="🐫 Мало"
-                android:textColor="@color/white"
-                android:textSize="12sp" />
-        </LinearLayout>
-    </LinearLayout>
     <FrameLayout
         android:id="@+id/loadingOverlay"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/bg2" android:elevation="10dp"
+        android:background="@color/bg2"
+        android:elevation="10dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -224,9 +158,13 @@
 
         <com.airbnb.lottie.LottieAnimationView
             android:id="@+id/lottieAnimation"
-            android:layout_width="150dp"  android:layout_height="150dp"
+            android:layout_width="150dp"
+            android:layout_height="150dp"
             android:layout_gravity="center"
-            app:lottie_rawRes="@raw/loading_anim" app:lottie_autoPlay="true" app:lottie_loop="true" />  </FrameLayout>
+            app:lottie_autoPlay="true"
+            app:lottie_loop="true"
+            app:lottie_rawRes="@raw/loading_anim" />
+    </FrameLayout>
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

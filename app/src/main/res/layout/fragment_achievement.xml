@@ -35,7 +35,7 @@
                 android:fontFamily="@font/inter_medium"
                 android:gravity="center"
                 android:paddingHorizontal="16dp"
-                android:text="Recommended"
+                android:text="@string/achievements_recommended"
                 android:textColor="@drawable/selector_tab_text" />
 
             <RadioButton
@@ -48,7 +48,7 @@
                 android:fontFamily="@font/inter_medium"
                 android:gravity="center"
                 android:paddingHorizontal="16dp"
-                android:text="Collections"
+                android:text="@string/achievements_collections"
                 android:textColor="@drawable/selector_tab_text" />
 
             <RadioButton
@@ -61,7 +61,7 @@
                 android:fontFamily="@font/inter_medium"
                 android:gravity="center"
                 android:paddingHorizontal="16dp"
-                android:text="Milestones"
+                android:text="@string/achievements_milestones"
                 android:textColor="@drawable/selector_tab_text" />
 
             <RadioButton
@@ -73,7 +73,7 @@
                 android:fontFamily="@font/inter_medium"
                 android:gravity="center"
                 android:paddingHorizontal="16dp"
-                android:text="Legendary"
+                android:text="@string/achievements_legendary"
                 android:textColor="@drawable/selector_tab_text" />
 
         </RadioGroup>

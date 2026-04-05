@@ -1,4 +1,5 @@
 package com.example.fitnesapp.ui.auth;
+
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -9,7 +10,6 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.fitnesapp.MainActivity;
 import com.example.fitnesapp.R;
 import com.example.fitnesapp.models.firebase.UserProfile;
 import com.example.fitnesapp.ui.setupprofile.SetupProfileActivity;
@@ -55,17 +55,17 @@ public class RegisterActivity extends AppCompatActivity {
         String email = etEmail.getText().toString().trim();
         String password = etPassword.getText().toString().trim();
 
-        // 1. Простая валидация
+        // 1. Простая валидация с локализованными строками
         if (TextUtils.isEmpty(name)) {
-            etName.setError("Enter name");
+            etName.setError(getString(R.string.register_error_enter_name));
             return;
         }
         if (TextUtils.isEmpty(email)) {
-            etEmail.setError("Enter email");
+            etEmail.setError(getString(R.string.auth_error_enter_email)); // Используем строку из Auth
             return;
         }
         if (password.length() < 6) {
-            etPassword.setError("Password must be > 6 chars");
+            etPassword.setError(getString(R.string.register_error_password_length));
             return;
         }
 
@@ -73,11 +73,14 @@ public class RegisterActivity extends AppCompatActivity {
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
-                        // Успех! Теперь создаем профиль в базе данных
+                        // Теперь создаем профиль в базе данных
                         FirebaseUser firebaseUser = mAuth.getCurrentUser();
                         saveUserToDatabase(firebaseUser.getUid(), name, email);
                     } else {
-                        Toast.makeText(RegisterActivity.this, "Ошибка: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                        // Локализованная ошибка с подстановкой текста исключения
+                        Toast.makeText(RegisterActivity.this,
+                                getString(R.string.register_error_failed, task.getException().getMessage()),
+                                Toast.LENGTH_SHORT).show();
                     }
                 });
     }
@@ -99,10 +102,12 @@ public class RegisterActivity extends AppCompatActivity {
                         Intent intent = new Intent(RegisterActivity.this, SetupProfileActivity.class);
                         startActivity(intent);
                         finishAffinity();
+                    } else {
+                        // Локализованная ошибка при сбое сохранения профиля
+                        Toast.makeText(RegisterActivity.this,
+                                getString(R.string.register_error_profile_save),
+                                Toast.LENGTH_SHORT).show();
                     }
-                    else {
-                        Toast.makeText(RegisterActivity.this, "Не удалось сохранить профиль", Toast.LENGTH_SHORT).show();
-                        }
-                    });
+                });
     }
 }

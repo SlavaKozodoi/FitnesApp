@@ -24,7 +24,6 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
-import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.fitnesapp.R;
@@ -38,23 +37,7 @@ public class WaterFragment extends BaseLoadingFragment {
     private ImageView ivWater250, ivWater500, ivWater750, ivWater1000, ivAddOwnWater;
     private FrameLayout frameSilhouette;
 
-    // Элементы вечернего фидбека
-    private LinearLayout llFeedback;
-    private Button btnFeedbackTooMuch, btnFeedbackPerfect, btnFeedbackThirsty;
-
     private int currentAnimLevel = 0;
-
-    // ==========================================
-    // ЛОКАЦИЯ ДЛЯ ПОГОДЫ
-    // ==========================================
-    private final ActivityResultLauncher<String> requestPermissionLauncher =
-            registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
-                if (isGranted) {
-                    getLocationAndFetchWeather();
-                } else {
-                    viewModel.calculateWithoutWeather();
-                }
-            });
 
     @SuppressLint("MissingInflatedId")
     @Nullable
@@ -73,11 +56,6 @@ public class WaterFragment extends BaseLoadingFragment {
         frameSilhouette = root.findViewById(R.id.frameSilhouette);
         ivAddOwnWater = root.findViewById(R.id.IVwaterPlus);
 
-        llFeedback = root.findViewById(R.id.llFeedback);
-        btnFeedbackTooMuch = root.findViewById(R.id.btnFeedbackTooMuch);
-        btnFeedbackPerfect = root.findViewById(R.id.btnFeedbackPerfect);
-        btnFeedbackThirsty = root.findViewById(R.id.btnFeedbackThirsty);
-
         return root;
     }
 
@@ -87,13 +65,6 @@ public class WaterFragment extends BaseLoadingFragment {
 
         viewModel = new ViewModelProvider(this).get(WaterViewModel.class);
 
-        // Проверка разрешений на гео (для погоды)
-        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            getLocationAndFetchWeather();
-        } else {
-            requestPermissionLauncher.launch(Manifest.permission.ACCESS_COARSE_LOCATION);
-        }
-
         // Подписки на UI
         viewModel.getConsumedWater().observe(getViewLifecycleOwner(), consumed -> updateUI());
         viewModel.getWaterGoal().observe(getViewLifecycleOwner(), goal -> updateUI());
@@ -102,22 +73,10 @@ public class WaterFragment extends BaseLoadingFragment {
             if (tvAdviceText != null) tvAdviceText.setText(advice);
         });
 
-        // Кнопки обратной связи (вечернее обучение ИИ)
-        btnFeedbackTooMuch.setOnClickListener(v -> viewModel.submitFeedback(1));
-        btnFeedbackPerfect.setOnClickListener(v -> viewModel.submitFeedback(2));
-        btnFeedbackThirsty.setOnClickListener(v -> viewModel.submitFeedback(3));
+        // КЛИКИ
+        tvWaterVolume.setOnClickListener(v -> showEditWaterGoalDialog());
 
-        viewModel.getIsFeedbackGiven().observe(getViewLifecycleOwner(), hasVoted -> {
-            int hour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY);
-            // Показываем опрос только после 20:00, если пользователь еще не голосовал
-            if (hour >= 20 && !hasVoted) {
-                llFeedback.setVisibility(View.VISIBLE);
-            } else {
-                llFeedback.setVisibility(View.GONE);
-            }
-        });
-
-        // КЛИКИ ДОБАВЛЕНИЯ (Теперь идут через нашу проверку на "спам" и баловство)
+        // КЛИКИ ДОБАВЛЕНИЯ
         ivWater250.setOnClickListener(v -> tryAddWater(250));
         ivWater500.setOnClickListener(v -> tryAddWater(500));
         ivWater750.setOnClickListener(v -> tryAddWater(750));
@@ -131,26 +90,6 @@ public class WaterFragment extends BaseLoadingFragment {
         });
 
         startFakeLoading(view, 200);
-
-    }
-
-    @SuppressLint("MissingPermission")
-    private void getLocationAndFetchWeather() {
-        LocationManager locationManager = (LocationManager) requireContext().getSystemService(Context.LOCATION_SERVICE);
-        if (locationManager != null) {
-            Location location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-            if (location == null) {
-                location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-            }
-
-            if (location != null) {
-                viewModel.fetchWeatherAndCalculate(location.getLatitude(), location.getLongitude());
-            } else {
-                viewModel.calculateWithoutWeather();
-            }
-        } else {
-            viewModel.calculateWithoutWeather();
-        }
     }
 
     // ==========================================
@@ -160,45 +99,44 @@ public class WaterFragment extends BaseLoadingFragment {
         Integer currentConsumed = viewModel.getConsumedWater().getValue();
         if (currentConsumed == null) currentConsumed = 0;
 
-        // Если общая сумма за день превысит 5 литров (опасность интоксикации)
         if (currentConsumed + amountToAdd > 5000) {
             new android.app.AlertDialog.Builder(requireContext())
-                    .setTitle("Перебор с водой?")
-                    .setMessage("Вы добавили уже очень много воды за сегодня (больше 5 литров!). Избыток воды может привести к водной интоксикации и вымыванию солей. Добавить всё равно?")
-                    .setPositiveButton("Да, добавить", (dialog, which) -> {
+                    .setTitle(getString(R.string.water_warning_spam_title))
+                    .setMessage(getString(R.string.water_warning_spam_desc))
+                    .setPositiveButton(getString(R.string.water_warning_yes_add), (dialog, which) -> {
                         viewModel.addWater(amountToAdd);
                     })
-                    .setNegativeButton("Отмена", null)
+                    .setNegativeButton(getString(R.string.water_warning_cancel), null)
                     .show();
             return;
         }
 
-        // Если добавляет больше 1500 мл за один раз (даже если общая сумма еще норм)
         if (amountToAdd > 1500) {
             new android.app.AlertDialog.Builder(requireContext())
-                    .setTitle("Осторожно!")
-                    .setMessage("Выпить более 1.5 литров воды за один раз может быть вредно для почек. Вы уверены, что выпили так много за раз?")
-                    .setPositiveButton("Да, я выпил столько", (dialog, which) -> {
+                    .setTitle(getString(R.string.water_warning_caution_title))
+                    .setMessage(getString(R.string.water_warning_caution_desc))
+                    .setPositiveButton(getString(R.string.water_warning_yes_drank), (dialog, which) -> {
                         viewModel.addWater(amountToAdd);
                     })
-                    .setNegativeButton("Отмена", null)
+                    .setNegativeButton(getString(R.string.water_warning_cancel), null)
                     .show();
             return;
         }
 
-        // Если всё в порядке — просто добавляем воду
         viewModel.addWater(amountToAdd);
     }
 
     // ==========================================
-    // ДИАЛОГ СВОЕГО ОБЪЕМА
+    // ДИАЛОГИ ВВОДА (ОДНА РАЗМЕТКА НА ДВА ДЕЙСТВИЯ)
     // ==========================================
+
+    // 1. Диалог для ввода СВОЕГО ОБЪЕМА выпитой воды
     private void showCustomWaterDialog() {
         android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(requireContext());
         View customView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_edit_goal, null);
 
         TextView tvTitle = customView.findViewById(R.id.tvDialogTitle);
-        tvTitle.setText("Add custom volume");
+        tvTitle.setText(getString(R.string.water_dialog_custom_volume_title));
 
         EditText etAmount = customView.findViewById(R.id.etGoalInput);
         TextView btnCancel = customView.findViewById(R.id.btnCancel);
@@ -219,23 +157,75 @@ public class WaterFragment extends BaseLoadingFragment {
                 try {
                     int customAmount = Integer.parseInt(input);
                     if (customAmount > 0) {
-                        // ПРОПУСКАЕМ ВВЕДЕННОЕ ЗНАЧЕНИЕ ЧЕРЕЗ НАШУ ПРОВЕРКУ НА БАЛОВСТВО
                         tryAddWater(customAmount);
                         dialog.dismiss();
                     } else {
-                        Toast.makeText(requireContext(), "Enter a valid amount", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(requireContext(), getString(R.string.water_error_valid_amount), Toast.LENGTH_SHORT).show();
                     }
                 } catch (NumberFormatException e) {
-                    Toast.makeText(requireContext(), "Invalid number", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(requireContext(), getString(R.string.water_error_invalid_number), Toast.LENGTH_SHORT).show();
                 }
             } else {
-                Toast.makeText(requireContext(), "Field cannot be empty", Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(), getString(R.string.water_error_empty_field), Toast.LENGTH_SHORT).show();
             }
         });
 
         dialog.show();
     }
 
+    // 2. Диалог для ИЗМЕНЕНИЯ ДНЕВНОЙ НОРМЫ
+    private void showEditWaterGoalDialog() {
+        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(requireContext());
+        View customView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_edit_goal, null);
+
+        TextView tvTitle = customView.findViewById(R.id.tvDialogTitle);
+        tvTitle.setText(getString(R.string.water_dialog_edit_goal_title));
+
+        EditText etAmount = customView.findViewById(R.id.etGoalInput);
+
+        Integer currentGoal = viewModel.getWaterGoal().getValue();
+        if (currentGoal != null) {
+            etAmount.setText(String.valueOf(currentGoal));
+        }
+
+        TextView btnCancel = customView.findViewById(R.id.btnCancel);
+        TextView btnSave = customView.findViewById(R.id.btnSave);
+
+        builder.setView(customView);
+        android.app.AlertDialog dialog = builder.create();
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
+
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+
+        btnSave.setOnClickListener(v -> {
+            String input = etAmount.getText().toString().trim();
+            if (!input.isEmpty()) {
+                try {
+                    int customGoal = Integer.parseInt(input);
+                    if (customGoal >= 500 && customGoal <= 8000) {
+                        viewModel.setCustomWaterGoal(customGoal);
+                        dialog.dismiss();
+                        Toast.makeText(requireContext(), getString(R.string.water_toast_goal_updated), Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(requireContext(), getString(R.string.water_error_realistic_goal), Toast.LENGTH_SHORT).show();
+                    }
+                } catch (NumberFormatException e) {
+                    Toast.makeText(requireContext(), getString(R.string.water_error_invalid_number), Toast.LENGTH_SHORT).show();
+                }
+            } else {
+                Toast.makeText(requireContext(), getString(R.string.water_error_empty_field), Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        dialog.show();
+    }
+
+    // ==========================================
+    // ОБНОВЛЕНИЕ UI
+    // ==========================================
     private void updateUI() {
         Integer consumed = viewModel.getConsumedWater().getValue();
         Integer goal = viewModel.getWaterGoal().getValue();
@@ -243,12 +233,14 @@ public class WaterFragment extends BaseLoadingFragment {
         if (consumed == null) consumed = 0;
         if (goal == null || goal == 0) goal = 2500;
 
-        tvWaterVolume.setText(consumed + " / " + goal + " ml");
+        // Используем локализованный формат (например: "%1$d / %2$d ml")
+        tvWaterVolume.setText(getString(R.string.format_water_volume, consumed, goal));
 
         int percent = (int) (((float) consumed / goal) * 100);
         if (percent > 100) percent = 100;
 
-        tvWaterPercent.setText(percent + "%");
+        // Используем формат процента из предыдущих настроек (например: "%1$d%%")
+        tvWaterPercent.setText(getString(R.string.format_percent, percent));
 
         // Плавная анимация воды
         int targetLevel = percent * 100;

@@ -274,7 +274,13 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:layout_marginStart="5dp"
+                                    android:autoSizeMaxTextSize="16sp"
+                                    android:autoSizeMinTextSize="10sp"
+                                    android:autoSizeStepGranularity="1sp"
+                                    android:autoSizeTextType="uniform"
                                     android:fontFamily="@font/nobile_bold"
+                                    android:gravity="center_vertical"
+                                    android:maxLines="1"
                                     android:text="@string/text_oxygenLvl"
                                     android:textColor="@color/text"
                                     android:textSize="20sp"
@@ -398,8 +404,8 @@
                             android:background="@android:color/transparent"
                             android:baselineAligned="false"
                             android:orientation="horizontal"
-                            android:paddingStart="16dp"
-                            android:paddingEnd="16dp">
+                            android:paddingStart="8dp"
+                            android:paddingEnd="8dp">
 
                             <LinearLayout
                                 android:layout_width="0dp"
@@ -489,7 +495,12 @@
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
+                                    android:autoSizeMaxTextSize="18sp"
+                                    android:autoSizeMinTextSize="10sp"
+                                    android:autoSizeStepGranularity="1sp"
+                                    android:autoSizeTextType="uniform"
                                     android:fontFamily="@font/nobile_bold"
+                                    android:maxLines="1"
                                     android:shadowColor="#80000000"
                                     android:shadowDx="2"
                                     android:shadowDy="2"
@@ -593,7 +604,7 @@
                     android:layout_marginStart="10dp"
                     android:layout_marginTop="21dp"
                     android:layout_toEndOf="@+id/imageView3"
-                    android:text="Name"
+                    android:text="@string/setup_profile_name"
                     android:textColor="@color/text_smuf"
                     android:textSize="20sp" />
 
@@ -605,7 +616,7 @@
                     android:layout_marginStart="10dp"
                     android:layout_marginTop="50dp"
                     android:layout_toEndOf="@+id/imageView3"
-                    android:text="Secondname"
+                    android:text="@string/setup_profile_surname"
                     android:textColor="@color/text_smuf"
                     android:textSize="20sp" />
 

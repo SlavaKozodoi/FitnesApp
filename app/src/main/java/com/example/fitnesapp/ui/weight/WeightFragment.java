@@ -16,7 +16,7 @@ import androidx.lifecycle.ViewModelProvider;
 import com.example.fitnesapp.ui.base.BaseLoadingFragment;
 import com.example.fitnesapp.R;
 import com.example.fitnesapp.databinding.FragmentWeightBinding;
-import com.example.fitnesapp.models.firebase.WeightHistoryItem; // Ваша модель
+import com.example.fitnesapp.models.firebase.WeightHistoryItem;
 import com.example.fitnesapp.utils.ChartHelper;
 import com.github.mikephil.charting.data.Entry;
 
@@ -33,7 +33,6 @@ public class WeightFragment extends BaseLoadingFragment {
     private WeightViewModel mViewModel;
     private FragmentWeightBinding binding;
 
-    // Список вашей модели
     private List<WeightHistoryItem> allWeightHistory = new ArrayList<>();
 
     private double userHeightMeters = 0;
@@ -50,6 +49,11 @@ public class WeightFragment extends BaseLoadingFragment {
         super.onViewCreated(view, savedInstanceState);
 
         mViewModel = new ViewModelProvider(this).get(WeightViewModel.class);
+
+        // Используем формат строк для правильной интернационализации кнопок
+        binding.button.setText(getString(R.string.weight_btn_format, 1, getString(R.string.weight_month)));
+        binding.button2.setText(getString(R.string.weight_btn_format, 3, getString(R.string.weight_month)));
+        binding.button3.setText(getString(R.string.weight_btn_format, 6, getString(R.string.weight_month)));
 
         setupTimeFilters();
 
@@ -94,10 +98,11 @@ public class WeightFragment extends BaseLoadingFragment {
                 double bmi = weight / (userHeightMeters * userHeightMeters);
                 binding.tvBMI.setText(String.format(Locale.US, "%.1f", bmi));
 
-                String status = "Normal";
-                if (bmi < 18.5) status = "Underweight";
-                else if (bmi >= 25 && bmi < 30) status = "Overweight";
-                else if (bmi >= 30) status = "Obese";
+                // Используем локализованные ресурсы статусов
+                String status = getString(R.string.weight_status_normal);
+                if (bmi < 18.5) status = getString(R.string.weight_status_underweight);
+                else if (bmi >= 25 && bmi < 30) status = getString(R.string.weight_status_overweight);
+                else if (bmi >= 30) status = getString(R.string.weight_status_obese);
 
                 binding.tvWeightStat.setText(status);
             }
@@ -120,8 +125,6 @@ public class WeightFragment extends BaseLoadingFragment {
     }
 
     private void updateChartForPeriod(int months) {
-
-
         // 1. Вычисляем дату отсечения
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.MONTH, -months);
@@ -130,9 +133,7 @@ public class WeightFragment extends BaseLoadingFragment {
         ArrayList<Entry> entries = new ArrayList<>();
         ArrayList<String> labelsList = new ArrayList<>();
 
-        // Формат даты в базе данных: "2026-01-22"
         SimpleDateFormat dbFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
-        // Формат даты для графика: "22.01"
         SimpleDateFormat chartFormat = new SimpleDateFormat("dd.MM", Locale.getDefault());
 
         float max = Float.MIN_VALUE;
@@ -141,7 +142,6 @@ public class WeightFragment extends BaseLoadingFragment {
 
         for (WeightHistoryItem record : allWeightHistory) {
             try {
-                // ПАРСИНГ: Превращаем строку из базы в дату
                 Date dateObj = dbFormat.parse(record.date);
 
                 if (dateObj != null && dateObj.getTime() >= cutoffTime) {
@@ -151,7 +151,6 @@ public class WeightFragment extends BaseLoadingFragment {
                     if (val < min) min = val;
 
                     entries.add(new Entry(index, val));
-                    // Форматируем для оси X
                     labelsList.add(chartFormat.format(dateObj));
                     index++;
                 }
@@ -162,12 +161,13 @@ public class WeightFragment extends BaseLoadingFragment {
 
         // ЗАЩИТА ТЕКСТА ОТ СУМАСШЕДШИХ ЦИФР
         if (entries.isEmpty()) {
-            binding.tvHighestWeight.setText("--");
-            binding.tvLowestWeight.setText("--");
+            // Используем пустой формат из HomeFragment
+            binding.tvHighestWeight.setText(getString(R.string.format_kg_empty));
+            binding.tvLowestWeight.setText(getString(R.string.format_kg_empty));
         } else {
-            // Если данные есть, выводим реальные макс и мин
-            binding.tvHighestWeight.setText(String.format(Locale.US, "%.1f kg", max));
-            binding.tvLowestWeight.setText(String.format(Locale.US, "%.1f kg", min));
+            // Используем формат кг из HomeFragment
+            binding.tvHighestWeight.setText(getString(R.string.format_kg, max));
+            binding.tvLowestWeight.setText(getString(R.string.format_kg, min));
         }
 
         String[] labels = labelsList.toArray(new String[0]);

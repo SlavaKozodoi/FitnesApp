@@ -135,12 +135,6 @@ public class PulseViewModel extends ViewModel {
     private void loadPulseHistory(String dateKey) {
         if (userRef == null) return;
 
-        // Важно: health_logs обычно хранятся просто списком, либо по датам.
-        // Если у вас структура health_logs -> pulse -> [список всех времен],
-        // нам нужно фильтровать их. Но для простоты предположим, что мы берем последние 100
-        // и фильтруем по дате, ЛИБО у вас структура health_logs -> date -> pulse.
-        // *В этом решении я предполагаю, что health_logs общий, и мы фильтруем в коде.*
-
         historyListener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -227,13 +221,13 @@ public class PulseViewModel extends ViewModel {
         if (activeStartTime > 0 && activeEndTime > 0) {
             analysis.activePeriod = timeFormat.format(new Date(activeStartTime)) + " - " + timeFormat.format(new Date(activeEndTime));
         } else {
-            analysis.activePeriod = "None";
+            analysis.activePeriod = "--";
         }
 
         if (restStartTime > 0 && restEndTime > 0) {
             analysis.restPeriod = timeFormat.format(new Date(restStartTime)) + " - " + timeFormat.format(new Date(restEndTime));
         } else {
-            analysis.restPeriod = "None";
+            analysis.restPeriod = "--";
         }
 
         analysisData.setValue(analysis);

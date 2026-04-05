@@ -18,7 +18,6 @@ import java.util.List;
 
 public class AdviceHistoryAdapter extends RecyclerView.Adapter<AdviceHistoryAdapter.AdviceViewHolder> {
 
-    // Теперь это реальный список советов от ИИ-тренера, а не просто заглушка
     private final List<Edvice> adviceList;
     private final Context context;
 
@@ -43,7 +42,7 @@ public class AdviceHistoryAdapter extends RecyclerView.Adapter<AdviceHistoryAdap
         holder.imageView.setImageResource(currentAdvice.getImageEdvice());
         holder.tvDate.setText(currentAdvice.getTime());
 
-        // НОВОЕ: Устанавливаем подробное описание совета
+        // Устанавливаем подробное описание совета
         if (holder.tvDescription != null) {
             holder.tvDescription.setText(currentAdvice.getDescription());
         }
@@ -70,9 +69,6 @@ public class AdviceHistoryAdapter extends RecyclerView.Adapter<AdviceHistoryAdap
             tvTitle = itemView.findViewById(R.id.tvTitleAdvice);
             imageView = itemView.findViewById(R.id.imageViewAdvice);
             tvDate = itemView.findViewById(R.id.tvTimeAdvice);
-
-            // НОВОЕ: Находим TextView описания по ID.
-            // ВАЖНО: Убедитесь, что ID (tvDescriptionAdvice) совпадает с тем, что вы написали в XML!
             tvDescription = itemView.findViewById(R.id.tvDescriptionAdvice);
         }
     }

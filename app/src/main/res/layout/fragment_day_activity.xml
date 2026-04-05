@@ -304,7 +304,7 @@
                 android:layout_marginStart="10dp"
                 android:layout_marginTop="21dp"
                 android:layout_toEndOf="@+id/imageView3"
-                android:text="Name"
+                android:text="@string/setup_profile_name"
                 android:textColor="@color/text_smuf"
                 android:textSize="20sp" />
 
@@ -316,17 +316,19 @@
                 android:layout_marginStart="10dp"
                 android:layout_marginTop="50dp"
                 android:layout_toEndOf="@+id/imageView3"
-                android:text="Secondname"
+                android:text="@string/setup_profile_surname"
                 android:textColor="@color/text_smuf"
                 android:textSize="20sp" />
 
         </RelativeLayout>
     </ScrollView>
+
     <FrameLayout
         android:id="@+id/loadingOverlay"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/bg2" android:elevation="10dp"
+        android:background="@color/bg2"
+        android:elevation="10dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -334,7 +336,11 @@
 
         <com.airbnb.lottie.LottieAnimationView
             android:id="@+id/lottieAnimation"
-            android:layout_width="150dp"  android:layout_height="150dp"
+            android:layout_width="150dp"
+            android:layout_height="150dp"
             android:layout_gravity="center"
-            app:lottie_rawRes="@raw/loading_anim" app:lottie_autoPlay="true" app:lottie_loop="true" />  </FrameLayout>
+            app:lottie_autoPlay="true"
+            app:lottie_loop="true"
+            app:lottie_rawRes="@raw/loading_anim" />
+    </FrameLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

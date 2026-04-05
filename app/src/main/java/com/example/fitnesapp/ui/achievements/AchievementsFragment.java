@@ -54,7 +54,6 @@ public class AchievementsFragment extends Fragment {
 
     private void setupRecyclerView() {
         binding.recyclerAchievements.setLayoutManager(new LinearLayoutManager(getContext()));
-        // Отступ снизу (опционально)
         binding.recyclerAchievements.setPadding(0, 0, 0, 200);
         binding.recyclerAchievements.setClipToPadding(false);
     }
@@ -80,16 +79,19 @@ public class AchievementsFragment extends Fragment {
         List<Achievement> filtered = new ArrayList<>();
         int selectedId = binding.tabsContainer.getCheckedRadioButtonId();
 
-        String targetCategory = "Recommended";
-        if (selectedId == R.id.tabCollections) targetCategory = "Collections";
-        else if (selectedId == R.id.tabMilestones) targetCategory = "Milestones";
-        else if (selectedId == R.id.tabLegendary) targetCategory = "Legendary";
+        // ИСПРАВЛЕНИЕ 1: Сравниваем строго с АНГЛИЙСКИМИ ключами из базы данных Firebase,
+        // иначе при переключении языка фильтр сломается и список будет пустым!
+        String targetCategoryDbKey = "Recommended";
+        if (selectedId == R.id.tabCollections) targetCategoryDbKey = "Collections";
+        else if (selectedId == R.id.tabMilestones) targetCategoryDbKey = "Milestones";
+        else if (selectedId == R.id.tabLegendary) targetCategoryDbKey = "Legendary";
 
         for (Achievement a : fullList) {
-            if (a.category.equalsIgnoreCase(targetCategory)) {
-                if (targetCategory.equals("Collections")) {
+            // Проверяем совпадение с ключом из БД
+            if (a.category.equalsIgnoreCase(targetCategoryDbKey)) {
+                if (targetCategoryDbKey.equals("Collections")) {
                     if (a.isCollected) filtered.add(a);
-                    else if (!a.isCollected) filtered.add(a); // В коллекциях показываем всё (и собранное, и нет)
+                    else if (!a.isCollected) filtered.add(a);
                 } else {
                     if (!a.isCollected) filtered.add(a);
                 }
@@ -99,15 +101,12 @@ public class AchievementsFragment extends Fragment {
         Collections.sort(filtered, new Comparator<Achievement>() {
             @Override
             public int compare(Achievement o1, Achievement o2) {
-                // 1. Готовые к сбору - выше
                 if (o1.isCompleted && !o2.isCompleted && !o1.isCollected) return -1;
                 if (!o1.isCompleted && o2.isCompleted && !o2.isCollected) return 1;
 
-                // 2. Открытые выше закрытых
                 if (!o1.isLocked && o2.isLocked) return -1;
                 if (o1.isLocked && !o2.isLocked) return 1;
 
-                // 3. По порядку (Target)
                 return Integer.compare(o1.target, o2.target);
             }
         });
@@ -116,7 +115,8 @@ public class AchievementsFragment extends Fragment {
             @Override
             public void onCollectClick(Achievement achievement) {
                 mViewModel.collectAchievement(achievement);
-                Toast.makeText(getContext(), "Collected " + achievement.xpReward + " XP!", Toast.LENGTH_SHORT).show();
+                // ИСПРАВЛЕНИЕ 2: Правильный вызов getString()
+                Toast.makeText(getContext(), getString(R.string.achievements_completed) + " +" + achievement.xpReward + " XP!", Toast.LENGTH_SHORT).show();
             }
 
             @Override
@@ -141,21 +141,49 @@ public class AchievementsFragment extends Fragment {
         TextView reward = dialog.findViewById(R.id.tvDetailReward);
         Button btnClose = dialog.findViewById(R.id.btnCloseDialog);
 
-        title.setText(achievement.title);
+        // Переводим заголовок для диалога
+        String translatedTitle = getTranslatedText(achievement.id, achievement.title, "_title");
+        title.setText(translatedTitle);
+
         tier.setText(achievement.tier);
         reward.setText("+" + achievement.xpReward + " XP");
 
         // --- ЛОГИКА ДИАЛОГА ---
         if ("collection".equals(achievement.type)) {
-            // ДЛЯ КОЛЛЕКЦИЙ: Показываем список
-            desc.setText("Collect these badges:\n\n" + achievement.subItemsStatus);
-            desc.setGravity(Gravity.START); // Выравниваем влево
-        } else {
-            // ДЛЯ ОБЫЧНЫХ: Показываем описание или причину блокировки
-            if (achievement.isLocked) {
-                desc.setText("LOCKED!\nRequirement: Complete '" + achievement.requiredTitle + "' first.");
+
+            // ИСПРАВЛЕНИЕ: Динамически собираем список требований с ПЕРЕВОДАМИ!
+            StringBuilder reqBuilder = new StringBuilder();
+
+            if (achievement.requiredIds != null && !achievement.requiredIds.isEmpty()) {
+                for (String reqId : achievement.requiredIds) {
+                    // Ищем требуемую ачивку в общем списке
+                    Achievement reqAch = findAchievementById(reqId);
+
+                    // Ставим галочку или крестик
+                    boolean isDone = (reqAch != null && reqAch.isCompleted);
+                    String mark = isDone ? "✅ " : "❌ ";
+
+                    // Переводим её название!
+                    String fallbackTitle = (reqAch != null) ? reqAch.title : reqId;
+                    String translatedReqTitle = getTranslatedText(reqId, fallbackTitle, "_title");
+
+                    reqBuilder.append(mark).append(translatedReqTitle).append("\n");
+                }
             } else {
-                desc.setText(achievement.description);
+                // Страховка: если список ID пуст, берем старый текст
+                reqBuilder.append(achievement.subItemsStatus);
+            }
+
+            desc.setText(getString(R.string.item_achievement_colect_these_badges) + ":\n\n" + reqBuilder.toString().trim());
+            desc.setGravity(Gravity.START);
+
+        } else {
+            if (achievement.isLocked) {
+                String translatedReqTitle = getTranslatedText(achievement.previousId, achievement.requiredTitle, "_title");
+                desc.setText(getString(R.string.item_achievement_locked) + " '" + translatedReqTitle + "' " + getString(R.string.achievements_first) + ".");
+            } else {
+                String translatedDesc = getTranslatedText(achievement.id, achievement.description, "_desc");
+                desc.setText(translatedDesc);
             }
             desc.setGravity(Gravity.CENTER);
         }
@@ -168,6 +196,33 @@ public class AchievementsFragment extends Fragment {
         }
 
         dialog.show();
+    }
+    // ==========================================
+    // ВСПОМОГАТЕЛЬНЫЙ МЕТОД ДЛЯ ПЕРЕВОДОВ В ДИАЛОГЕ
+    // ==========================================
+    private String getTranslatedText(String achievementId, String fallback, String suffix) {
+        if (achievementId == null || achievementId.isEmpty() || getContext() == null) {
+            return fallback;
+        }
+
+        int resId = getContext().getResources().getIdentifier(achievementId + suffix, "string", getContext().getPackageName());
+
+        if (resId != 0) {
+            return getString(resId);
+        } else {
+            return fallback;
+        }
+    }
+    // ==========================================
+    // ПОИСК АЧИВКИ ПО ID ДЛЯ КОЛЛЕКЦИЙ
+    // ==========================================
+    private Achievement findAchievementById(String id) {
+        for (Achievement a : fullList) {
+            if (a.id != null && a.id.equals(id)) {
+                return a;
+            }
+        }
+        return null;
     }
 
     @Override

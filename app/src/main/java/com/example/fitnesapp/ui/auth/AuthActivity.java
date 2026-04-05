@@ -27,8 +27,10 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 public class AuthActivity extends AppCompatActivity {
 
@@ -57,7 +59,6 @@ public class AuthActivity extends AppCompatActivity {
         tvRegister = findViewById(R.id.tvRegister);
 
         // 3. Настройка Google Sign In
-        // R.string.default_web_client_id генерируется автоматически файлом google-services.json
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken(getString(R.string.default_web_client_id))
                 .requestEmail()
@@ -79,7 +80,6 @@ public class AuthActivity extends AppCompatActivity {
     @Override
     public void onStart() {
         super.onStart();
-        // Если пользователь уже вошел ранее, проверяем профиль и перекидываем
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser != null) {
             checkProfileAndRedirect(currentUser.getUid());
@@ -92,21 +92,22 @@ public class AuthActivity extends AppCompatActivity {
         String password = etPassword.getText().toString().trim();
 
         if (TextUtils.isEmpty(email)) {
-            etEmail.setError("Enter email");
+            etEmail.setError(getString(R.string.auth_error_enter_email));
             return;
         }
         if (TextUtils.isEmpty(password)) {
-            etPassword.setError("Enter password");
+            etPassword.setError(getString(R.string.auth_error_enter_password));
             return;
         }
 
         mAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
-                        // Успех -> Проверяем, заполнен ли профиль
                         checkProfileAndRedirect(mAuth.getCurrentUser().getUid());
                     } else {
-                        Toast.makeText(AuthActivity.this, "Authentication failed: " + task.getException().getMessage(),
+                        // Передаем текст ошибки как аргумент в строку
+                        Toast.makeText(AuthActivity.this,
+                                getString(R.string.auth_error_failed, task.getException().getMessage()),
                                 Toast.LENGTH_SHORT).show();
                     }
                 });
@@ -122,15 +123,16 @@ public class AuthActivity extends AppCompatActivity {
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        // Результат от окна выбора аккаунта Google
         if (requestCode == RC_SIGN_IN) {
             Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
             try {
-                // Google вход успешен, теперь авторизуемся в Firebase
                 GoogleSignInAccount account = task.getResult(ApiException.class);
                 firebaseAuthWithGoogle(account.getIdToken());
             } catch (ApiException e) {
-                Toast.makeText(this, "Google sign in failed code: " + e.getStatusCode(), Toast.LENGTH_SHORT).show();
+                // Передаем код ошибки как аргумент
+                Toast.makeText(this,
+                        getString(R.string.auth_error_google_failed, e.getStatusCode()),
+                        Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -140,39 +142,38 @@ public class AuthActivity extends AppCompatActivity {
         mAuth.signInWithCredential(credential)
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
-                        // Успех -> Проверяем профиль
                         checkProfileAndRedirect(mAuth.getCurrentUser().getUid());
                     } else {
-                        Toast.makeText(AuthActivity.this, "Firebase Auth failed", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(AuthActivity.this,
+                                getString(R.string.auth_error_firebase_failed),
+                                Toast.LENGTH_SHORT).show();
                     }
                 });
     }
 
     // --- ГЛАВНАЯ ЛОГИКА ПЕРЕНАПРАВЛЕНИЯ ---
-    // Решает, куда отправить пользователя: в Главное меню или Заполнять данные
     private void checkProfileAndRedirect(String uid) {
-        DatabaseReference profileRef = FirebaseDatabase.getInstance().getReference("users").child(uid).child("profile");
+        DatabaseReference goalsRef = FirebaseDatabase.getInstance().getReference("users").child(uid).child("goals");
 
-        profileRef.get().addOnCompleteListener(task -> {
-            if (task.isSuccessful() && task.getResult().exists()) {
-                DataSnapshot snapshot = task.getResult();
-
-                // Проверяем наличие веса как индикатор заполненного профиля
-                Double weight = snapshot.child("weight").getValue(Double.class);
-
-                if (weight != null && weight > 0) {
-                    // АНКЕТА ЗАПОЛНЕНА -> Идем в приложение
+        goalsRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
                     Intent intent = new Intent(AuthActivity.this, MainActivity.class);
                     startActivity(intent);
-                    finish(); // Закрываем экран входа
                 } else {
-                    // ПРОФИЛЬ ЕСТЬ, НО ПУСТОЙ -> Заполнять данные
                     Intent intent = new Intent(AuthActivity.this, SetupProfileActivity.class);
                     startActivity(intent);
-                    finish();
                 }
-            } else {
-                // ПРОФИЛЯ ВООБЩЕ НЕТ (например, новый Google юзер) -> Заполнять данные
+                finish();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                // Заменяем русский текст на локализованный
+                Toast.makeText(AuthActivity.this,
+                        getString(R.string.auth_error_loading, error.getMessage()),
+                        Toast.LENGTH_SHORT).show();
                 Intent intent = new Intent(AuthActivity.this, SetupProfileActivity.class);
                 startActivity(intent);
                 finish();

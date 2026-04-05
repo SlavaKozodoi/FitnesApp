@@ -1,5 +1,7 @@
 package com.example.fitnesapp.utils;
 
+import com.example.fitnesapp.R; // Обязательно импортируй свой R-класс
+
 import java.util.Arrays;
 import java.util.List;
 
@@ -7,32 +9,38 @@ public class LevelSystem {
 
     // Модель одного ранга
     public static class Rank {
-        public String title;
+        public int titleResId; // ИЗМЕНЕНИЕ: Храним ID ресурса, а не строку
         public int minXP;
 
-        public Rank(String title, int minXP) {
-            this.title = title;
+        public Rank(int titleResId, int minXP) {
+            this.titleResId = titleResId;
             this.minXP = minXP;
         }
     }
 
-    // Настройка уровней (чем дальше, тем сложнее)
+    // Расширенная настройка уровней (15 штук, плавная экспонента)
     private static final List<Rank> RANKS = Arrays.asList(
-            new Rank("Novice", 0),
-            new Rank("Beginner", 1000),      // 0 -> 1000
-            new Rank("Walker", 3000),        // 1000 -> 3000 (надо набрать 2000)
-            new Rank("Hiker", 7000),         // 3000 -> 7000 (надо набрать 4000)
-            new Rank("Runner", 15000),       // 7000 -> 15000
-            new Rank("Athlete", 30000),
-            new Rank("Step Master", 50000),
-            new Rank("Elite", 80000),
-            new Rank("Legend", 150000)
+            new Rank(R.string.rank_novice, 0),
+            new Rank(R.string.rank_beginner, 1000),
+            new Rank(R.string.rank_walker, 3000),
+            new Rank(R.string.rank_hiker, 6000),
+            new Rank(R.string.rank_runner, 10000),
+            new Rank(R.string.rank_sprinter, 15000),
+            new Rank(R.string.rank_challenger, 22000),
+            new Rank(R.string.rank_athlete, 30000),
+            new Rank(R.string.rank_warrior, 45000),
+            new Rank(R.string.rank_step_master, 65000),
+            new Rank(R.string.rank_iron_body, 90000),
+            new Rank(R.string.rank_elite, 120000),
+            new Rank(R.string.rank_champion, 160000),
+            new Rank(R.string.rank_titan, 220000),
+            new Rank(R.string.rank_legend, 300000)
     );
 
     public static class LevelInfo {
-        public String currentRankTitle;
-        public int currentLevelXP;    // Сколько набрано на ЭТОМ уровне (для прогрессбара)
-        public int xpToNextLevel;     // Длина ЭТОГО уровня (для max прогрессбара)
+        public int currentRankTitleResId; // ИЗМЕНЕНИЕ: Передаем ID наружу
+        public int currentLevelXP;    // Сколько набрано на ЭТОМ уровне
+        public int xpToNextLevel;     // Длина ЭТОГО уровня
         public int totalXP;           // Общий опыт
         public int nextLevelThreshold; // Общая цель (например 3000)
 
@@ -62,16 +70,12 @@ public class LevelSystem {
             }
         }
 
-        info.currentRankTitle = currentRank.title;
+        info.currentRankTitleResId = currentRank.titleResId;
 
         if (nextRank != null) {
             info.isMaxLevel = false;
             info.nextLevelThreshold = nextRank.minXP;
 
-            // Математика для прогрессбара:
-            // Если я на уровне Walker (3000 - 7000) и у меня 4500 XP.
-            // Мой прогресс внутри уровня: 4500 - 3000 = 1500.
-            // Длина уровня: 7000 - 3000 = 4000.
             info.currentLevelXP = totalXP - currentRank.minXP;
             info.xpToNextLevel = nextRank.minXP - currentRank.minXP;
         } else {

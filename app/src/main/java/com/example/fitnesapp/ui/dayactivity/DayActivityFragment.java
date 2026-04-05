@@ -89,9 +89,10 @@ public class DayActivityFragment extends BaseLoadingFragment {
     }
 
     private void setupClickListeners() {
-        binding.tvStepsGoal.setOnClickListener(v -> showEditGoalDialog("Steps Goal", "stepsGoal"));
-        binding.tvCaloriesGoal.setOnClickListener(v -> showEditGoalDialog("Burn Calories Goal", "caloriesGoal"));
-        binding.tvNutritionMax.setOnClickListener(v -> showEditGoalDialog("Nutrition Max Goal", "nutrition/maxCalories"));
+        // Используем строки из strings.xml
+        binding.tvStepsGoal.setOnClickListener(v -> showEditGoalDialog(getString(R.string.edit_goal_steps_goal), "stepsGoal"));
+        binding.tvCaloriesGoal.setOnClickListener(v -> showEditGoalDialog(getString(R.string.edit_goal_burn_calories_goal), "caloriesGoal"));
+        binding.tvNutritionMax.setOnClickListener(v -> showEditGoalDialog(getString(R.string.edit_goal_nutrition_max_goal), "nutrition/maxCalories"));
     }
 
     private void updateUI(DailyData data) {
@@ -104,24 +105,24 @@ public class DayActivityFragment extends BaseLoadingFragment {
 
         // --- БЛОК 1: ШАГИ И КАЛОРИИ ---
         binding.tvStepsScore.setText(String.valueOf(data.steps));
-        binding.tvStepsGoal.setText("Goal: " + (data.stepsGoal >= 0 ? data.stepsGoal : 10000));
+        binding.tvStepsGoal.setText(getString(R.string.day_activity_goal, data.stepsGoal >= 0 ? data.stepsGoal : 10000));
 
         binding.tvCaloriesScore.setText(String.valueOf((int) data.caloriesBurned));
-        binding.tvCaloriesGoal.setText("Goal: " + (data.caloriesGoal >= 0 ? data.caloriesGoal : 2000));
+        binding.tvCaloriesGoal.setText(getString(R.string.day_activity_goal, data.caloriesGoal >= 0 ? data.caloriesGoal : 2000));
 
         // --- БЛОК 2: ПИТАНИЕ ---
         if (data.nutrition != null) {
             binding.tvNutritionScore.setText(String.valueOf((int) data.nutrition.totalCalories));
-            binding.tvNutritionMax.setText("Max: " + data.nutrition.maxCalories);
-            binding.tvNutritionAllCarbs.setText("Carbs: " + (int) data.nutrition.carbs + "g");
-            binding.tvNutritionAllProteins.setText("Protein: " + (int) data.nutrition.protein + "g");
-            binding.tvNutritionAllFats.setText("Fats: " + (int) data.nutrition.fat + "g");
+            binding.tvNutritionMax.setText(getString(R.string.day_activity_max, data.nutrition.maxCalories));
+            binding.tvNutritionAllCarbs.setText(getString(R.string.day_activity_carbs_val, (int) data.nutrition.carbs));
+            binding.tvNutritionAllProteins.setText(getString(R.string.day_activity_protein_val, (int) data.nutrition.protein));
+            binding.tvNutritionAllFats.setText(getString(R.string.day_activity_fats_val, (int) data.nutrition.fat));
         } else {
             binding.tvNutritionScore.setText("0");
-            binding.tvNutritionMax.setText("Max: 2000");
-            binding.tvNutritionAllCarbs.setText("Carbs: 0g");
-            binding.tvNutritionAllProteins.setText("Protein: 0g");
-            binding.tvNutritionAllFats.setText("Fats: 0g");
+            binding.tvNutritionMax.setText(getString(R.string.day_activity_max, 2000));
+            binding.tvNutritionAllCarbs.setText(getString(R.string.day_activity_carbs_val, 0));
+            binding.tvNutritionAllProteins.setText(getString(R.string.day_activity_protein_val, 0));
+            binding.tvNutritionAllFats.setText(getString(R.string.day_activity_fats_val, 0));
         }
 
         // --- БЛОК 3: СПИСОК ЕДЫ ---
@@ -181,9 +182,6 @@ public class DayActivityFragment extends BaseLoadingFragment {
         ArrayList<Entry> calEntries = new ArrayList<>();
         ArrayList<String> labels = new ArrayList<>();
 
-        // Переменная для "пола" графика калорий
-        float baseCalories = 0f;
-
         if (isFuture) {
             // === ЕСЛИ ЭТО БУДУЩЕЕ: РИСУЕМ СТРОГИЕ НУЛИ ===
             stepsEntries.add(new Entry(0, 0f));
@@ -192,7 +190,6 @@ public class DayActivityFragment extends BaseLoadingFragment {
             calEntries.add(new Entry(1, 0f));
             labels.add("00:00");
             labels.add("23:59");
-            // baseCalories остается 0f
         } else {
             // === ЕСЛИ СЕГОДНЯ ИЛИ ПРОШЛОЕ: РАССЧИТЫВАЕМ ДАННЫЕ ===
             int limitIndex = isToday ?
@@ -220,8 +217,7 @@ public class DayActivityFragment extends BaseLoadingFragment {
             for (int i = 0; i <= limitIndex; i++) {
                 stepsEntries.add(new Entry(i, stepsBuckets[i]));
 
-                // ИЗМЕНЕНИЕ: Рисуем на графике ТОЛЬКО активные калории
-                // Базовый метаболизм уже включен в общую цифру наверху экрана
+                // Рисуем на графике ТОЛЬКО активные калории
                 float activeCals = (float) (stepsBuckets[i] * calsPerStep);
                 calEntries.add(new Entry(i, activeCals));
 
@@ -233,16 +229,14 @@ public class DayActivityFragment extends BaseLoadingFragment {
 
         String[] labelsArr = labels.toArray(new String[0]);
 
-        // ТЕПЕРЬ ПОЛ ДЛЯ ОБОИХ ГРАФИКОВ - СТРОГИЙ НОЛЬ (0f)
+        // ПОЛ ДЛЯ ОБОИХ ГРАФИКОВ - СТРОГИЙ НОЛЬ (0f)
         drawChart(binding.chartStepsinfo, stepsEntries, labelsArr, R.color.steps_start, R.color.steps_end, 0f);
         drawChart(binding.chartCaloriesnfo, calEntries, labelsArr, R.color.calories_start, R.color.calories_end, 0f);
     }
 
-    // Обратите внимание на новый параметр float floorValue
     private void drawChart(com.github.mikephil.charting.charts.LineChart chart,
                            ArrayList<Entry> entries, String[] labels, int colorStart, int colorEnd, float floorValue) {
         if (chart == null) return;
-
 
         ChartHelper.setupUnifiedChart(
                 requireContext(),
@@ -253,9 +247,6 @@ public class DayActivityFragment extends BaseLoadingFragment {
                 colorEnd,
                 true
         );
-
-        // Прибиваем график к нашему кастомному полу!
-        // Для шагов это будет 0, для калорий - базовый метаболизм
 
         chart.invalidate();
     }
@@ -286,7 +277,7 @@ public class DayActivityFragment extends BaseLoadingFragment {
                     updateGoalInFirebase(databasePath, newValue);
                     dialog.dismiss();
                 } catch (NumberFormatException e) {
-                    Toast.makeText(getContext(), "Invalid number", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), getString(R.string.day_activity_invalid_number), Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -299,7 +290,7 @@ public class DayActivityFragment extends BaseLoadingFragment {
                 ? FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
         if (uid == null) return;
 
-        // ИСПОЛЬЗУЕМ ВЫБРАННУЮ ДАТУ (а не просто сегодняшний день)
+        // ИСПОЛЬЗУЕМ ВЫБРАННУЮ ДАТУ
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
         String dateKey = sdf.format(selectedDate);
 
@@ -311,19 +302,24 @@ public class DayActivityFragment extends BaseLoadingFragment {
 
         ref.child(relativePath).setValue(value)
                 .addOnSuccessListener(aVoid ->
-                        Toast.makeText(getContext(), "Goal updated!", Toast.LENGTH_SHORT).show())
+                        Toast.makeText(getContext(), getString(R.string.day_activity_goal_updated), Toast.LENGTH_SHORT).show())
                 .addOnFailureListener(e ->
-                        Toast.makeText(getContext(), "Error updating goal", Toast.LENGTH_SHORT).show());
+                        Toast.makeText(getContext(), getString(R.string.day_activity_error_updating), Toast.LENGTH_SHORT).show());
     }
 
     private void clearUI() {
         binding.tvStepsScore.setText("0");
         binding.tvCaloriesScore.setText("0");
         binding.tvNutritionScore.setText("0");
-        binding.tvNutritionAllCarbs.setText("Carbs: 0g");
-        binding.tvNutritionAllProteins.setText("Protein: 0g");
-        binding.tvNutritionAllFats.setText("Fats: 0g");
-        // Графики не очищаем, они перерисуются сами!
+
+        binding.tvStepsGoal.setText(getString(R.string.day_activity_goal, 10000));
+        binding.tvCaloriesGoal.setText(getString(R.string.day_activity_goal, 2000));
+
+        binding.tvNutritionMax.setText(getString(R.string.day_activity_max, 2000));
+        binding.tvNutritionAllCarbs.setText(getString(R.string.day_activity_carbs_val, 0));
+        binding.tvNutritionAllProteins.setText(getString(R.string.day_activity_protein_val, 0));
+        binding.tvNutritionAllFats.setText(getString(R.string.day_activity_fats_val, 0));
+
         binding.recyclerViewNutHistory.setAdapter(null);
     }
 
