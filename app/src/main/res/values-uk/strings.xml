@@ -9,11 +9,17 @@
     <string name="register_name">Ім\'я</string>
     <string name="register_email">Email</string>
     <string name="register_password">Пароль</string>
+    <string name="register_password_repeat">Повторіть пароль</string>
+    <string name="setup_profile_error_invalid_date_year">Здається, у році помилка. Перевірте дату народження</string>
+    <string name="setup_profile_error_invalid_age">Здається, ви надто молоді для реєстрації. Перевірте дату народження</string>
+
     <string name="register_sign_up">Зареєструватися</string>
     <string name="register_already_have_account">Вже є акаунт? Увійти</string>
     <string name="register_start_your_fitness_journey_today">Почніть свій фітнес-шлях сьогодні</string>
     <string name="register_error_enter_name">Введіть ім\'я</string>
     <string name="register_error_password_length">Пароль має бути &gt; 6 символів</string>
+    <string name="register_error_password_rep_not_equals">Паролі мають співпадати</string>
+
     <string name="register_error_failed">Помилка: %1$s</string>
     <string name="register_error_profile_save">Не вдалося зберегти профіль</string>
 
@@ -30,6 +36,20 @@
     <string name="setup_profile_next">ДАЛІ</string>
     <string name="setup_profile_error_fill_fields">Будь ласка, заповніть усі поля</string>
     <string name="setup_profile_error_saving">Помилка збереження даних: %1$s</string>
+    <string name="setup_profile_error_invalid_date">Введіть повну дату (ДД.ММ.РРРР)</string>
+    <string name="setup_profile_error_invalid_number">Будь ласка, введіть коректні числа</string>
+    <string name="setup_profile_error_realistic_height">Введіть реальний зріст (50 - 250 см)</string>
+    <string name="setup_profile_error_realistic_weight">Введіть реальну вагу (20 - 300 кг)</string>
+    <string name="setup_profile_error_impossible_height">Зріст не може бути меншим за 50 або більшим за 300 см</string>
+    <string name="setup_profile_error_impossible_weight">Вага не може бути меншою за 20 або більшою за 500 кг</string>
+
+    <string name="setup_profile_confirm_title">Хвилинку!</string>
+    <string name="setup_profile_confirm_height">Ви вказали зріст: %1$d см.</string>
+    <string name="setup_profile_confirm_weight">Ви вказали вагу: %1$d кг.</string>
+    <string name="setup_profile_confirm_ask">Ці дані правильні?</string>
+    <string name="setup_profile_confirm_yes">Так, все вірно</string>
+    <string name="setup_profile_confirm_no">Ні, виправити</string>
+
 
     <string name="achievement_details_reward">Нагорода:</string>
     <string name="achievement_details_got_it">Отримано:</string>

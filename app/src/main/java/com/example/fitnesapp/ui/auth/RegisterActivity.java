@@ -1,5 +1,6 @@
 package com.example.fitnesapp.ui.auth;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -20,13 +21,14 @@ import com.google.firebase.database.FirebaseDatabase;
 
 public class RegisterActivity extends AppCompatActivity {
 
-    private EditText etName, etEmail, etPassword;
+    private EditText etPasswordRep, etEmail, etPassword;
     private Button btnRegister;
     private TextView tvLogin;
 
     private FirebaseAuth mAuth;
     private DatabaseReference mDatabase;
 
+    @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -35,9 +37,10 @@ public class RegisterActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
         mDatabase = FirebaseDatabase.getInstance().getReference("users");
 
-        etName = findViewById(R.id.etName);
+
         etEmail = findViewById(R.id.etEmail);
         etPassword = findViewById(R.id.etPassword);
+        etPasswordRep = findViewById(R.id.etPasswordRep);
         btnRegister = findViewById(R.id.btnRegister);
         tvLogin = findViewById(R.id.tvLogin);
 
@@ -51,15 +54,13 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private void registerUser() {
-        String name = etName.getText().toString().trim();
+
         String email = etEmail.getText().toString().trim();
         String password = etPassword.getText().toString().trim();
+        String passwordRep = etPasswordRep.getText().toString().trim();
 
         // 1. Простая валидация с локализованными строками
-        if (TextUtils.isEmpty(name)) {
-            etName.setError(getString(R.string.register_error_enter_name));
-            return;
-        }
+
         if (TextUtils.isEmpty(email)) {
             etEmail.setError(getString(R.string.auth_error_enter_email)); // Используем строку из Auth
             return;
@@ -68,6 +69,11 @@ public class RegisterActivity extends AppCompatActivity {
             etPassword.setError(getString(R.string.register_error_password_length));
             return;
         }
+        if (!password.equals(passwordRep)) {
+            etPasswordRep.setError(getString(R.string.register_error_password_rep_not_equals));
+            return;
+        }
+
 
         // 2. Создаем пользователя в Firebase Auth
         mAuth.createUserWithEmailAndPassword(email, password)
@@ -75,7 +81,7 @@ public class RegisterActivity extends AppCompatActivity {
                     if (task.isSuccessful()) {
                         // Теперь создаем профиль в базе данных
                         FirebaseUser firebaseUser = mAuth.getCurrentUser();
-                        saveUserToDatabase(firebaseUser.getUid(), name, email);
+                        saveUserToDatabase(firebaseUser.getUid());
                     } else {
                         // Локализованная ошибка с подстановкой текста исключения
                         Toast.makeText(RegisterActivity.this,
@@ -85,10 +91,10 @@ public class RegisterActivity extends AppCompatActivity {
                 });
     }
 
-    private void saveUserToDatabase(String uid, String name, String email) {
+    private void saveUserToDatabase(String uid) {
         // Создаем объект профиля с начальными данными
         UserProfile userProfile = new UserProfile();
-        userProfile.firstName = name;
+        userProfile.firstName = "";
         userProfile.secondName = ""; // Пока пусто
         userProfile.weight = 0;      // Потом заполнят в настройках
         userProfile.height = 0;

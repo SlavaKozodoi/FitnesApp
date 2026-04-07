@@ -105,7 +105,6 @@ public class AuthActivity extends AppCompatActivity {
                     if (task.isSuccessful()) {
                         checkProfileAndRedirect(mAuth.getCurrentUser().getUid());
                     } else {
-                        // Передаем текст ошибки как аргумент в строку
                         Toast.makeText(AuthActivity.this,
                                 getString(R.string.auth_error_failed, task.getException().getMessage()),
                                 Toast.LENGTH_SHORT).show();
@@ -153,7 +152,7 @@ public class AuthActivity extends AppCompatActivity {
 
     // --- ГЛАВНАЯ ЛОГИКА ПЕРЕНАПРАВЛЕНИЯ ---
     private void checkProfileAndRedirect(String uid) {
-        DatabaseReference goalsRef = FirebaseDatabase.getInstance().getReference("users").child(uid).child("goals");
+        DatabaseReference goalsRef = FirebaseDatabase.getInstance().getReference("users").child(uid).child("profile");
 
         goalsRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override

@@ -10,11 +10,15 @@
     <string name="register_name">Name</string>
     <string name="register_email">Email</string>
     <string name="register_password">Password</string>
+    <string name="register_password_repeat">Repeat password</string>
+    <string name="setup_profile_error_invalid_date_year">Looks like a typo. Please check your birth year</string>
+    <string name="setup_profile_error_invalid_age">Looks like you too young to register. Please check your birth date</string>
     <string name="register_sign_up">Sign Up</string>
     <string name="register_already_have_account">Already have an account? Sign In</string>
     <string name="register_start_your_fitness_journey_today">Start your fitness journey today</string>
     <string name="register_error_enter_name">Enter name</string>
     <string name="register_error_password_length">Password must be &gt; 6 chars</string>
+    <string name="register_error_password_rep_not_equals">Passwords must be equals</string>
     <string name="register_error_failed">Error: %1$s</string>
     <string name="register_error_profile_save">Failed to save profile</string>
 
@@ -32,6 +36,20 @@
     <string name="setup_profile_next">NEXT</string>
     <string name="setup_profile_error_fill_fields">Please fill all fields</string>
     <string name="setup_profile_error_saving">Error saving data: %1$s</string>
+    <string name="setup_profile_error_invalid_date">Enter a complete date (DD.MM.YYYY)</string>
+    <string name="setup_profile_error_invalid_number">Please enter valid numbers</string>
+    <string name="setup_profile_error_realistic_height">Enter a realistic height (50 - 250 cm)</string>
+    <string name="setup_profile_error_realistic_weight">Enter a realistic weight (20 - 300 kg)</string>
+    <string name="setup_profile_error_impossible_height">Height cannot be less than 50 or greater than 300 cm</string>
+    <string name="setup_profile_error_impossible_weight">Weight cannot be less than 20 or greater than 500 kg</string>
+
+    <string name="setup_profile_confirm_title">Just a second!</string>
+    <string name="setup_profile_confirm_height">You entered a height of: %1$d cm.</string>
+    <string name="setup_profile_confirm_weight">You entered a weight of: %1$d kg.</string>
+    <string name="setup_profile_confirm_ask">Is this correct?</string>
+    <string name="setup_profile_confirm_yes">Yes, it\'s correct</string>
+    <string name="setup_profile_confirm_no">No, let me fix it</string>
+
 
     ////// dialog achievement details
     <string name="achievement_details_reward">Reward:</string>

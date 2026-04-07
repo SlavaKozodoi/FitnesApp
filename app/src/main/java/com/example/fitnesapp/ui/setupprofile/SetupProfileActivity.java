@@ -28,6 +28,8 @@ public class SetupProfileActivity extends AppCompatActivity {
     private RadioGroup rgGender;
     private Button btnSave;
     private DatabaseReference mDatabase;
+    private final int currentYear = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR);
+
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -52,7 +54,6 @@ public class SetupProfileActivity extends AppCompatActivity {
         // Логика форматирования даты (без изменений)
         etBirthDate.addTextChangedListener(new android.text.TextWatcher() {
             private boolean isUpdating = false;
-            private final int currentYear = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR);
 
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -109,29 +110,67 @@ public class SetupProfileActivity extends AppCompatActivity {
     }
 
     private void saveAndContinue() {
-        String nameStr = etName.getText().toString();
-        String surnameStr = etSurname.getText().toString();
-        String weightStr = etWeight.getText().toString();
-        String heightStr = etHeight.getText().toString();
-        String birthDate = etBirthDate.getText().toString();
+        String nameStr = etName.getText().toString().trim();
+        String surnameStr = etSurname.getText().toString().trim();
+        String weightStr = etWeight.getText().toString().trim();
+        String heightStr = etHeight.getText().toString().trim();
+        String birthDate = etBirthDate.getText().toString().trim();
 
-        if (weightStr.isEmpty() || heightStr.isEmpty() || birthDate.isEmpty()) {
+        // 1. Базовые проверки на пустоту
+        if (nameStr.isEmpty() || weightStr.isEmpty() || heightStr.isEmpty() || birthDate.isEmpty()) {
             Toast.makeText(this, getString(R.string.setup_profile_error_fill_fields), Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // Определяем пол
+        if (birthDate.length() < 10) {
+            etBirthDate.setError(getString(R.string.setup_profile_error_invalid_date));
+            etBirthDate.requestFocus();
+            return;
+        }
+        String yearOnly = birthDate.substring(6);
+        if (Integer.parseInt(yearOnly)  < currentYear-100) {
+            etBirthDate.setError(getString(R.string.setup_profile_error_invalid_date_year));
+            etBirthDate.requestFocus();
+            return;
+        }
+        if (Integer.parseInt(yearOnly)  > currentYear-13) {
+            etBirthDate.setError(getString(R.string.setup_profile_error_invalid_age));
+            etBirthDate.requestFocus();
+            return;
+        }
+
+
+        double weightVal;
+        int heightVal;
+
+        try {
+            weightVal = Double.parseDouble(weightStr);
+            heightVal = Integer.parseInt(heightStr);
+        } catch (NumberFormatException e) {
+            Toast.makeText(this, getString(R.string.setup_profile_error_invalid_number), Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // ==========================================
+        // 2. ЖЕСТКАЯ ВАЛИДАЦИЯ (Физически невозможно)
+        // ==========================================
+        if (heightVal < 50 || heightVal > 300) {
+            etHeight.setError(getString(R.string.setup_profile_error_impossible_height));
+            etHeight.requestFocus();
+            return;
+        }
+
+        if (weightVal < 20 || weightVal > 500) {
+            etWeight.setError(getString(R.string.setup_profile_error_impossible_weight));
+            etWeight.requestFocus();
+            return;
+        }
+
+        // === 3. ПОДГОТОВКА ДАННЫХ ДЛЯ ЗАПИСИ ===
         int selectedId = rgGender.getCheckedRadioButtonId();
-        String gender = "Male";
-        if (selectedId == R.id.rbFemale) gender = "Female";
+        String gender = (selectedId == R.id.rbFemale) ? "Female" : "Male";
 
-        double weightVal = Double.parseDouble(weightStr);
-        int heightVal = Integer.parseInt(heightStr);
-
-        // === ПОДГОТОВКА ДАННЫХ ДЛЯ ЗАПИСИ ===
         Map<String, Object> allUpdates = new HashMap<>();
-
-        // 1. Данные ПРОФИЛЯ (пишем в папку "profile")
         allUpdates.put("profile/firstName", nameStr);
         allUpdates.put("profile/secondName", surnameStr);
         allUpdates.put("profile/height", heightVal);
@@ -141,9 +180,7 @@ public class SetupProfileActivity extends AppCompatActivity {
         allUpdates.put("profile/totalXP", 0);
         allUpdates.put("profile/notificationsEnabled", true);
 
-        // 2. Данные ИСТОРИИ ВЕСА (пишем в папку "health_logs/weight_history")
         String weightKey = mDatabase.child("health_logs").child("weight_history").push().getKey();
-
         long timestamp = System.currentTimeMillis();
         String dateStr = new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(new Date());
 
@@ -156,10 +193,52 @@ public class SetupProfileActivity extends AppCompatActivity {
             allUpdates.put("health_logs/weight_history/" + weightKey, weightData);
         }
 
-        // 3. Выполняем ВСЕ обновления одним запросом
+        // ==========================================
+        // 4. МЯГКАЯ ВАЛИДАЦИЯ (Подозрительные цифры)
+        // ==========================================
+        boolean isHeightSuspicious = heightVal >= 220 || heightVal <= 130;
+        boolean isWeightSuspicious = weightVal >= 140 || weightVal <= 40;
+
+        if (isHeightSuspicious || isWeightSuspicious) {
+            // Формируем текст для уточнения
+            String warningMsg = "";
+            if (isHeightSuspicious) {
+                warningMsg += getString(R.string.setup_profile_confirm_height, heightVal) + "\n";
+            }
+            if (isWeightSuspicious) {
+                warningMsg += getString(R.string.setup_profile_confirm_weight, (int)weightVal) + "\n";
+            }
+            warningMsg += getString(R.string.setup_profile_confirm_ask);
+
+            // Показываем диалог
+            showConfirmationDialog(warningMsg, allUpdates);
+        } else {
+            // Если все в пределах нормы — просто сохраняем сразу
+            executeFirebaseSave(allUpdates);
+        }
+    }
+
+    // --- МЕТОД ДЛЯ ПОКАЗА ДИАЛОГА УТОЧНЕНИЯ ---
+    private void showConfirmationDialog(String message, Map<String, Object> dataToSave) {
+        new android.app.AlertDialog.Builder(this)
+                .setTitle(getString(R.string.setup_profile_confirm_title)) // "Уточнення"
+                .setMessage(message)
+                .setPositiveButton(getString(R.string.setup_profile_confirm_yes), (dialog, which) -> {
+                    // Пользователь подтвердил, что он гигант — сохраняем!
+                    executeFirebaseSave(dataToSave);
+                })
+                .setNegativeButton(getString(R.string.setup_profile_confirm_no), (dialog, which) -> {
+                    // Пользователь ошибся — просто закрываем диалог, пусть исправляет
+                    dialog.dismiss();
+                })
+                .setCancelable(false) // Чтобы не закрыли случайным кликом мимо окна
+                .show();
+    }
+
+    // --- МЕТОД ДЛЯ ФАКТИЧЕСКОЙ ЗАПИСИ В БД ---
+    private void executeFirebaseSave(Map<String, Object> allUpdates) {
         mDatabase.updateChildren(allUpdates).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
-                // Все готово, идем на главный экран
                 startActivity(new Intent(SetupProfileActivity.this, MainActivity.class));
                 finishAffinity();
             } else {
