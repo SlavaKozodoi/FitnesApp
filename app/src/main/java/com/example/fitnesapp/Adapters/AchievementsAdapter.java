@@ -26,7 +26,8 @@ public class AchievementsAdapter extends RecyclerView.Adapter<AchievementsAdapte
     private final OnAchievementClickListener listener;
 
     public interface OnAchievementClickListener {
-        void onCollectClick(Achievement achievement);
+        // ИСПРАВЛЕНИЕ 1: Добавили View clickedView в параметры
+        void onCollectClick(View clickedView, Achievement achievement);
         void onItemClick(Achievement achievement);
     }
 
@@ -47,24 +48,18 @@ public class AchievementsAdapter extends RecyclerView.Adapter<AchievementsAdapte
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Achievement item = items.get(position);
 
-        // 1. ДИНАМИЧЕСКИЙ ПЕРЕВОД ЗАГОЛОВКА
-        // (Предполагается, что в модели Achievement у тебя есть поле id, куда ты сохраняешь ключ из Firebase, например "ach_cal_daily_01")
         String translatedTitle = getTranslatedTitle(item.id, item.title);
         holder.title.setText(translatedTitle);
 
         holder.tier.setText(item.tier);
         holder.prize.setText("+" + item.xpReward + "xp");
 
-        // --- ЛОГИКА ЗАБЛОКИРОВАННОГО ЗАДАНИЯ (ЦЕПОЧКИ) ---
         if (item.isLocked) {
             holder.itemView.setAlpha(0.5f);
-            holder.icon.setImageResource(R.drawable.ic_ach_lock); // Убедись, что иконка существует
+            holder.icon.setImageResource(R.drawable.ic_ach_lock);
 
-            // Переводим название требуемого задания (если в модели есть previousId)
-            // Если поля previousId нет, добавь его в модель, либо используй item.id предыдущего элемента
             String translatedReqTitle = getTranslatedTitle(item.previousId, item.requiredTitle);
 
-            // ИСПРАВЛЕНИЕ: Правильное склеивание строк из ресурсов
             holder.goal.setText(context.getString(R.string.achievements_previous) + ": " + translatedReqTitle);
             holder.goal.setTextColor(Color.parseColor("#FF5252"));
 
@@ -73,7 +68,6 @@ public class AchievementsAdapter extends RecyclerView.Adapter<AchievementsAdapte
             holder.date.setVisibility(View.GONE);
 
             holder.itemView.setOnClickListener(v -> {
-                // ИСПРАВЛЕНИЕ: Правильное склеивание для Toast
                 String msg = context.getString(R.string.achievements_complete) + " '" +
                         translatedReqTitle + "' " +
                         context.getString(R.string.achievements_first) + "!";
@@ -84,11 +78,9 @@ public class AchievementsAdapter extends RecyclerView.Adapter<AchievementsAdapte
             return;
         }
 
-        // --- СБРОС СТИЛЕЙ ДЛЯ ОТКРЫТЫХ ЗАДАНИЙ ---
         holder.itemView.setAlpha(1.0f);
         holder.goal.setTextColor(Color.WHITE);
 
-        // --- ДИНАМИЧЕСКАЯ ЗАГРУЗКА ИКОНОК ---
         int resId = 0;
         if (item.icon != null && !item.icon.isEmpty()) {
             resId = context.getResources().getIdentifier(item.icon, "drawable", context.getPackageName());
@@ -100,14 +92,12 @@ public class AchievementsAdapter extends RecyclerView.Adapter<AchievementsAdapte
             holder.icon.setImageResource(R.drawable.ic_achievement);
         }
 
-        // --- ЛОГИКА СОСТОЯНИЙ ---
         if (item.isCollected) {
             holder.date.setVisibility(View.VISIBLE);
             holder.date.setText(item.unlockedDate);
             holder.btnCollect.setVisibility(View.GONE);
             holder.progressBar.setVisibility(View.GONE);
 
-            // ИСПРАВЛЕНИЕ: Берем текст из ресурсов
             holder.goal.setText(context.getString(R.string.achievements_completed));
 
         } else if (item.isCompleted) {
@@ -127,7 +117,8 @@ public class AchievementsAdapter extends RecyclerView.Adapter<AchievementsAdapte
 
         // --- ОБРАБОТЧИКИ КЛИКОВ ---
         holder.btnCollect.setOnClickListener(v -> {
-            if (listener != null) listener.onCollectClick(item);
+            // ИСПРАВЛЕНИЕ 2: Передаем v (саму кнопку) в listener
+            if (listener != null) listener.onCollectClick(v, item);
         });
 
         holder.itemView.setOnClickListener(v -> {
@@ -140,21 +131,17 @@ public class AchievementsAdapter extends RecyclerView.Adapter<AchievementsAdapte
         return items.size();
     }
 
-    // ==========================================
-    // ВСПОМОГАТЕЛЬНЫЙ МЕТОД ДЛЯ ПЕРЕВОДОВ
-    // ==========================================
     private String getTranslatedTitle(String achievementId, String fallbackTitle) {
         if (achievementId == null || achievementId.isEmpty()) {
-            return fallbackTitle; // Защита от Null
+            return fallbackTitle;
         }
 
-        // Ищем ID строки вида "ach_cal_daily_01_title"
         int titleResId = context.getResources().getIdentifier(achievementId + "_title", "string", context.getPackageName());
 
         if (titleResId != 0) {
-            return context.getString(titleResId); // Нашли перевод!
+            return context.getString(titleResId);
         } else {
-            return fallbackTitle; // Не нашли (берем из базы Firebase)
+            return fallbackTitle;
         }
     }
 

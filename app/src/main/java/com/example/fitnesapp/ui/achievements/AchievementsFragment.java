@@ -9,6 +9,12 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.animation.AnimatorSet;
+import android.animation.ObjectAnimator;
+import android.view.animation.AccelerateInterpolator;
+import android.view.animation.OvershootInterpolator;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -113,9 +119,11 @@ public class AchievementsFragment extends Fragment {
 
         adapter = new AchievementsAdapter(getContext(), filtered, new AchievementsAdapter.OnAchievementClickListener() {
             @Override
-            public void onCollectClick(Achievement achievement) {
+            public void onCollectClick(View clickedView, Achievement achievement) {
                 mViewModel.collectAchievement(achievement);
-                // ИСПРАВЛЕНИЕ 2: Правильный вызов getString()
+
+                showFloatingXP(clickedView, String.valueOf(achievement.xpReward));
+
                 Toast.makeText(getContext(), getString(R.string.achievements_completed) + " +" + achievement.xpReward + " XP!", Toast.LENGTH_SHORT).show();
             }
 
@@ -225,6 +233,68 @@ public class AchievementsFragment extends Fragment {
         return null;
     }
 
+    private void showFloatingXP(View clickedView, String xpReward) {
+        if (getActivity() == null || clickedView == null) return;
+        final ViewGroup root = (ViewGroup) getActivity().getWindow().getDecorView().findViewById(android.R.id.content);
+
+        final View flyer = LayoutInflater.from(getContext()).inflate(R.layout.item_flying_xp, root, false);
+        TextView tvXP = flyer.findViewById(R.id.tvFlyerXP);
+        tvXP.setText("+" + xpReward + " XP");
+
+        flyer.setVisibility(View.INVISIBLE);
+        root.addView(flyer);
+
+        int[] location = new int[2];
+        clickedView.getLocationInWindow(location);
+        int startX = location[0] + (clickedView.getWidth() / 2);
+        int startY = location[1];
+
+        flyer.post(() -> {
+            flyer.setX(startX - (flyer.getWidth() / 2f));
+            flyer.setY(startY - flyer.getHeight());
+            flyer.setVisibility(View.VISIBLE);
+
+            float currentY = flyer.getY();
+
+            // --- ФАЗА 1: Выпрыгивание (чуть-чуть подлетает над кнопкой) ---
+            // ИСПРАВЛЕНИЕ: Используем View.Y вместо TRANSLATION_Y для точного позиционирования
+            ObjectAnimator appearY = ObjectAnimator.ofFloat(flyer, View.Y, currentY, currentY - 50f);
+            ObjectAnimator appearAlpha = ObjectAnimator.ofFloat(flyer, View.ALPHA, 0f, 1f);
+            ObjectAnimator appearScaleX = ObjectAnimator.ofFloat(flyer, View.SCALE_X, 0.3f, 1.2f, 1f);
+            ObjectAnimator appearScaleY = ObjectAnimator.ofFloat(flyer, View.SCALE_Y, 0.3f, 1.2f, 1f);
+
+            AnimatorSet appearSet = new AnimatorSet();
+            appearSet.playTogether(appearY, appearAlpha, appearScaleX, appearScaleY);
+            appearSet.setDuration(400);
+            appearSet.setInterpolator(new OvershootInterpolator());
+
+            // --- ФАЗА 2: Улетает в самый верх экрана ---
+            // ИСПРАВЛЕНИЕ: Вычисляем координату за пределами верхнего края экрана (минус высота плашки и еще чуть-чуть)
+            float topOfScreenY = -flyer.getHeight() - 100f;
+
+            ObjectAnimator flyUp = ObjectAnimator.ofFloat(flyer, View.Y, currentY - 50f, topOfScreenY);
+            ObjectAnimator fadeOut = ObjectAnimator.ofFloat(flyer, View.ALPHA, 1f, 0f);
+
+            AnimatorSet flySet = new AnimatorSet();
+            flySet.playTogether(flyUp, fadeOut);
+            // Можешь увеличить время (например, 700), если хочешь чтобы летело чуть медленнее
+            flySet.setDuration(600);
+            flySet.setInterpolator(new AccelerateInterpolator());
+            flySet.setStartDelay(500);
+
+            // --- Запускаем всё ---
+            AnimatorSet fullAnimation = new AnimatorSet();
+            fullAnimation.playSequentially(appearSet, flySet);
+            fullAnimation.addListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    root.removeView(flyer);
+                }
+            });
+
+            fullAnimation.start();
+        });
+    }
     @Override
     public void onDestroyView() {
         super.onDestroyView();

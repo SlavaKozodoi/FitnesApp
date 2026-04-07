@@ -5,7 +5,6 @@ import java.util.Date;
 public class CalendarDate {
     private Date date;
     private String dayNumber; // "27"
-    private String dayName;   // "Mon" (если нужно)
     private boolean isSelected;
 
     public CalendarDate(Date date, String dayNumber, boolean isSelected) {

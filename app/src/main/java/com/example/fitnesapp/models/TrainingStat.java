@@ -22,7 +22,6 @@ public class TrainingStat {
 
     }
 
-    // Геттеры
     public String getTitle() { return title; }
     public String getValue() { return value; }
     public int getIconResId() { return iconResId; }

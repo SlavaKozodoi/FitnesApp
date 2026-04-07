@@ -11,6 +11,7 @@ import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.navigation.NavController;
+import androidx.navigation.NavOptions;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
@@ -121,9 +122,20 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+
+// Создаем настройки вертикальной анимации
+        NavOptions navOptionsTop = new NavOptions.Builder()
+                .setEnterAnim(R.anim.slide_in_top)       // Настройки заезжают сверху
+                .setExitAnim(R.anim.slide_out_bottom)    // Главный экран уезжает вниз
+                .setPopEnterAnim(R.anim.slide_in_bottom) // При возврате главный экран едет снизу
+                .setPopExitAnim(R.anim.slide_out_top)    // А настройки уезжают обратно наверх
+                .build();
+
         btnSettings.setOnClickListener(v -> {
             if (currentDestinationId[0] == R.id.navigation_home) {
-                Navigation.findNavController(this,R.id.nav_host_fragment_activity_main).navigate(R.id.settingsFragment);
+                Navigation.findNavController(this, R.id.nav_host_fragment_activity_main)
+                        // Добавляем navOptionsTop третьим параметром
+                        .navigate(R.id.settingsFragment, null, navOptionsTop);
             }
             else if (currentDestinationId[0] == R.id.weightFragment) {
                 showAddWeightDialog();
@@ -132,7 +144,9 @@ public class MainActivity extends AppCompatActivity {
                 showAddSleepDialog();
             }
             else if (currentDestinationId[0] == R.id.navigation_notifications) {
-                Navigation.findNavController(this,R.id.nav_host_fragment_activity_main).navigate(R.id.historyAchievementsFragment);
+                Navigation.findNavController(this, R.id.nav_host_fragment_activity_main)
+                        // Добавляем navOptionsTop третьим параметром
+                        .navigate(R.id.historyAchievementsFragment, null, navOptionsTop);
             }
         });
 

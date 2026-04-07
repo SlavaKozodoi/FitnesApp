@@ -12,6 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.NavOptions;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.GridLayoutManager;
 
@@ -167,12 +168,32 @@ public class HomeFragment extends Fragment {
     }
 
     private void setupNavigation() {
-        binding.cvSleep.setOnClickListener(v -> Navigation.findNavController(v).navigate(R.id.sleepFragment));
-        binding.cvPulse.setOnClickListener(v -> Navigation.findNavController(v).navigate(R.id.pulseFragment));
-        binding.cvWeight.setOnClickListener(v -> Navigation.findNavController(v).navigate(R.id.weightFragment));
-        binding.cvOxygen.setOnClickListener(v -> Navigation.findNavController(v).navigate(R.id.oxygenFragment));
-        binding.cvDayActivity.setOnClickListener(v -> Navigation.findNavController(v).navigate(R.id.dayActivityFragment));
-        binding.IVwater.setOnClickListener(v -> Navigation.findNavController(v).navigate(R.id.water));
+        // 1. Создаем настройки анимации (те самые 4 файла, которые мы создали в res/anim)
+        NavOptions navOptions = new NavOptions.Builder()
+                .setEnterAnim(R.anim.slide_in_right)   // Анимация входа
+                .setExitAnim(R.anim.slide_out_left)    // Анимация выхода
+                .setPopEnterAnim(R.anim.slide_in_left) // Возврат (кнопка Назад)
+                .setPopExitAnim(R.anim.slide_out_right)// Выход нового (кнопка Назад)
+                .build();
+
+        // 2. Передаем эти настройки третьим параметром в метод navigate()
+        binding.cvSleep.setOnClickListener(v ->
+                Navigation.findNavController(v).navigate(R.id.sleepFragment, null, navOptions));
+
+        binding.cvPulse.setOnClickListener(v ->
+                Navigation.findNavController(v).navigate(R.id.pulseFragment, null, navOptions));
+
+        binding.cvWeight.setOnClickListener(v ->
+                Navigation.findNavController(v).navigate(R.id.weightFragment, null, navOptions));
+
+        binding.cvOxygen.setOnClickListener(v ->
+                Navigation.findNavController(v).navigate(R.id.oxygenFragment, null, navOptions));
+
+        binding.cvDayActivity.setOnClickListener(v ->
+                Navigation.findNavController(v).navigate(R.id.dayActivityFragment, null, navOptions));
+
+        binding.IVwater.setOnClickListener(v ->
+                Navigation.findNavController(v).navigate(R.id.water, null, navOptions));
     }
 
     // ==========================================

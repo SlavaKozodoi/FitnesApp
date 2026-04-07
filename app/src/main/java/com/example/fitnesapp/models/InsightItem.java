@@ -19,7 +19,7 @@ public class InsightItem {
     }
 
     public Type type;
-    public Category category; // НОВОЕ ПОЛЕ
+    public Category category;
     public String title;
     public String description;
 

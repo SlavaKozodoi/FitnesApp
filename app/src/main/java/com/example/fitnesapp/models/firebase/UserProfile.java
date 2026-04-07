@@ -27,7 +27,6 @@ public class UserProfile {
     public int totalPulseLogs = 0;    // Сколько раз мерил пульс
     public int totalOxygenLogs = 0;   // Сколько раз мерил кислород
     public int closedRingsStreak = 0; // Дней подряд закрыто все 3 кольца
-    public float waterMultiplier = 1.0f;
 
     // 1. Пустой конструктор (ОБЯЗАТЕЛЕН для Firebase)
     public UserProfile() {}
