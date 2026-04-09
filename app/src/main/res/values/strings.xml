@@ -1,28 +1,68 @@
 <resources>
-    //////activity register
+
+    <string name="app_name" translatable="false">Optima</string>
+    <string name="title_home">Profile</string>
+    <string name="title_progress">Progress</string>
+    <string name="title_achievements">Achievements</string>
+    <string name="title_profile">Profile achievements</string>
+
+    <string name="text_calories">Calories</string>
+    <string name="short_text_calories">kcal</string>
+    <string name="text_steps">Steps</string>
+    <string name="short_text_steps">steps</string>
+    <string name="text_nutrition">Nutrition</string>
+    <string name="text_sleep">Sleep</string>
+    <string name="text_weight">Weight</string>
+    <string name="text_pulse">Pulse</string>
+    <string name="text_oxygenLvl">Oxygen lvl</string>
+
+    <string name="text_good">good</string>
+    <string name="text_bad">bad</string>
+    <string name="text_training">Training</string>
+    <string name="text_day_activity">Day activity</string>
+    <string name="text_settings">Settings</string>
+    <string name="text_total">Total</string>
+    <string name="text_carbs">Carbs</string>
+    <string name="text_proteins">Proteins</string>
+    <string name="text_fats">Fats</string>
+    <string name="text_to">to</string>
+
+    <string name="format_bpm">%1$s bpm</string>
+    <string name="format_bpm_empty">-- bpm</string>
+    <string name="format_kg">%1$.1f kg</string>
+    <string name="format_kg_empty">-- kg</string>
+    <string name="format_sleep_time">%1$dh %2$dm</string>
+    <string name="format_sleep_time_empty">-- h -- m</string>
+    <string name="format_percent">%1$d%%</string>
+    <string name="format_time_h_min">%1$dh %2$02d min</string>
+    <string name="format_time_min">%1$d min</string>
+    <string name="format_time_min_empty">-- min</string>
+    <string name="format_water_volume">%1$d / %2$d ml</string>
+
+
     <string name="auth_error_enter_email">Enter email</string>
     <string name="auth_error_enter_password">Enter password</string>
     <string name="auth_error_failed">Authentication failed: %1$s</string>
     <string name="auth_error_google_failed">Google sign in failed code: %1$d</string>
     <string name="auth_error_firebase_failed">Firebase Auth failed</string>
     <string name="auth_error_loading">Loading error: %1$s</string>
+
     <string name="register_create_account">Create Account</string>
     <string name="register_name">Name</string>
     <string name="register_email">Email</string>
     <string name="register_password">Password</string>
     <string name="register_password_repeat">Repeat password</string>
-    <string name="setup_profile_error_invalid_date_year">Looks like a typo. Please check your birth year</string>
-    <string name="setup_profile_error_invalid_age">Looks like you too young to register. Please check your birth date</string>
     <string name="register_sign_up">Sign Up</string>
     <string name="register_already_have_account">Already have an account? Sign In</string>
     <string name="register_start_your_fitness_journey_today">Start your fitness journey today</string>
+
     <string name="register_error_enter_name">Enter name</string>
     <string name="register_error_password_length">Password must be &gt; 6 chars</string>
     <string name="register_error_password_rep_not_equals">Passwords must be equals</string>
     <string name="register_error_failed">Error: %1$s</string>
     <string name="register_error_profile_save">Failed to save profile</string>
 
-    //////activity setup profile
+
     <string name="setup_profile_lets_know_you_better">Let`s know you better</string>
     <string name="setup_profile_whats_your_name">What`s your name?</string>
     <string name="setup_profile_name">Name</string>
@@ -34,9 +74,12 @@
     <string name="setup_profile_height">Height (cm)</string>
     <string name="setup_date_of_birth">Date of Birth (DD.MM.YYYY)</string>
     <string name="setup_profile_next">NEXT</string>
+
     <string name="setup_profile_error_fill_fields">Please fill all fields</string>
     <string name="setup_profile_error_saving">Error saving data: %1$s</string>
     <string name="setup_profile_error_invalid_date">Enter a complete date (DD.MM.YYYY)</string>
+    <string name="setup_profile_error_invalid_date_year">Looks like a typo. Please check your birth year</string>
+    <string name="setup_profile_error_invalid_age">Looks like you too young to register. Please check your birth date</string>
     <string name="setup_profile_error_invalid_number">Please enter valid numbers</string>
     <string name="setup_profile_error_realistic_height">Enter a realistic height (50 - 250 cm)</string>
     <string name="setup_profile_error_realistic_weight">Enter a realistic weight (20 - 300 kg)</string>
@@ -51,69 +94,23 @@
     <string name="setup_profile_confirm_no">No, let me fix it</string>
 
 
-    ////// dialog achievement details
-    <string name="achievement_details_reward">Reward:</string>
-    <string name="achievement_details_got_it">Got it:</string>
+    <string name="main_health_permissions_required">Health permissions required</string>
+    <string name="main_add_weight_title">Add Weight (kg)</string>
+    <string name="main_invalid_number_format">Invalid number format</string>
+    <string name="main_weight_added">Weight added!</string>
+    <string name="main_error_adding_weight">Error adding weight</string>
+    <string name="main_wake_after_bedtime">Wake-up time must be after bedtime</string>
+    <string name="main_today">Today</string>
+    <string name="main_yesterday">Yesterday</string>
+    <string name="main_user_not_authorized">User not authorized</string>
+    <string name="main_sleep_data_saved">Sleep data saved!</string>
+    <string name="main_error_saving_data">Error saving data</string>
 
-    ////// dialog add sleep
-    <string name="add_sleep_title">Add sleep</string>
-    <string name="add_sleep_bedtime">Going to bed</string>
-    <string name="add_sleep_wake_up">Wake-up time</string>
-    <string name="add_sleep_cancel">Cancel</string>
-    <string name="add_sleep_save">Save</string>
-    <string name="format_time_h_min">%1$dh %2$02d min</string>
-    <string name="format_time_min">%1$d min</string>
-    <string name="format_time_min_empty">-- min</string>
+    <string name="home_auth_failed">Auto auth failed, please try again</string>
+    <string name="home_syncing">Synchronization...</string>
+    <string name="home_no_workout">There were no workouts on this day</string>
 
-    ////// dialog edit goal
-    <string name="edit_goal_title">Edit goal</string>
-    <string name="edit_goal_burn_calories_goal">Burn calories goal</string>
-    <string name="edit_goal_steps_goal">Steps goal</string>
-    <string name="edit_goal_nutrition_max_goal">Nutrition max goal</string>
-    <string name="edit_goal_nutrition_min_goal">Nutrition min goal</string>
 
-    ////// fragment achievements
-    <string name="achievements_recommended">Recommended</string>
-    <string name="achievements_collections">Collections</string>
-    <string name="achievements_milestones">Milestones</string>
-    <string name="achievements_legendary">Legendary</string>
-    <string name="achievements_complete">Complete</string>
-    <string name="achievements_completed">Completed</string>
-    <string name="achievements_first">first</string>
-    <string name="achievements_previous">Previous</string>
-
-    ////// fragment analytics
-    <string name="analytics_smart_suggestions">Smart suggestions based on your data</string>
-    <string name="analytics_all">All</string>
-    <string name="analytics_recovery">Recovery</string>
-    <string name="analytics_nutrition">Nutrition</string>
-    <string name="analytics_activity">Activity</string>
-    <string name="analytics_sleep">Sleep</string>
-    <string name="analytics_nodata">No data</string>
-    <string name="analytics_nodata_dec">There are no new tips in this category yet.</string>
-
-    ////// fragment oxygen
-    <string name="oxygen_highest">Highest</string>
-    <string name="oxygen_lowest">Lowest</string>
-    <string name="oxygen_avarage">Avarage</string>
-    <string name="oxygen_status">Status</string>
-    <string name="oxygen_status_very_well">Very well</string>
-    <string name="oxygen_status_normal">Normal</string>
-    <string name="oxygen_status_low">Low</string>
-    <string name="oxygen_status_critical">Critical!!</string>
-
-    ////// fragment pulse
-    <string name="pulse_heart_rate">Heart rate</string>
-    <string name="pulse_active_period">Active period</string>
-    <string name="pulse_rest_period">Rest period</string>
-    <string name="pulse_status_athletic">Athletic (Low)</string>
-    <string name="pulse_status_excellent">Excellent</string>
-    <string name="pulse_status_normal">Normal</string>
-    <string name="pulse_status_elevated">Elevated</string>
-    <string name="pulse_status_high">High</string>
-    <string name="pulse_status_intense">Intense / Active</string>
-
-    ////// fragment settings
     <string name="settings_body_stats">Body Stats</string>
     <string name="settings_goals_activity">Goals &amp; Activity</string>
     <string name="settings_main_goal">Main Goal</string>
@@ -124,6 +121,21 @@
     <string name="settings_logout">Log Out</string>
     <string name="settings_save_changes">Save Changes</string>
     <string name="settings_connect_health">Health Connect</string>
+    <string name="settings_save_success">Settings saved successfully!</string>
+    <string name="settings_save_failed">Failed to save settings.</string>
+    <string name="settings_error_invalid_numbers">Please enter valid numbers for weight/height</string>
+    <string name="settings_health_connect_installed">Health Connect is installed and working</string>
+    <string name="settings_health_connect_update">Please update Health Connect</string>
+    <string name="settings_health_connect_not_installed">Health Connect is not installed</string>
+    <string name="settings_format_calories">%1$s %2$d kcal</string>
+    <string name="settings_format_steps">%1$s %2$d steps</string>
+
+    <string name="settings_language_title">Language</string>
+    <string-array name="settings_language_array">
+        <item>English</item>
+        <item>Українська</item>
+    </string-array>
+
     <string-array name="settings_goals_array">
         <item>Lose Weight</item>
         <item>Maintain Weight</item>
@@ -137,72 +149,32 @@
         <item>Active (Daily)</item>
     </string-array>
 
-    <string name="settings_save_success">Settings saved successfully!</string>
-    <string name="settings_save_failed">Failed to save settings.</string>
-    <string name="settings_error_invalid_numbers">Please enter valid numbers for weight/height</string>
-    <string name="settings_health_connect_installed">Health Connect is installed and working</string>
-    <string name="settings_health_connect_update">Please update Health Connect</string>
-    <string name="settings_health_connect_not_installed">Health Connect is not installed</string>
 
-    <string name="settings_format_calories">%1$s %2$d kcal</string>
-    <string name="settings_format_steps">%1$s %2$d steps</string>
+    <string name="day_activity_goal">Goal: %1$d</string>
+    <string name="day_activity_max">Max: %1$d</string>
+    <string name="day_activity_carbs_val">Carbs: %1$dg</string>
+    <string name="day_activity_protein_val">Protein: %1$dg</string>
+    <string name="day_activity_fats_val">Fats: %1$dg</string>
+    <string name="day_activity_invalid_number">Invalid number</string>
+    <string name="day_activity_goal_updated">Goal updated!</string>
+    <string name="day_activity_error_updating">Error updating goal</string>
 
-    ////// fragment sleep
-    <string name="sleep_quality">Quality of sleep</string>
-    <string name="sleep_fall_asleep">Falling asleep</string>
-    <string name="sleep_sleep_time">Sleep time</string>
-    <string name="sleep_getting_into_bed">Getting into bed</string>
-    <string name="sleep_awaking">Awaking</string>
-    <string name="sleep_sleep_phases">Sleep phases</string>
-    <string name="sleep_fast">Fast</string>
-    <string name="sleep_awake">Awake</string>
-    <string name="sleep_surface">Surface</string>
-    <string name="sleep_deep">Deep</string>
 
-    ////// fragment weight
-    <string name="weight_month">month</string>
-    <string name="weight_bmi">BMI</string>
-    <string name="weight_status_underweight">Underweight</string>
-    <string name="weight_status_normal">Normal</string>
-    <string name="weight_status_overweight">Overweight</string>
-    <string name="weight_status_obese">Obese</string>
-
-    <string name="weight_btn_format">%1$d %2$s</string>
-
-    ////// fragment home
-    <string name="home_auth_failed">Auto auth failed, please try again</string>
-    <string name="home_syncing">Synchronization...</string>
-    <string name="home_no_workout">There were no workouts on this day</string>
-
-    <string name="format_bpm">%1$s bpm</string>
-    <string name="format_bpm_empty">-- bpm</string>
-    <string name="format_kg">%1$.1f kg</string>
-    <string name="format_kg_empty">-- kg</string>
-    <string name="format_sleep_time">%1$dh %2$dm</string>
-    <string name="format_sleep_time_empty">-- h -- m</string>
-    <string name="format_percent">%1$d%%</string>
-
-    ////// fragment water
     <string name="water_warning_spam_title">Water overload?</string>
     <string name="water_warning_spam_desc">You have already added a lot of water today (over 5 liters!). Excess water can lead to water intoxication and wash out salts. Add anyway?</string>
     <string name="water_warning_yes_add">Yes, add</string>
     <string name="water_warning_cancel">Cancel</string>
-
     <string name="water_warning_caution_title">Caution!</string>
     <string name="water_warning_caution_desc">Drinking more than 1.5 liters of water at once can be harmful to your kidneys. Are you sure you drank that much at once?</string>
     <string name="water_warning_yes_drank">Yes, I drank that much</string>
 
     <string name="water_dialog_custom_volume_title">Add custom volume (ml)</string>
     <string name="water_dialog_edit_goal_title">Edit daily goal (ml)</string>
-
     <string name="water_error_valid_amount">Enter a valid amount</string>
     <string name="water_error_invalid_number">Invalid number</string>
     <string name="water_error_empty_field">Field cannot be empty</string>
     <string name="water_error_realistic_goal">Please enter a realistic goal</string>
-
     <string name="water_toast_goal_updated">Goal updated!</string>
-
-    <string name="format_water_volume">%1$d / %2$d ml</string>
 
     <string name="water_advice_goal_reached">💧 Goal reached! Your water balance is normal.</string>
     <string name="water_advice_morning_empty">☀️ A glass of water in the morning kickstarts metabolism and cleanses the body.</string>
@@ -213,28 +185,76 @@
     <string name="water_advice_evening_behind">🌙 You are far behind your goal. Replenish your balance, but drink gradually.</string>
     <string name="water_advice_evening_almost">🌙 Almost there! Limit water intake 1.5 hours before bed to avoid swelling.</string>
 
-    ////// fragment day activity
-    <string name="day_activity_goal">Goal: %1$d</string>
-    <string name="day_activity_max">Max: %1$d</string>
-    <string name="day_activity_carbs_val">Carbs: %1$dg</string>
-    <string name="day_activity_protein_val">Protein: %1$dg</string>
-    <string name="day_activity_fats_val">Fats: %1$dg</string>
-    <string name="day_activity_invalid_number">Invalid number</string>
-    <string name="day_activity_goal_updated">Goal updated!</string>
-    <string name="day_activity_error_updating">Error updating goal</string>
 
-    ////// item achievement
-    <string name="item_achievement_tier">tier</string>
-    <string name="item_achievement_colect_these_badges">Collect these badges</string>
-    <string name="item_achievement_locked">LOCKED!\nRequirement: Complete </string>
-    <string name="item_achievement_collect">COLLECT</string>
+    <string name="oxygen_highest">Highest</string>
+    <string name="oxygen_lowest">Lowest</string>
+    <string name="oxygen_avarage">Average</string>
+    <string name="oxygen_status">Status</string>
+    <string name="oxygen_status_very_well">Very well</string>
+    <string name="oxygen_status_normal">Normal</string>
+    <string name="oxygen_status_low">Low</string>
+    <string name="oxygen_status_critical">Critical!!</string>
 
-    ////// item nutrition card
+    <string name="pulse_heart_rate">Heart rate</string>
+    <string name="pulse_active_period">Active period</string>
+    <string name="pulse_rest_period">Rest period</string>
+    <string name="pulse_status_athletic">Athletic (Low)</string>
+    <string name="pulse_status_excellent">Excellent</string>
+    <string name="pulse_status_normal">Normal</string>
+    <string name="pulse_status_elevated">Elevated</string>
+    <string name="pulse_status_high">High</string>
+    <string name="pulse_status_intense">Intense / Active</string>
+
+    <string name="sleep_quality">Quality of sleep</string>
+    <string name="sleep_fall_asleep">Falling asleep</string>
+    <string name="sleep_sleep_time">Sleep time</string>
+    <string name="sleep_getting_into_bed">Getting into bed</string>
+    <string name="sleep_awaking">Awaking</string>
+    <string name="sleep_sleep_phases">Sleep phases</string>
+    <string name="sleep_fast">Fast</string>
+    <string name="sleep_awake">Awake</string>
+    <string name="sleep_surface">Surface</string>
+    <string name="sleep_deep">Deep</string>
+    <string name="sleep_quality_excellent">Excellent</string>
+    <string name="sleep_quality_normal">Normal</string>
+    <string name="sleep_quality_bad">Bad</string>
+
+    <string name="weight_month">month</string>
+    <string name="weight_bmi">BMI</string>
+    <string name="weight_status_underweight">Underweight</string>
+    <string name="weight_status_normal">Normal</string>
+    <string name="weight_status_overweight">Overweight</string>
+    <string name="weight_status_obese">Obese</string>
+    <string name="weight_btn_format">%1$d %2$s</string>
+    <string name="weight_action_edit">Edit</string>
+    <string name="weight_action_delete">Delete</string>
+    <string name="weight_action_choose">Choose action</string>
+    <string name="weight_edit_title">Edit weight (kg)</string>
+    <string name="weight_edit_delete">(Clear all for delete data)</string>
+    <string name="weight_delete_title">Delete entry?</string>
+    <string name="weight_delete_msg">Are you sure you want to delete the weight %1$.1f kg on %2$s?</string>
+    <string name="weight_delete_yes">Delete</string>
+    <string name="weight_cancel">Cancel</string>
+    <string name="weight_toast_updated">Weight successfully updated!</string>
+    <string name="weight_toast_deleted">Entry deleted!</string>
+
+
+    <string name="add_sleep_title">Add sleep</string>
+    <string name="add_sleep_bedtime">Going to bed</string>
+    <string name="add_sleep_wake_up">Wake-up time</string>
+    <string name="add_sleep_cancel">Cancel</string>
+    <string name="add_sleep_save">Save</string>
+
+    <string name="edit_goal_title">Edit goal</string>
+    <string name="edit_goal_burn_calories_goal">Burn calories goal</string>
+    <string name="edit_goal_steps_goal">Steps goal</string>
+    <string name="edit_goal_nutrition_max_goal">Nutrition max goal</string>
+    <string name="edit_goal_nutrition_min_goal">Nutrition min goal</string>
+
     <string name="item_nutrition_card_carbs">Carbs</string>
     <string name="item_nutrition_card_proteins">Proteins</string>
     <string name="item_nutrition_card_fats">Fats</string>
 
-    ////// item workout card
     <string name="item_workout_card_km">km</string>
     <string name="item_workout_card_min_km">min/km</string>
     <string name="item_workout_card_kcal">kcal</string>
@@ -245,56 +265,20 @@
     <string name="item_workout_card_speed">Speed km/h</string>
     <string name="item_advice_history">Advice history</string>
 
-    // workout advices
-    <string name="advice_history_workout_finished">Workout Finished!</string>
 
-    <string name="advice_history_workout_finished_desc">The workout has been successfully saved to your history. Keep it up!</string>
-    <string name="advice_history_workout_energy_extreme">Energy intensity: Extreme</string>
-    <string name="advice_history_workout_energy_extreme_desc">Calorie burn: %1$.1f kcal/min. Primary fuel source: muscle glycogen. You\'ve significantly boosted your metabolism for the next few hours.</string>
-    <string name="advice_history_workout_energy_avarage">Energy intensity: Average</string>
-    <string name="advice_history_workout_energy_avarage_desc">Energy expenditure: %1f kcal/min. The body utilized carbohydrates and fat stores in a balanced manner for energy.</string>
+    <string name="analytics_smart_suggestions">Smart suggestions based on your data</string>
+    <string name="analytics_all">All</string>
+    <string name="analytics_recovery">Recovery</string>
+    <string name="analytics_nutrition">Nutrition</string>
+    <string name="analytics_activity">Activity</string>
+    <string name="analytics_sleep">Sleep</string>
+    <string name="analytics_nodata">No data</string>
+    <string name="analytics_nodata_dec">There are no new tips in this category yet.</string>
 
-    <string name="advice_history_workout_energy_low">Energy intensity: Low</string>
-    <string name="advice_history_workout_energy_low_desc">Calorie burn: %1$.1f kcal/min. A gentle workout, ideal for recovery, fat burning, and improving blood circulation without putting stress on the central nervous system.</string>
-    <string name="advice_history_workout_pulse_rate_interval">Heart rate profile: Interval</string>
-    <string name="advice_history_workout_pulse_rate_interval_dec_1">Heart rate “fluctuations” (ranging from </string>
-    <string name="advice_history_workout_pulse_rate_interval_dec_2"> bpm) have been observed. These fluctuations are excellent for improving vascular elasticity.</string>
-
-    <string name="advice_history_workout_pulse_rate_steady">Heart rate profile: Steady</string>
-    <string name="advice_history_workout_pulse_rate_steady_dec_1">Heart rate stayed steady at around </string>
-    <string name="advice_history_workout_pulse_rate_steady_dec_2"> bpm. A steady workout to build muscular endurance.</string>
-
-    <string name="advice_history_workout_pulse_rate_myocardial">Myocardial load</string>
-    <string name="advice_history_workout_pulse_rate_myocardial_dec_1">You spent some time in the red zone (peak </string>
-    <string name="advice_history_workout_pulse_rate_myocardial_dec_2"> bpm). Your heart has received a powerful stimulus for growth; give it 48 hours to recover.</string>
-
-    <string name="advice_history_workout_explosive_power">Explosive power</string>
-    <string name="advice_history_workout_explosive_power_dec">Significant increases in acceleration have been recorded (peak: %.1f). This is excellent for developing fast-twitch muscle fibers and anaerobic strength.</string>
-
-    <string name="advice_history_workout_muscle_fatigue">Muscle fatigue</string>
-    <string name="advice_history_workout_muscle_fatigue_desc">Your speed noticeably dropped in the second half of the session. This is a classic sign of glycogen depletion in the legs.</string>
-
-    <string name="advice_history_workout_perfect_pacing">Perfect pacing</string>
-    <string name="advice_history_workout_perfect_pacing_desc">Excellent energy distribution! Your speed in the second half of the workout remained as stable as at the start.</string>
-
-    <string name="advice_history_workout_oxygen_debt">Oxygen debt</string>
-    <string name="advice_history_workout_oxygen_debt_desc">At peak load, SpO2 dropped to %1$d%%. You broke through your anaerobic threshold — it\'s in these moments that your peak endurance grows.</string>
-
-    <string name="advice_history_workout_cns_stress">CNS stress</string>
-    <string name="advice_history_workout_cns_stress_desc">A powerful evening session. Adrenaline and cortisol levels are high. Do some light stretching to calm your central nervous system before bed.</string>
-
-    <string name="advice_history_workout_activity_summary">Activity summary</string>
-    <string name="advice_history_workout_activity_summary_desc">Workout logged. Total energy expenditure was %1$d kcal.</string>
-
-    ////// analytics
     <string name="analytics_no_data_title">No data</string>
     <string name="analytics_no_data_desc">Waiting for today\'s data to load...</string>
     <string name="analytics_all_good_title">Everything is on track</string>
     <string name="analytics_all_good_desc">The day has just begun. Keep it up!</string>
-
-    <string name="sleep_quality_excellent">Excellent</string>
-    <string name="sleep_quality_normal">Normal</string>
-    <string name="sleep_quality_bad">Bad</string>
 
     <string name="analytics_energy_title">Body energy: %1$d%%</string>
     <string name="analytics_energy_high_desc">You are full of energy! Great time for an intense workout. Battery is at max.</string>
@@ -359,14 +343,64 @@
 
     <string name="analytics_sleep_deep_deficit_title">Deep phase deficit</string>
     <string name="analytics_sleep_deep_deficit_desc">Your deep sleep was only %1$d%%. This is what recovers muscles. Cool the room before bed.</string>
-
     <string name="analytics_sleep_rem_deficit_title">REM phase deficit</string>
     <string name="analytics_sleep_rem_deficit_desc">Lack of REM sleep (%1$d%%) reduces focus. Put your phone away an hour before bed.</string>
-
     <string name="analytics_sleep_frag_title">Fragmented sleep</string>
     <string name="analytics_sleep_frag_desc">According to the chart, you woke up %1$d times. Check noise and light levels in your bedroom.</string>
 
-    ////// levelsystem
+    <string name="advice_history_workout_finished">Workout Finished!</string>
+    <string name="advice_history_workout_finished_desc">The workout has been successfully saved to your history. Keep it up!</string>
+
+    <string name="advice_history_workout_energy_extreme">Energy intensity: Extreme</string>
+    <string name="advice_history_workout_energy_extreme_desc">Calorie burn: %1$.1f kcal/min. Primary fuel source: muscle glycogen. You\'ve significantly boosted your metabolism for the next few hours.</string>
+    <string name="advice_history_workout_energy_avarage">Energy intensity: Average</string>
+    <string name="advice_history_workout_energy_avarage_desc">Energy expenditure: %1f kcal/min. The body utilized carbohydrates and fat stores in a balanced manner for energy.</string>
+    <string name="advice_history_workout_energy_low">Energy intensity: Low</string>
+    <string name="advice_history_workout_energy_low_desc">Calorie burn: %1$.1f kcal/min. A gentle workout, ideal for recovery, fat burning, and improving blood circulation without putting stress on the central nervous system.</string>
+
+    <string name="advice_history_workout_pulse_rate_interval">Heart rate profile: Interval</string>
+    <string name="advice_history_workout_pulse_rate_interval_dec_1">Heart rate “fluctuations” (ranging from </string>
+    <string name="advice_history_workout_pulse_rate_interval_dec_2"> bpm) have been observed. These fluctuations are excellent for improving vascular elasticity.</string>
+
+    <string name="advice_history_workout_pulse_rate_steady">Heart rate profile: Steady</string>
+    <string name="advice_history_workout_pulse_rate_steady_dec_1">Heart rate stayed steady at around </string>
+    <string name="advice_history_workout_pulse_rate_steady_dec_2"> bpm. A steady workout to build muscular endurance.</string>
+
+    <string name="advice_history_workout_pulse_rate_myocardial">Myocardial load</string>
+    <string name="advice_history_workout_pulse_rate_myocardial_dec_1">You spent some time in the red zone (peak </string>
+    <string name="advice_history_workout_pulse_rate_myocardial_dec_2"> bpm). Your heart has received a powerful stimulus for growth; give it 48 hours to recover.</string>
+
+    <string name="advice_history_workout_explosive_power">Explosive power</string>
+    <string name="advice_history_workout_explosive_power_dec">Significant increases in acceleration have been recorded (peak: %.1f). This is excellent for developing fast-twitch muscle fibers and anaerobic strength.</string>
+    <string name="advice_history_workout_muscle_fatigue">Muscle fatigue</string>
+    <string name="advice_history_workout_muscle_fatigue_desc">Your speed noticeably dropped in the second half of the session. This is a classic sign of glycogen depletion in the legs.</string>
+    <string name="advice_history_workout_perfect_pacing">Perfect pacing</string>
+    <string name="advice_history_workout_perfect_pacing_desc">Excellent energy distribution! Your speed in the second half of the workout remained as stable as at the start.</string>
+    <string name="advice_history_workout_oxygen_debt">Oxygen debt</string>
+    <string name="advice_history_workout_oxygen_debt_desc">At peak load, SpO2 dropped to %1$d%%. You broke through your anaerobic threshold — it\'s in these moments that your peak endurance grows.</string>
+    <string name="advice_history_workout_cns_stress">CNS stress</string>
+    <string name="advice_history_workout_cns_stress_desc">A powerful evening session. Adrenaline and cortisol levels are high. Do some light stretching to calm your central nervous system before bed.</string>
+    <string name="advice_history_workout_activity_summary">Activity summary</string>
+    <string name="advice_history_workout_activity_summary_desc">Workout logged. Total energy expenditure was %1$d kcal.</string>
+
+
+    <string name="achievements_recommended">Recommended</string>
+    <string name="achievements_collections">Collections</string>
+    <string name="achievements_milestones">Milestones</string>
+    <string name="achievements_legendary">Legendary</string>
+    <string name="achievements_complete">Complete</string>
+    <string name="achievements_completed">Completed</string>
+    <string name="achievements_first">first</string>
+    <string name="achievements_previous">Previous</string>
+
+    <string name="item_achievement_tier">tier</string>
+    <string name="item_achievement_colect_these_badges">Collect these badges</string>
+    <string name="item_achievement_locked">LOCKED!\nRequirement: Complete </string>
+    <string name="item_achievement_collect">COLLECT</string>
+
+    <string name="achievement_details_reward">Reward:</string>
+    <string name="achievement_details_got_it">Got it:</string>
+
     <string name="rank_novice">Novice</string>
     <string name="rank_beginner">Beginner</string>
     <string name="rank_walker">Walker</string>
@@ -383,67 +417,6 @@
     <string name="rank_titan">Titan</string>
     <string name="rank_legend">Legend</string>
 
-    ////// main activity
-    <string name="main_health_permissions_required">Health permissions required</string>
-    <string name="main_add_weight_title">Add Weight (kg)</string>
-    <string name="main_invalid_number_format">Invalid number format</string>
-    <string name="main_weight_added">Weight added!</string>
-    <string name="main_error_adding_weight">Error adding weight</string>
-    <string name="main_wake_after_bedtime">Wake-up time must be after bedtime</string>
-    <string name="main_today">Today</string>
-    <string name="main_yesterday">Yesterday</string>
-    <string name="main_user_not_authorized">User not authorized</string>
-    <string name="main_sleep_data_saved">Sleep data saved!</string>
-    <string name="main_error_saving_data">Error saving data</string>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    <string name="app_name" translatable="false">Optima</string>
-    <string name="title_home">Profile</string>
-    <string name="title_progress">Progress</string>
-    <string name="title_achievements">Achievements</string>
-    <string name="title_profile">Profile achievements</string>
-    <string name="text_calories">Calories</string>
-    <string name="short_text_calories">kcal</string>
-    <string name="text_steps">Steps</string>
-    <string name="short_text_steps">steps</string>
-    <string name="text_nutrition">Nutrition</string>
-    <string name="text_sleep">Sleep</string>
-    <string name="text_weight">Weight</string>
-    <string name="text_pulse">Pulse</string>
-    <string name="text_oxygenLvl">Oxygen lvl</string>
-    <string name="text_good">good</string>
-    <string name="text_bad">bad</string>
-    <string name="text_training">Training</string>
-    <string name="text_day_activity">Day activity</string>
-    <string name="text_settings">Settings</string>
-    <string name="text_total">Total</string>
-    <string name="text_carbs">Carbs</string>
-    <string name="text_proteins">Proteins</string>
-    <string name="text_fats">Fats</string>
-    <string name="text_to">to</string>
-
-    <string name="settings_language_title">Language</string>
-    <string-array name="settings_language_array">
-        <item>English</item>
-        <item>Українська</item>
-    </string-array>
 
     <string name="ach_cal_daily_01_title">Light warm-up</string>
     <string name="ach_cal_daily_01_desc">Burn 300 active calories in a day.</string>

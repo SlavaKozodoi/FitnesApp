@@ -177,15 +177,38 @@ public class SettingsFragment extends Fragment {
 
     private void setupListeners() {
         binding.btnSave.setOnClickListener(v -> {
+            // 1. Отримуємо текст з полів і обрізаємо зайві пробіли
+            String name = binding.etName.getText().toString().trim();
+            String surname = binding.etSecondName.getText().toString().trim();
+            String heightStr = binding.etHeight.getText().toString().trim();
+            String weightStr = binding.etWeight.getText().toString().trim();
+            String targetWeightStr = binding.etTargetWeight.getText().toString().trim();
+
+            // 2. ПЕРЕВІРКА НА ПОРОЖНІ ПОЛЯ
+            if (name.isEmpty() || surname.isEmpty() || heightStr.isEmpty() || weightStr.isEmpty() || targetWeightStr.isEmpty()) {
+                Toast.makeText(getContext(), getString(R.string.setup_profile_error_fill_fields), Toast.LENGTH_SHORT).show();
+                return;
+            }
+
             try {
-                String name = binding.etName.getText().toString();
-                String surname = binding.etSecondName.getText().toString();
-                String birthDate = "01.01.2000";
+                // 3. Парсимо числа
+                int height = Integer.parseInt(heightStr);
+                double weight = Double.parseDouble(weightStr);
+                double targetWeight = Double.parseDouble(targetWeightStr);
 
-                int height = Integer.parseInt(binding.etHeight.getText().toString());
-                double weight = Double.parseDouble(binding.etWeight.getText().toString());
-                double targetWeight = Double.parseDouble(binding.etTargetWeight.getText().toString());
+                // 4. ВАЛІДАЦІЯ ЗРОСТУ ТА ВАГИ (Реалістичні межі)
+                if (height < 50 || height > 300) {
+                    Toast.makeText(getContext(), getString(R.string.setup_profile_error_impossible_height), Toast.LENGTH_SHORT).show();
+                    return;
+                }
 
+                if (weight < 20 || weight > 500 || targetWeight < 20 || targetWeight > 500) {
+                    Toast.makeText(getContext(), getString(R.string.setup_profile_error_impossible_weight), Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                // 5. Якщо все добре — збираємо інші дані та зберігаємо
+                String birthDate = "01.01.2000"; // Якщо дата народження не редагується тут
                 String gender = binding.rbMale.isChecked() ? "Male" : "Female";
                 boolean notif = binding.switchNotif.isChecked();
 
@@ -198,6 +221,7 @@ public class SettingsFragment extends Fragment {
                 mViewModel.saveSettings(name, surname, birthDate, height, weight, gender, notif, mainGoal, targetWeight, activity);
 
             } catch (NumberFormatException e) {
+                // Якщо користувач ввів якісь дивні символи замість чисел
                 Toast.makeText(getContext(), getString(R.string.settings_error_invalid_numbers), Toast.LENGTH_SHORT).show();
             }
         });
