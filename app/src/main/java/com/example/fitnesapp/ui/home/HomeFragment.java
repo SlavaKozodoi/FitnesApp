@@ -1,12 +1,19 @@
 package com.example.fitnesapp.ui.home;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
+
+import me.toptas.fancyshowcase.FancyShowCaseQueue;
+import me.toptas.fancyshowcase.FancyShowCaseView;
+import me.toptas.fancyshowcase.FocusShape;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -51,12 +58,10 @@ public class HomeFragment extends Fragment {
     private HomeViewModel homeViewModel;
     private CalendarAdapter calendarAdapter;
 
-    // Календарь
     private final Calendar currentCalendar = Calendar.getInstance();
 
-    // Храним оба списка:
-    private List<String> cachedActiveDates = new ArrayList<>(); // Дни с тренировками
-    private Map<String, Integer> cachedProgressMap = new HashMap<>(); // Проценты колец
+    private List<String> cachedActiveDates = new ArrayList<>();
+    private Map<String, Integer> cachedProgressMap = new HashMap<>();
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -74,13 +79,231 @@ public class HomeFragment extends Fragment {
         setupHistoryCalendar();
         setupSwipeRefresh();
         observeViewModelData();
+
+        // Проверяем статус обучения и запускаем нужную часть
+        SharedPreferences prefs = requireActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
+        int tutorialStep = prefs.getInt("tutorial_step", 0);
+        int tutorialStep_anality = prefs.getInt("tutorial_step_anality", 0);
+        int tutorialStep_ach = prefs.getInt("tutorial_step_ach", 0);
+
+        if (tutorialStep == 0) {
+            view.postDelayed(() -> showTutorialPart1(view), 500);
+        } else if (tutorialStep == 2) {
+            view.postDelayed(this::showTutorialPart3, 500);
+        } else if (tutorialStep == 4 && tutorialStep_anality == 1 && tutorialStep_ach == 1) {
+            view.postDelayed(() -> showTutorialFinal(view), 500);
+        }
+    }
+
+    private void scrollToView(View targetView) {
+        if (targetView == null || targetView.getParent() == null) return;
+
+        View parent = (View) targetView.getParent();
+        while (parent != null) {
+            if (parent instanceof android.widget.ScrollView || parent instanceof androidx.core.widget.NestedScrollView) {
+                final View scrollView = parent;
+
+                scrollView.post(() -> {
+                    android.graphics.Rect rect = new android.graphics.Rect(0, 0, targetView.getWidth(), targetView.getHeight());
+                    ((android.view.ViewGroup) scrollView).offsetDescendantRectToMyCoords(targetView, rect);
+
+                    int vTop = rect.top;
+                    int vBottom = rect.bottom;
+                    int sHeight = scrollView.getHeight();
+                    int scrollToY = vTop - (sHeight / 2) + ((vBottom - vTop) / 2);
+
+                    if (scrollToY < 0) scrollToY = 0;
+
+                    if (scrollView instanceof androidx.core.widget.NestedScrollView) {
+                        ((androidx.core.widget.NestedScrollView) scrollView).smoothScrollTo(0, scrollToY);
+                    } else {
+                        ((android.widget.ScrollView) scrollView).smoothScrollTo(0, scrollToY);
+                    }
+                });
+                break;
+            }
+            parent = (View) parent.getParent();
+        }
+    }
+
+    // Вспомогательный метод для склейки заголовка и текста из ресурсов
+    private String getTutorialText(int titleResId, int descResId) {
+        return getString(titleResId) + "\n\n" + getString(descResId);
     }
 
     // ==========================================
-    // 1. ИНИЦИАЛИЗАЦИЯ И НАБЛЮДЕНИЕ ЗА ДАННЫМИ
+    // ОБУЧЕНИЕ: ЧАСТЬ 1 (Приветствие + Health Connect)
     // ==========================================
+    private void showTutorialPart1(View rootFragmentView) {
+        FancyShowCaseView welcomeStep = new FancyShowCaseView.Builder(requireActivity())
+                .title(getTutorialText(R.string.tutorial_welcome_title, R.string.tutorial_welcome_text))
+                .titleStyle(0, Gravity.TOP)
+                .fitSystemWindows(true)
+                .backgroundColor(Color.parseColor("#CC000000"))
+                .build();
+
+        FancyShowCaseView healthStep = new FancyShowCaseView.Builder(requireActivity())
+                .title(getTutorialText(R.string.tutorial_hc1_title, R.string.tutorial_hc1_text))
+                .titleStyle(0, Gravity.CENTER)
+                .fitSystemWindows(true)
+                .backgroundColor(Color.parseColor("#CC000000"))
+                .build();
+
+        FancyShowCaseView healthStep2 = new FancyShowCaseView.Builder(requireActivity())
+                .title(getTutorialText(R.string.tutorial_hc2_title, R.string.tutorial_hc2_text))
+                .titleStyle(0, Gravity.CENTER)
+                .fitSystemWindows(true)
+                .backgroundColor(Color.parseColor("#CC000000"))
+                .build();
+
+        FancyShowCaseQueue queue = new FancyShowCaseQueue()
+                .add(welcomeStep)
+                .add(healthStep)
+                .add(healthStep2);
+
+        queue.setCompleteListener(() -> {
+            if (getActivity() instanceof MainActivity) {
+                ((MainActivity) getActivity()).requestHealthConnectPermissions();
+            }
+        });
+
+        queue.show();
+    }
+
+    // ==========================================
+    // ОБУЧЕНИЕ: ЧАСТЬ 2 (Запускается из MainActivity)
+    // ==========================================
+    public void showTutorialPart2() {
+        if (binding == null) return;
+
+        View targetView = binding.cvDayActivity;
+        FancyShowCaseView activityStep = new FancyShowCaseView.Builder(requireActivity())
+                .focusOn(targetView)
+                .focusShape(FocusShape.ROUNDED_RECTANGLE)
+                .titleStyle(0, Gravity.TOP)
+                .fitSystemWindows(true)
+                .roundRectRadius(50)
+                .title(getTutorialText(R.string.tutorial_day_activity_title, R.string.tutorial_day_activity_text))
+                .backgroundColor(Color.parseColor("#CC000000"))
+                .build();
+
+        FancyShowCaseQueue queue = new FancyShowCaseQueue().add(activityStep);
+
+        queue.setCompleteListener(() -> {
+            requireActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
+                    .edit()
+                    .putInt("tutorial_step", 1)
+                    .apply();
+
+            targetView.performClick();
+        });
+
+        queue.show();
+    }
+
+    // ==========================================
+    // ОБУЧЕНИЕ: ЧАСТЬ 3 (Возвращение на главный экран)
+    // ==========================================
+    private void showTutorialPart3() {
+        if (binding == null) return;
+
+        FancyShowCaseView cardsStep = new FancyShowCaseView.Builder(requireActivity())
+                .focusOn(binding.cvPulse)
+                .focusShape(FocusShape.ROUNDED_RECTANGLE)
+                .fitSystemWindows(true)
+                .roundRectRadius(20)
+                .title(getTutorialText(R.string.tutorial_health_cards_title, R.string.tutorial_health_cards_text))
+                .backgroundColor(Color.parseColor("#CC000000"))
+                .build();
+
+        FancyShowCaseQueue queue1 = new FancyShowCaseQueue().add(cardsStep);
+
+        queue1.setCompleteListener(() -> {
+            scrollToView(binding.cvCalendar);
+            binding.getRoot().postDelayed(this::showTutorialPart3_Calendar, 800);
+        });
+
+        queue1.show();
+    }
+
+    private void showTutorialPart3_Calendar() {
+        if (binding == null) return;
+
+        FancyShowCaseView calendarStep = new FancyShowCaseView.Builder(requireActivity())
+                .focusOn(binding.cvCalendar)
+                .focusShape(FocusShape.ROUNDED_RECTANGLE)
+                .titleStyle(0, Gravity.TOP)
+                .fitSystemWindows(true)
+                .roundRectRadius(20)
+                .title(getTutorialText(R.string.tutorial_calendar_title, R.string.tutorial_calendar_text))
+                .backgroundColor(Color.parseColor("#CC000000"))
+                .build();
+
+        FancyShowCaseQueue queue2 = new FancyShowCaseQueue().add(calendarStep);
+
+        queue2.setCompleteListener(() -> {
+            scrollToView(binding.IVwater);
+            binding.getRoot().postDelayed(this::showTutorialPart3_Water, 800);
+        });
+
+        queue2.show();
+    }
+
+    private void showTutorialPart3_Water() {
+        if (binding == null) return;
+
+        FancyShowCaseView waterStep = new FancyShowCaseView.Builder(requireActivity())
+                .focusOn(binding.IVwater)
+                .focusShape(FocusShape.ROUNDED_RECTANGLE)
+                .fitSystemWindows(true)
+                .roundRectRadius(20)
+                .title(getTutorialText(R.string.tutorial_water_title, R.string.tutorial_water_text))
+                .backgroundColor(Color.parseColor("#CC000000"))
+                .build();
+
+        FancyShowCaseQueue queue3 = new FancyShowCaseQueue().add(waterStep);
+
+        queue3.setCompleteListener(() -> {
+            requireActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
+                    .edit()
+                    .putInt("tutorial_step", 3)
+                    .apply();
+            binding.IVwater.performClick();
+        });
+
+        queue3.show();
+    }
+
+    // ==========================================
+    // ОБУЧЕНИЕ: АБСОЛЮТНЫЙ ФИНАЛ
+    // ==========================================
+    private void showTutorialFinal(View rootFragmentView) {
+        if (binding == null) return;
+
+        FancyShowCaseView finishStep = new FancyShowCaseView.Builder(requireActivity())
+                .title(getTutorialText(R.string.tutorial_finish_title, R.string.tutorial_finish_text))
+                .titleStyle(0, Gravity.CENTER)
+                .fitSystemWindows(true)
+                .backgroundColor(Color.parseColor("#E6000000"))
+                .build();
+
+        FancyShowCaseQueue queue = new FancyShowCaseQueue()
+                .add(finishStep);
+
+        queue.setCompleteListener(() -> {
+            requireActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
+                    .edit()
+                    .putInt("tutorial_step", 999)
+                    .putInt("tutorial_step_anality", 999)
+                    .putInt("tutorial_step_ach", 999)
+                    .apply();
+        });
+
+        queue.show();
+    }
+
+
     private void observeViewModelData() {
-        // Проверка авторизации
         homeViewModel.getRequireLogin().observe(getViewLifecycleOwner(), isRequired -> {
             if (isRequired) {
                 Intent intent = new Intent(requireActivity(), RegisterActivity.class);
@@ -90,12 +313,10 @@ public class HomeFragment extends Fragment {
             }
         });
 
-        // Дневная статистика
         homeViewModel.getDailyData().observe(getViewLifecycleOwner(), dailyData -> {
             if (dailyData != null) updateDashboardWithRealData(dailyData);
         });
 
-        // Профиль (Имя)
         homeViewModel.getUserProfile().observe(getViewLifecycleOwner(), profile -> {
             if (profile != null) {
                 if (binding.tvName != null) binding.tvName.setText(profile.firstName);
@@ -103,12 +324,8 @@ public class HomeFragment extends Fragment {
             }
         });
 
-        // График Пульса
-        homeViewModel.getPulseHistory().observe(getViewLifecycleOwner(), pulseList -> {
-            setupPulseChart(pulseList);
-        });
+        homeViewModel.getPulseHistory().observe(getViewLifecycleOwner(), this::setupPulseChart);
 
-        // Текст Пульса
         homeViewModel.getTodayPulseValue().observe(getViewLifecycleOwner(), currentPulse -> {
             if (currentPulse != null) {
                 binding.tvPulse.setText(getString(R.string.format_bpm, String.valueOf(currentPulse)));
@@ -117,7 +334,6 @@ public class HomeFragment extends Fragment {
             }
         });
 
-        // График Веса + Текст
         homeViewModel.getWeightHistory().observe(getViewLifecycleOwner(), weightList -> {
             if (weightList != null && !weightList.isEmpty()) {
                 Collections.sort(weightList, (o1, o2) -> {
@@ -125,7 +341,6 @@ public class HomeFragment extends Fragment {
                     if (o2.date == null) return 1;
                     return o1.date.compareTo(o2.date);
                 });
-
                 setupWeightChart(weightList);
                 WeightHistoryItem latestWeight = weightList.get(weightList.size() - 1);
                 binding.tvWeight.setText(getString(R.string.format_kg, latestWeight.val));
@@ -135,7 +350,6 @@ public class HomeFragment extends Fragment {
             }
         });
 
-        // КАЛЕНДАРЬ: Тренировки (Фиолетовый фон)
         homeViewModel.getActiveDays().observe(getViewLifecycleOwner(), dateStrings -> {
             if (dateStrings != null) {
                 cachedActiveDates = dateStrings;
@@ -143,7 +357,6 @@ public class HomeFragment extends Fragment {
             }
         });
 
-        // КАЛЕНДАРЬ: Кольца прогресса
         homeViewModel.getDailyProgressMap().observe(getViewLifecycleOwner(), map -> {
             if (map != null) {
                 cachedProgressMap = map;
@@ -168,37 +381,21 @@ public class HomeFragment extends Fragment {
     }
 
     private void setupNavigation() {
-        // 1. Создаем настройки анимации (те самые 4 файла, которые мы создали в res/anim)
         NavOptions navOptions = new NavOptions.Builder()
-                .setEnterAnim(R.anim.slide_in_right)   // Анимация входа
-                .setExitAnim(R.anim.slide_out_left)    // Анимация выхода
-                .setPopEnterAnim(R.anim.slide_in_left) // Возврат (кнопка Назад)
-                .setPopExitAnim(R.anim.slide_out_right)// Выход нового (кнопка Назад)
+                .setEnterAnim(R.anim.slide_in_right)
+                .setExitAnim(R.anim.slide_out_left)
+                .setPopEnterAnim(R.anim.slide_in_left)
+                .setPopExitAnim(R.anim.slide_out_right)
                 .build();
 
-        // 2. Передаем эти настройки третьим параметром в метод navigate()
-        binding.cvSleep.setOnClickListener(v ->
-                Navigation.findNavController(v).navigate(R.id.sleepFragment, null, navOptions));
-
-        binding.cvPulse.setOnClickListener(v ->
-                Navigation.findNavController(v).navigate(R.id.pulseFragment, null, navOptions));
-
-        binding.cvWeight.setOnClickListener(v ->
-                Navigation.findNavController(v).navigate(R.id.weightFragment, null, navOptions));
-
-        binding.cvOxygen.setOnClickListener(v ->
-                Navigation.findNavController(v).navigate(R.id.oxygenFragment, null, navOptions));
-
-        binding.cvDayActivity.setOnClickListener(v ->
-                Navigation.findNavController(v).navigate(R.id.dayActivityFragment, null, navOptions));
-
-        binding.IVwater.setOnClickListener(v ->
-                Navigation.findNavController(v).navigate(R.id.water, null, navOptions));
+        binding.cvSleep.setOnClickListener(v -> Navigation.findNavController(v).navigate(R.id.sleepFragment, null, navOptions));
+        binding.cvPulse.setOnClickListener(v -> Navigation.findNavController(v).navigate(R.id.pulseFragment, null, navOptions));
+        binding.cvWeight.setOnClickListener(v -> Navigation.findNavController(v).navigate(R.id.weightFragment, null, navOptions));
+        binding.cvOxygen.setOnClickListener(v -> Navigation.findNavController(v).navigate(R.id.oxygenFragment, null, navOptions));
+        binding.cvDayActivity.setOnClickListener(v -> Navigation.findNavController(v).navigate(R.id.dayActivityFragment, null, navOptions));
+        binding.IVwater.setOnClickListener(v -> Navigation.findNavController(v).navigate(R.id.water, null, navOptions));
     }
 
-    // ==========================================
-    // 2. ОБНОВЛЕНИЕ ГЛАВНОГО ДАШБОРДА (DailyData)
-    // ==========================================
     private void updateDashboardWithRealData(DailyData data) {
         updateRingsAndTexts(data);
         updateOxygen(data);
@@ -217,23 +414,11 @@ public class HomeFragment extends Fragment {
         float totalPercent = 0f;
         int activeGoalsCount = 0;
 
-        if (caloriesGoal > 0) {
-            totalPercent += Math.min(caloriesCurrent / caloriesGoal, 1f);
-            activeGoalsCount++;
-        }
-        if (stepsGoal > 0) {
-            totalPercent += Math.min(stepsCurrent / stepsGoal, 1f);
-            activeGoalsCount++;
-        }
-        if (nutritionGoal > 0) {
-            totalPercent += Math.min(nutritionCurrent / nutritionGoal, 1f);
-            activeGoalsCount++;
-        }
+        if (caloriesGoal > 0) { totalPercent += Math.min(caloriesCurrent / caloriesGoal, 1f); activeGoalsCount++; }
+        if (stepsGoal > 0) { totalPercent += Math.min(stepsCurrent / stepsGoal, 1f); activeGoalsCount++; }
+        if (nutritionGoal > 0) { totalPercent += Math.min(nutritionCurrent / nutritionGoal, 1f); activeGoalsCount++; }
 
-        float finalPercentVal = 0f;
-        if (activeGoalsCount > 0) {
-            finalPercentVal = (totalPercent / (float) activeGoalsCount) * 100f;
-        }
+        float finalPercentVal = activeGoalsCount > 0 ? (totalPercent / (float) activeGoalsCount) * 100f : 0f;
 
         binding.progressCalories.setProgressMax(100f);
         if (!homeViewModel.isDashboardAnimated()) {
@@ -246,20 +431,18 @@ public class HomeFragment extends Fragment {
 
         if (binding.tvCaloriesValue != null) binding.tvCaloriesValue.setText(String.valueOf((int) caloriesCurrent));
         if (binding.tvCaloriesGoal != null) binding.tvCaloriesGoal.setText("/" + (int) caloriesGoal + " " + getString(R.string.short_text_calories));
-
         if (binding.tvStepsValue != null) binding.tvStepsValue.setText(String.valueOf((int) stepsCurrent));
         if (binding.tvStepsGoal != null) binding.tvStepsGoal.setText("/" + (int) stepsGoal + " " + getString(R.string.short_text_steps));
-
         if (binding.tvNutritionValue != null) binding.tvNutritionValue.setText(String.valueOf((int) nutritionCurrent));
         if (binding.tvNutritionGoal != null) binding.tvNutritionGoal.setText("/" + (int) nutritionGoal + " " + getString(R.string.short_text_calories));
     }
 
     private void updateOxygen(DailyData data) {
         if (data.vitals_summary != null && data.vitals_summary.spo2_avg > 0) {
-            double avgOxygen = data.vitals_summary.spo2_avg;
-            binding.tvOxygen.setText(String.format(Locale.US, "%.1f", avgOxygen) + "%");
+            binding.tvOxygen.setText(String.format(Locale.US, "%.1f", data.vitals_summary.spo2_avg) + "%");
         }
     }
+
     private void updateSleep(DailyData data) {
         if (data.sleep != null && data.sleep.durationMinutes > 0) {
             int hours = data.sleep.durationMinutes / 60;
@@ -270,9 +453,6 @@ public class HomeFragment extends Fragment {
         }
     }
 
-    // ==========================================
-    // 3. ГРАФИКИ
-    // ==========================================
     private void setupPulseChart(List<HealthLogItem> allData) {
         BarChart chart = binding.chartPulse;
         if (chart == null) return;
@@ -282,30 +462,21 @@ public class HomeFragment extends Fragment {
             for (int i = 0; i < 5; i++) entries.add(new BarEntry(i, 0f));
         } else {
             Calendar cal = Calendar.getInstance();
-            cal.set(Calendar.HOUR_OF_DAY, 0);
-            cal.set(Calendar.MINUTE, 0);
-            cal.set(Calendar.SECOND, 0);
-            cal.set(Calendar.MILLISECOND, 0);
+            cal.set(Calendar.HOUR_OF_DAY, 0); cal.set(Calendar.MINUTE, 0); cal.set(Calendar.SECOND, 0); cal.set(Calendar.MILLISECOND, 0);
             long startOfDay = cal.getTimeInMillis();
-            cal.set(Calendar.HOUR_OF_DAY, 23);
-            cal.set(Calendar.MINUTE, 59);
-            cal.set(Calendar.SECOND, 59);
+            cal.set(Calendar.HOUR_OF_DAY, 23); cal.set(Calendar.MINUTE, 59); cal.set(Calendar.SECOND, 59);
             long endOfDay = cal.getTimeInMillis();
 
             List<HealthLogItem> todaysData = new ArrayList<>();
             for (HealthLogItem item : allData) {
-                if (item.time >= startOfDay && item.time <= endOfDay) {
-                    todaysData.add(item);
-                }
+                if (item.time >= startOfDay && item.time <= endOfDay) todaysData.add(item);
             }
 
             if (todaysData.isEmpty()) {
                 for (int i = 0; i < 5; i++) entries.add(new BarEntry(i, 0f));
             } else {
                 Collections.sort(todaysData, (o1, o2) -> Long.compare(o1.time, o2.time));
-                for (int i = 0; i < todaysData.size(); i++) {
-                    entries.add(new BarEntry(i, (float) todaysData.get(i).val));
-                }
+                for (int i = 0; i < todaysData.size(); i++) entries.add(new BarEntry(i, (float) todaysData.get(i).val));
             }
         }
 
@@ -376,9 +547,6 @@ public class HomeFragment extends Fragment {
         }
     }
 
-    // ==========================================
-    // 4. КАЛЕНДАРЬ
-    // ==========================================
     private void setupHistoryCalendar() {
         binding.recyclerCalendar.setLayoutManager(new GridLayoutManager(getContext(), 7));
 
@@ -386,7 +554,6 @@ public class HomeFragment extends Fragment {
             if (hasWorkout) {
                 Calendar clickCal = (Calendar) currentCalendar.clone();
                 clickCal.set(Calendar.DAY_OF_MONTH, day);
-
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
                 String selectedDate = sdf.format(clickCal.getTime());
 
@@ -399,10 +566,8 @@ public class HomeFragment extends Fragment {
                         bundle.putLong("duration", workout.durationSeconds);
                         bundle.putLong("timestamp", workout.timestamp);
                         bundle.putBoolean("isHistory", true);
-
                         Navigation.findNavController(requireView()).navigate(R.id.activeTrenFragment, bundle);
                     }
-
                     @Override
                     public void onNoWorkout() {
                         Toast.makeText(getContext(), getString(R.string.home_no_workout), Toast.LENGTH_SHORT).show();
@@ -428,14 +593,11 @@ public class HomeFragment extends Fragment {
     }
 
     private void updateCalendarDisplay() {
-        // Оставляем Locale.ENGLISH, если названия месяцев (January, February) должны оставаться на английском везде.
-        // Если хочешь чтобы переводились - поменяй Locale.ENGLISH на Locale.getDefault()
         SimpleDateFormat sdfTitle = new SimpleDateFormat("MMMM", Locale.getDefault());
         binding.tvMonthName.setText(sdfTitle.format(currentCalendar.getTime()));
 
         List<Integer> activeDaysInThisMonth = new ArrayList<>();
         Map<Integer, Integer> progressInThisMonth = new HashMap<>();
-
         SimpleDateFormat sdfParse = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
 
         int currentMonth = currentCalendar.get(Calendar.MONTH);

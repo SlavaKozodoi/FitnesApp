@@ -4,8 +4,11 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
-import android.annotation.SuppressLint;
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,7 +16,6 @@ import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.EditText;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -23,36 +25,25 @@ import androidx.annotation.Nullable;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.fitnesapp.R;
+import com.example.fitnesapp.databinding.FragmentWaterBinding;
 import com.example.fitnesapp.ui.base.BaseLoadingFragment;
+
+import me.toptas.fancyshowcase.FancyShowCaseQueue;
+import me.toptas.fancyshowcase.FancyShowCaseView;
+import me.toptas.fancyshowcase.FocusShape;
 
 public class WaterFragment extends BaseLoadingFragment {
 
     private WaterViewModel viewModel;
-    private TextView tvWaterVolume, tvWaterPercent, tvAdviceText;
-    private ImageView ivBodyFill;
-    private ImageView ivWater250, ivWater500, ivWater750, ivWater1000, ivAddOwnWater;
-    private FrameLayout frameSilhouette;
+    private FragmentWaterBinding binding;
 
     private int currentAnimLevel = 0;
 
-    @SuppressLint("MissingInflatedId")
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View root = inflater.inflate(R.layout.fragment_water, container, false);
-
-        tvWaterVolume = root.findViewById(R.id.tvWaterVolume);
-        tvWaterPercent = root.findViewById(R.id.tvWaterPercent);
-        tvAdviceText = root.findViewById(R.id.tvAdviceText);
-        ivBodyFill = root.findViewById(R.id.ivBodyFill);
-        ivWater250 = root.findViewById(R.id.IVwater250);
-        ivWater500 = root.findViewById(R.id.IVwater500);
-        ivWater750 = root.findViewById(R.id.IVwater750);
-        ivWater1000 = root.findViewById(R.id.IVwater1000);
-        frameSilhouette = root.findViewById(R.id.frameSilhouette);
-        ivAddOwnWater = root.findViewById(R.id.IVwaterPlus);
-
-        return root;
+        binding = FragmentWaterBinding.inflate(inflater, container, false);
+        return binding.getRoot();
     }
 
     @Override
@@ -65,33 +56,109 @@ public class WaterFragment extends BaseLoadingFragment {
         viewModel.getWaterGoal().observe(getViewLifecycleOwner(), goal -> updateUI());
 
         viewModel.getAdviceText().observe(getViewLifecycleOwner(), advice -> {
-            if (tvAdviceText != null) tvAdviceText.setText(advice);
+            if (binding.tvAdviceText != null) binding.tvAdviceText.setText(advice);
         });
 
-        tvWaterVolume.setOnClickListener(v -> showEditWaterGoalDialog());
+        binding.tvWaterVolume.setOnClickListener(v -> showEditWaterGoalDialog());
 
-        // --- ИСПРАВЛЕНИЕ: Передаем View (кнопку), на которую нажали ---
-        ivWater250.setOnClickListener(v -> tryAddWater(250, v));
-        ivWater500.setOnClickListener(v -> tryAddWater(500, v));
-        ivWater750.setOnClickListener(v -> tryAddWater(750, v));
-        ivWater1000.setOnClickListener(v -> tryAddWater(1000, v));
+        // Кнопки добавления воды
+        binding.IVwater250.setOnClickListener(v -> tryAddWater(250, v));
+        binding.IVwater500.setOnClickListener(v -> tryAddWater(500, v));
+        binding.IVwater750.setOnClickListener(v -> tryAddWater(750, v));
+        binding.IVwater1000.setOnClickListener(v -> tryAddWater(1000, v));
 
-        ivAddOwnWater.setOnClickListener(v -> showCustomWaterDialog(v));
+        binding.IVwaterPlus.setOnClickListener(v -> showCustomWaterDialog(v));
 
-        // --- ИСПРАВЛЕНИЕ: Добавляем анимацию брызг при удержании ---
-        frameSilhouette.setOnLongClickListener(v -> {
+        // Отмена воды (долгое нажатие)
+        binding.frameSilhouette.setOnLongClickListener(v -> {
             viewModel.returnWater();
-            showSplashEffect(frameSilhouette); // Запуск брызг
+            showSplashEffect(binding.frameSilhouette);
             return true;
         });
 
         startFakeLoading(view, 200);
+
+        // --- ЛОВИМ ШАГ 3 ---
+        SharedPreferences prefs = requireActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
+        if (prefs.getInt("tutorial_step", 0) == 3 ) {
+            // Даем экрану полсекунды на загрузку
+            view.postDelayed(this::showTutorial, 600);
+        }
     }
+
+    // Вспомогательный метод для склейки заголовка и текста из ресурсов
+    private String getTutorialText(int titleResId, int descResId) {
+        return getString(titleResId) + "\n\n" + getString(descResId);
+    }
+
+    private void showTutorial() {
+        if (binding == null) return;
+
+        FancyShowCaseView step1 = new FancyShowCaseView.Builder(requireActivity())
+                .title(getTutorialText(R.string.tutorial_water_balance_title, R.string.tutorial_water_balance_text))
+                .focusOn(binding.tvWaterPercent)
+                .titleStyle(0, Gravity.CENTER)
+                .fitSystemWindows(true)
+                .backgroundColor(Color.parseColor("#CC000000"))
+                .build();
+
+        FancyShowCaseView step2 = new FancyShowCaseView.Builder(requireActivity())
+                .focusOn(binding.llWaterButtons)
+                .focusShape(FocusShape.ROUNDED_RECTANGLE)
+                .fitSystemWindows(true)
+                .title(getTutorialText(R.string.tutorial_water_add_title, R.string.tutorial_water_add_text))
+                .backgroundColor(Color.parseColor("#CC000000"))
+                .build();
+
+        FancyShowCaseView step3 = new FancyShowCaseView.Builder(requireActivity())
+                .focusOn(binding.tvWaterPercent)
+                .focusShape(FocusShape.CIRCLE)
+                .fitSystemWindows(true)
+                .roundRectRadius(20)
+                .title(getTutorialText(R.string.tutorial_water_undo_title, R.string.tutorial_water_undo_text))
+                .backgroundColor(Color.parseColor("#CC000000"))
+                .build();
+
+        FancyShowCaseView step4 = new FancyShowCaseView.Builder(requireActivity())
+                .focusOn(binding.tvWaterVolume)
+                .focusShape(FocusShape.ROUNDED_RECTANGLE)
+                .fitSystemWindows(true)
+                .roundRectRadius(30)
+                .title(getTutorialText(R.string.tutorial_water_goal_title, R.string.tutorial_water_goal_text))
+                .backgroundColor(Color.parseColor("#CC000000"))
+                .build();
+
+        FancyShowCaseView step5 = new FancyShowCaseView.Builder(requireActivity())
+                .focusOn(binding.cardAdvice)
+                .focusShape(FocusShape.ROUNDED_RECTANGLE)
+                .fitSystemWindows(true)
+                .roundRectRadius(30)
+                .title(getTutorialText(R.string.tutorial_water_advice_title, R.string.tutorial_water_advice_text))
+                .backgroundColor(Color.parseColor("#CC000000"))
+                .build();
+
+        FancyShowCaseQueue queue = new FancyShowCaseQueue()
+                .add(step1)
+                .add(step2)
+                .add(step3)
+                .add(step4)
+                .add(step5);
+
+        queue.setCompleteListener(() -> {
+            // Передаем эстафету дальше (Шаг 4 или финал)
+            requireActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
+                    .edit()
+                    .putInt("tutorial_step", 4)
+                    .apply();
+        });
+
+        queue.show();
+    }
+
 
     // ==========================================
     // ЗАЩИТА ОТ СПАМА И БАЛОВСТВА
     // ==========================================
-    // --- ИСПРАВЛЕНИЕ: Добавили clickedView ---
     private void tryAddWater(int amountToAdd, View clickedView) {
         Integer currentConsumed = viewModel.getConsumedWater().getValue();
         if (currentConsumed == null) currentConsumed = 0;
@@ -102,7 +169,6 @@ public class WaterFragment extends BaseLoadingFragment {
                     .setMessage(getString(R.string.water_warning_spam_desc))
                     .setPositiveButton(getString(R.string.water_warning_yes_add), (dialog, which) -> {
                         viewModel.addWater(amountToAdd);
-                        // Запускаем полет только после подтверждения
                         if (clickedView != null) showFlyingWaterDrop(clickedView);
                     })
                     .setNegativeButton(getString(R.string.water_warning_cancel), null)
@@ -116,7 +182,6 @@ public class WaterFragment extends BaseLoadingFragment {
                     .setMessage(getString(R.string.water_warning_caution_desc))
                     .setPositiveButton(getString(R.string.water_warning_yes_drank), (dialog, which) -> {
                         viewModel.addWater(amountToAdd);
-                        // Запускаем полет только после подтверждения
                         if (clickedView != null) showFlyingWaterDrop(clickedView);
                     })
                     .setNegativeButton(getString(R.string.water_warning_cancel), null)
@@ -124,7 +189,6 @@ public class WaterFragment extends BaseLoadingFragment {
             return;
         }
 
-        // Если предупреждений нет - просто добавляем и запускаем полет
         viewModel.addWater(amountToAdd);
         if (clickedView != null) showFlyingWaterDrop(clickedView);
     }
@@ -132,7 +196,6 @@ public class WaterFragment extends BaseLoadingFragment {
     // ==========================================
     // ДИАЛОГИ ВВОДА
     // ==========================================
-    // --- ИСПРАВЛЕНИЕ: Добавили anchorView ---
     private void showCustomWaterDialog(View anchorView) {
         android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(requireContext());
         View customView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_edit_goal, null);
@@ -159,7 +222,7 @@ public class WaterFragment extends BaseLoadingFragment {
                 try {
                     int customAmount = Integer.parseInt(input);
                     if (customAmount > 0) {
-                        tryAddWater(customAmount, anchorView); // Передаем View кнопки
+                        tryAddWater(customAmount, anchorView);
                         dialog.dismiss();
                     } else {
                         Toast.makeText(requireContext(), getString(R.string.water_error_valid_amount), Toast.LENGTH_SHORT).show();
@@ -176,19 +239,24 @@ public class WaterFragment extends BaseLoadingFragment {
     }
 
     private void showEditWaterGoalDialog() {
-        // ... (Без изменений, этот метод просто меняет цель, анимация воды здесь не нужна) ...
         android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(requireContext());
         View customView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_edit_goal, null);
+
         TextView tvTitle = customView.findViewById(R.id.tvDialogTitle);
         tvTitle.setText(getString(R.string.water_dialog_edit_goal_title));
+
         EditText etAmount = customView.findViewById(R.id.etGoalInput);
         Integer currentGoal = viewModel.getWaterGoal().getValue();
         if (currentGoal != null) etAmount.setText(String.valueOf(currentGoal));
+
         TextView btnCancel = customView.findViewById(R.id.btnCancel);
         TextView btnSave = customView.findViewById(R.id.btnSave);
+
         builder.setView(customView);
         android.app.AlertDialog dialog = builder.create();
+
         if (dialog.getWindow() != null) dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+
         btnCancel.setOnClickListener(v -> dialog.dismiss());
         btnSave.setOnClickListener(v -> {
             String input = etAmount.getText().toString().trim();
@@ -216,51 +284,42 @@ public class WaterFragment extends BaseLoadingFragment {
     // ОБНОВЛЕНИЕ UI
     // ==========================================
     private void updateUI() {
+        if (binding == null) return;
+
         Integer consumed = viewModel.getConsumedWater().getValue();
         Integer goal = viewModel.getWaterGoal().getValue();
 
         if (consumed == null) consumed = 0;
         if (goal == null || goal == 0) goal = 2500;
 
-        // Текст (цифры) обновляем мгновенно, чтобы пользователь сразу видел отклик
-        tvWaterVolume.setText(getString(R.string.format_water_volume, consumed, goal));
+        binding.tvWaterVolume.setText(getString(R.string.format_water_volume, consumed, goal));
 
         int percent = (int) (((float) consumed / goal) * 100);
         if (percent > 100) percent = 100;
 
-        tvWaterPercent.setText(getString(R.string.format_percent, percent));
+        binding.tvWaterPercent.setText(getString(R.string.format_percent, percent));
 
-        // --- ЛОГИКА АНИМАЦИИ ЗАПОЛНЕНИЯ ---
         int targetLevel = percent * 100;
-        ObjectAnimator animator = ObjectAnimator.ofInt(ivBodyFill.getDrawable(), "level", currentAnimLevel, targetLevel);
-        animator.setDuration(1200); // Само заполнение длится 1.2 секунды
+        ObjectAnimator animator = ObjectAnimator.ofInt(binding.ivBodyFill.getDrawable(), "level", currentAnimLevel, targetLevel);
+        animator.setDuration(1200);
 
-        // МАГИЯ ЗАДЕРЖКИ:
         if (targetLevel > currentAnimLevel && currentAnimLevel != 0) {
-            // Если уровень растет (мы выпили воду), ждем ровно 600мс.
-            // 600мс — это в точности время полета нашей капельки (setDuration(600) в showFlyingWaterDrop).
             animator.setStartDelay(600);
         } else if (targetLevel < currentAnimLevel) {
-            // Если уровень падает (нажали отмену/Undo), ждем 200мс,
-            // чтобы вода начала падать в момент появления эффекта брызг.
             animator.setStartDelay(200);
         }
-        // Если currentAnimLevel == 0 (пользователь только зашел на экран),
-        // задержки не будет, человечек заполнится сразу.
 
         animator.start();
-
         currentAnimLevel = targetLevel;
     }
+
     // ==========================================
     // АНИМАЦИИ
     // ==========================================
-
     private void showFlyingWaterDrop(View startView) {
-        if (getActivity() == null || startView == null || frameSilhouette == null) return;
+        if (getActivity() == null || startView == null || binding == null) return;
         final ViewGroup root = (ViewGroup) getActivity().getWindow().getDecorView().findViewById(android.R.id.content);
 
-        // Создаем ImageView с капелькой
         final ImageView drop = new ImageView(getContext());
         drop.setImageResource(R.drawable.ic_water_drops_many);
         drop.setLayoutParams(new ViewGroup.LayoutParams(150, 150));
@@ -271,22 +330,19 @@ public class WaterFragment extends BaseLoadingFragment {
         startView.getLocationInWindow(startLoc);
 
         int[] endLoc = new int[2];
-        frameSilhouette.getLocationInWindow(endLoc);
+        binding.frameSilhouette.getLocationInWindow(endLoc);
 
         drop.post(() -> {
-            // Центр начальной кнопки
             float startX = startLoc[0] + (startView.getWidth() / 2f) - (drop.getWidth() / 2f);
             float startY = startLoc[1] + (startView.getHeight() / 2f) - (drop.getHeight() / 2f);
 
-            // Центр силуэта человека
-            float endX = endLoc[0] + (frameSilhouette.getWidth() / 2f) - (drop.getWidth() / 2f);
-            float endY = endLoc[1] + (frameSilhouette.getHeight() / 2f) - (drop.getHeight() / 2f);
+            float endX = endLoc[0] + (binding.frameSilhouette.getWidth() / 2f) - (drop.getWidth() / 2f);
+            float endY = endLoc[1] + (binding.frameSilhouette.getHeight() / 2f) - (drop.getHeight() / 2f);
 
             drop.setX(startX);
             drop.setY(startY);
             drop.setVisibility(View.VISIBLE);
 
-            // Движение по кривой (отличающиеся интерполяторы для осей X и Y создают дугу)
             ObjectAnimator moveX = ObjectAnimator.ofFloat(drop, View.X, startX, endX);
             moveX.setInterpolator(new AccelerateDecelerateInterpolator());
 
@@ -299,23 +355,22 @@ public class WaterFragment extends BaseLoadingFragment {
 
             AnimatorSet set = new AnimatorSet();
             set.playTogether(moveX, moveY, scaleX, scaleY, alpha);
-            set.setDuration(600); // 0.6 секунды на полет
+            set.setDuration(600);
             set.addListener(new AnimatorListenerAdapter() {
                 @Override
                 public void onAnimationEnd(Animator animation) {
-                    root.removeView(drop); // Удаляем капельку
-
-                    // Легкая пульсация силуэта при попадании
-                    ObjectAnimator pulseX = ObjectAnimator.ofFloat(frameSilhouette, View.SCALE_X, 1f, 1.05f, 1f);
-                    ObjectAnimator pulseY = ObjectAnimator.ofFloat(frameSilhouette, View.SCALE_Y, 1f, 1.05f, 1f);
-                    pulseX.setDuration(200).start();
-                    pulseY.setDuration(200).start();
+                    root.removeView(drop);
+                    if (binding != null) {
+                        ObjectAnimator pulseX = ObjectAnimator.ofFloat(binding.frameSilhouette, View.SCALE_X, 1f, 1.05f, 1f);
+                        ObjectAnimator pulseY = ObjectAnimator.ofFloat(binding.frameSilhouette, View.SCALE_Y, 1f, 1.05f, 1f);
+                        pulseX.setDuration(200).start();
+                        pulseY.setDuration(200).start();
+                    }
                 }
             });
             set.start();
         });
     }
-
 
     private void showSplashEffect(View targetView) {
         if (getActivity() == null || targetView == null) return;
@@ -324,11 +379,10 @@ public class WaterFragment extends BaseLoadingFragment {
         int[] location = new int[2];
         targetView.getLocationInWindow(location);
 
-        // Центр силуэта человека
         int centerX = location[0] + targetView.getWidth() / 2;
         int centerY = location[1] + targetView.getHeight() / 2;
 
-        int numDrops = 8; // Количество разлетающихся капель
+        int numDrops = 8;
 
         for (int i = 0; i < numDrops; i++) {
             final ImageView drop = new ImageView(getContext());
@@ -339,7 +393,6 @@ public class WaterFragment extends BaseLoadingFragment {
             drop.setX(centerX - 25);
             drop.setY(centerY - 25);
 
-            // Случайный угол и расстояние для каждой капельки
             double angle = Math.random() * 2 * Math.PI;
             int distance = 150 + (int)(Math.random() * 150);
 
@@ -354,22 +407,26 @@ public class WaterFragment extends BaseLoadingFragment {
 
             AnimatorSet set = new AnimatorSet();
             set.playTogether(animX, animY, alpha, scaleX, scaleY);
-            // Случайная длительность (от 400 до 600 мс), чтобы капли разлетались неоднородно
             set.setDuration(400 + (long)(Math.random() * 200));
-            set.setInterpolator(new DecelerateInterpolator()); // Замедляются к концу полета
+            set.setInterpolator(new DecelerateInterpolator());
             set.addListener(new AnimatorListenerAdapter() {
                 @Override
                 public void onAnimationEnd(Animator animation) {
-                    root.removeView(drop); // Удаляем с экрана
+                    root.removeView(drop);
                 }
             });
             set.start();
         }
 
-        // Резкое "сжатие" силуэта при отмене воды
         ObjectAnimator squeezeX = ObjectAnimator.ofFloat(targetView, View.SCALE_X, 1f, 0.9f, 1f);
         ObjectAnimator squeezeY = ObjectAnimator.ofFloat(targetView, View.SCALE_Y, 1f, 0.9f, 1f);
         squeezeX.setDuration(300).start();
         squeezeY.setDuration(300).start();
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        binding = null;
     }
 }

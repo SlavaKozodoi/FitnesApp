@@ -1,5 +1,8 @@
 package com.example.fitnesapp.ui.achievements;
 
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -33,6 +36,10 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import me.toptas.fancyshowcase.FancyShowCaseQueue;
+import me.toptas.fancyshowcase.FancyShowCaseView;
+import me.toptas.fancyshowcase.FocusShape;
+
 public class AchievementsFragment extends Fragment {
 
     private AchievementsViewModel mViewModel;
@@ -56,7 +63,85 @@ public class AchievementsFragment extends Fragment {
         setupRecyclerView();
         setupFilters();
         setupObservers();
+
+        // --- ЗАПУСК ОБУЧЕНИЯ ---
+        SharedPreferences prefs = requireActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
+        int tutorialStep = prefs.getInt("tutorial_step_ach", 0);
+
+        if (tutorialStep == 0) {
+            view.postDelayed(() -> showTutorial(view), 500);
+        }
     }
+
+    // Вспомогательный метод для склейки заголовка и текста из ресурсов
+    private String getTutorialText(int titleResId, int descResId) {
+        return getString(titleResId) + "\n\n" + getString(descResId);
+    }
+
+    private void showTutorial(View rootFragmentView) {
+        if (binding == null) return;
+
+        // Слайд 1: Приветствие
+        FancyShowCaseView step1 = new FancyShowCaseView.Builder(requireActivity())
+                .title(getTutorialText(R.string.tutorial_ach_welcome_title, R.string.tutorial_ach_welcome_text))
+                .titleStyle(0, Gravity.CENTER)
+                .fitSystemWindows(true)
+                .backgroundColor(Color.parseColor("#CC000000"))
+                .build();
+
+        // Слайд 2: Зачем собирать (Опыт и иконки)
+        FancyShowCaseView step2 = new FancyShowCaseView.Builder(requireActivity())
+                .title(getTutorialText(R.string.tutorial_ach_xp_title, R.string.tutorial_ach_xp_text))
+                .titleStyle(0, Gravity.CENTER)
+                .fitSystemWindows(true)
+                .backgroundColor(Color.parseColor("#CC000000"))
+                .build();
+
+        // Слайд 3: Как посмотреть детали (Фокус на список достижений)
+        FancyShowCaseView step3 = new FancyShowCaseView.Builder(requireActivity())
+                .title(getTutorialText(R.string.tutorial_ach_details_title, R.string.tutorial_ach_details_text))
+                .focusOn(binding.recyclerAchievements)
+                .titleStyle(0, Gravity.BOTTOM)
+                .focusShape(FocusShape.ROUNDED_RECTANGLE)
+                .fitSystemWindows(true)
+                .backgroundColor(Color.parseColor("#CC000000"))
+                .build();
+
+        // Слайд 4: Фильтры категорий (Фокус на вкладки)
+        FancyShowCaseView step4 = new FancyShowCaseView.Builder(requireActivity())
+                .title(getTutorialText(R.string.tutorial_ach_tabs_title, R.string.tutorial_ach_tabs_text))
+                .focusOn(binding.tabsContainer)
+                .focusShape(FocusShape.ROUNDED_RECTANGLE)
+                .fitSystemWindows(true)
+                .backgroundColor(Color.parseColor("#CC000000"))
+                .build();
+
+        // Слайд 5: Просмотр коллекции (Текст по центру)
+        FancyShowCaseView step5 = new FancyShowCaseView.Builder(requireActivity())
+                .title(getTutorialText(R.string.tutorial_ach_collection_title, R.string.tutorial_ach_collection_text))
+                .titleStyle(0, Gravity.CENTER)
+                .fitSystemWindows(true)
+                .backgroundColor(Color.parseColor("#CC000000"))
+                .build();
+
+        FancyShowCaseQueue queue = new FancyShowCaseQueue()
+                .add(step1)
+                .add(step2)
+                .add(step3)
+                .add(step4)
+                .add(step5);
+
+        queue.setCompleteListener(() -> {
+            // Передаем эстафету, чтобы в HomeFragment запустился финальный салют 🎉
+            requireActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
+                    .edit()
+                    .putInt("tutorial_step_ach", 1)
+                    .apply();
+        });
+
+        queue.show();
+    }
+
 
     private void setupRecyclerView() {
         binding.recyclerAchievements.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -85,19 +170,15 @@ public class AchievementsFragment extends Fragment {
         List<Achievement> filtered = new ArrayList<>();
         int selectedId = binding.tabsContainer.getCheckedRadioButtonId();
 
-        // ИСПРАВЛЕНИЕ 1: Сравниваем строго с АНГЛИЙСКИМИ ключами из базы данных Firebase,
-        // иначе при переключении языка фильтр сломается и список будет пустым!
         String targetCategoryDbKey = "Recommended";
         if (selectedId == R.id.tabCollections) targetCategoryDbKey = "Collections";
         else if (selectedId == R.id.tabMilestones) targetCategoryDbKey = "Milestones";
         else if (selectedId == R.id.tabLegendary) targetCategoryDbKey = "Legendary";
 
         for (Achievement a : fullList) {
-            // Проверяем совпадение с ключом из БД
             if (a.category.equalsIgnoreCase(targetCategoryDbKey)) {
                 if (targetCategoryDbKey.equals("Collections")) {
-                    if (a.isCollected) filtered.add(a);
-                    else if (!a.isCollected) filtered.add(a);
+                    filtered.add(a); // Показываем и собранные, и несобранные
                 } else {
                     if (!a.isCollected) filtered.add(a);
                 }
@@ -121,9 +202,7 @@ public class AchievementsFragment extends Fragment {
             @Override
             public void onCollectClick(View clickedView, Achievement achievement) {
                 mViewModel.collectAchievement(achievement);
-
                 showFloatingXP(clickedView, String.valueOf(achievement.xpReward));
-
                 Toast.makeText(getContext(), getString(R.string.achievements_completed) + " +" + achievement.xpReward + " XP!", Toast.LENGTH_SHORT).show();
             }
 
@@ -149,36 +228,25 @@ public class AchievementsFragment extends Fragment {
         TextView reward = dialog.findViewById(R.id.tvDetailReward);
         Button btnClose = dialog.findViewById(R.id.btnCloseDialog);
 
-        // Переводим заголовок для диалога
         String translatedTitle = getTranslatedText(achievement.id, achievement.title, "_title");
         title.setText(translatedTitle);
 
         tier.setText(achievement.tier);
         reward.setText("+" + achievement.xpReward + " XP");
 
-        // --- ЛОГИКА ДИАЛОГА ---
         if ("collection".equals(achievement.type)) {
-
-            // ИСПРАВЛЕНИЕ: Динамически собираем список требований с ПЕРЕВОДАМИ!
             StringBuilder reqBuilder = new StringBuilder();
 
             if (achievement.requiredIds != null && !achievement.requiredIds.isEmpty()) {
                 for (String reqId : achievement.requiredIds) {
-                    // Ищем требуемую ачивку в общем списке
                     Achievement reqAch = findAchievementById(reqId);
-
-                    // Ставим галочку или крестик
                     boolean isDone = (reqAch != null && reqAch.isCompleted);
                     String mark = isDone ? "✅ " : "❌ ";
-
-                    // Переводим её название!
                     String fallbackTitle = (reqAch != null) ? reqAch.title : reqId;
                     String translatedReqTitle = getTranslatedText(reqId, fallbackTitle, "_title");
-
                     reqBuilder.append(mark).append(translatedReqTitle).append("\n");
                 }
             } else {
-                // Страховка: если список ID пуст, берем старый текст
                 reqBuilder.append(achievement.subItemsStatus);
             }
 
@@ -205,25 +273,19 @@ public class AchievementsFragment extends Fragment {
 
         dialog.show();
     }
-    // ==========================================
-    // ВСПОМОГАТЕЛЬНЫЙ МЕТОД ДЛЯ ПЕРЕВОДОВ В ДИАЛОГЕ
-    // ==========================================
+
     private String getTranslatedText(String achievementId, String fallback, String suffix) {
         if (achievementId == null || achievementId.isEmpty() || getContext() == null) {
             return fallback;
         }
-
         int resId = getContext().getResources().getIdentifier(achievementId + suffix, "string", getContext().getPackageName());
-
         if (resId != 0) {
             return getString(resId);
         } else {
             return fallback;
         }
     }
-    // ==========================================
-    // ПОИСК АЧИВКИ ПО ID ДЛЯ КОЛЛЕКЦИЙ
-    // ==========================================
+
     private Achievement findAchievementById(String id) {
         for (Achievement a : fullList) {
             if (a.id != null && a.id.equals(id)) {
@@ -256,8 +318,6 @@ public class AchievementsFragment extends Fragment {
 
             float currentY = flyer.getY();
 
-            // --- ФАЗА 1: Выпрыгивание (чуть-чуть подлетает над кнопкой) ---
-            // ИСПРАВЛЕНИЕ: Используем View.Y вместо TRANSLATION_Y для точного позиционирования
             ObjectAnimator appearY = ObjectAnimator.ofFloat(flyer, View.Y, currentY, currentY - 50f);
             ObjectAnimator appearAlpha = ObjectAnimator.ofFloat(flyer, View.ALPHA, 0f, 1f);
             ObjectAnimator appearScaleX = ObjectAnimator.ofFloat(flyer, View.SCALE_X, 0.3f, 1.2f, 1f);
@@ -268,8 +328,6 @@ public class AchievementsFragment extends Fragment {
             appearSet.setDuration(400);
             appearSet.setInterpolator(new OvershootInterpolator());
 
-            // --- ФАЗА 2: Улетает в самый верх экрана ---
-            // ИСПРАВЛЕНИЕ: Вычисляем координату за пределами верхнего края экрана (минус высота плашки и еще чуть-чуть)
             float topOfScreenY = -flyer.getHeight() - 100f;
 
             ObjectAnimator flyUp = ObjectAnimator.ofFloat(flyer, View.Y, currentY - 50f, topOfScreenY);
@@ -277,12 +335,10 @@ public class AchievementsFragment extends Fragment {
 
             AnimatorSet flySet = new AnimatorSet();
             flySet.playTogether(flyUp, fadeOut);
-            // Можешь увеличить время (например, 700), если хочешь чтобы летело чуть медленнее
             flySet.setDuration(600);
             flySet.setInterpolator(new AccelerateInterpolator());
             flySet.setStartDelay(500);
 
-            // --- Запускаем всё ---
             AnimatorSet fullAnimation = new AnimatorSet();
             fullAnimation.playSequentially(appearSet, flySet);
             fullAnimation.addListener(new AnimatorListenerAdapter() {
@@ -295,6 +351,7 @@ public class AchievementsFragment extends Fragment {
             fullAnimation.start();
         });
     }
+
     @Override
     public void onDestroyView() {
         super.onDestroyView();

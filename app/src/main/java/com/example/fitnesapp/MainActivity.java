@@ -77,12 +77,16 @@ public class MainActivity extends AppCompatActivity {
                         Log.d("HEALTH", "Permissions denied");
                         Toast.makeText(this, getString(R.string.main_health_permissions_required), Toast.LENGTH_SHORT).show();
                     }
+
+                    // +++ ДОБАВЛЕНО: Продолжаем обучение после того, как системное окно закрылось +++
+                    android.content.SharedPreferences prefs = getSharedPreferences("AppPrefs", MODE_PRIVATE);
+                    if (prefs.getInt("tutorial_step", 0) == 0) {
+                        resumeTutorialInHomeFragment();
+                    }
                 }
         );
 
-        if (healthManager.isAvailable()) {
-            requestPermissions.launch(healthManager.getPermissions());
-        }
+        // ВАЖНО: Мы убрали отсюда автоматический вызов requestPermissions.launch()
         // ---------------------------
 
         setSupportActionBar(binding.toolbar);
@@ -123,18 +127,17 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
-// Создаем настройки вертикальной анимации
+        // Создаем настройки вертикальной анимации
         NavOptions navOptionsTop = new NavOptions.Builder()
-                .setEnterAnim(R.anim.slide_in_top)       // Настройки заезжают сверху
-                .setExitAnim(R.anim.slide_out_bottom)    // Главный экран уезжает вниз
-                .setPopEnterAnim(R.anim.slide_in_bottom) // При возврате главный экран едет снизу
-                .setPopExitAnim(R.anim.slide_out_top)    // А настройки уезжают обратно наверх
+                .setEnterAnim(R.anim.slide_in_top)
+                .setExitAnim(R.anim.slide_out_bottom)
+                .setPopEnterAnim(R.anim.slide_in_bottom)
+                .setPopExitAnim(R.anim.slide_out_top)
                 .build();
 
         btnSettings.setOnClickListener(v -> {
             if (currentDestinationId[0] == R.id.navigation_home) {
                 Navigation.findNavController(this, R.id.nav_host_fragment_activity_main)
-                        // Добавляем navOptionsTop третьим параметром
                         .navigate(R.id.settingsFragment, null, navOptionsTop);
             }
             else if (currentDestinationId[0] == R.id.weightFragment) {
@@ -145,13 +148,40 @@ public class MainActivity extends AppCompatActivity {
             }
             else if (currentDestinationId[0] == R.id.navigation_notifications) {
                 Navigation.findNavController(this, R.id.nav_host_fragment_activity_main)
-                        // Добавляем navOptionsTop третьим параметром
                         .navigate(R.id.historyAchievementsFragment, null, navOptionsTop);
             }
         });
 
         scheduleDailyHealthSync();
     }
+
+    // ==========================================
+    // +++ НОВЫЕ МЕТОДЫ ДЛЯ СВЯЗКИ ОБУЧЕНИЯ +++
+    // ==========================================
+    public void requestHealthConnectPermissions() {
+        // Этот метод теперь будет вызывать HomeFragment, когда дойдет до нужного слайда
+        if (healthManager != null && healthManager.isAvailable()) {
+            requestPermissions.launch(healthManager.getPermissions());
+        } else {
+            // Если Health Connect не поддерживается на устройстве, просто пропускаем окно
+            resumeTutorialInHomeFragment();
+        }
+    }
+
+    private void resumeTutorialInHomeFragment() {
+        androidx.fragment.app.Fragment navHostFragment = getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment_activity_main);
+        if (navHostFragment != null && !navHostFragment.getChildFragmentManager().getFragments().isEmpty()) {
+            androidx.fragment.app.Fragment currentFragment = navHostFragment.getChildFragmentManager().getFragments().get(0);
+            if (currentFragment instanceof com.example.fitnesapp.ui.home.HomeFragment) {
+                // Запускаем вторую часть обучения с небольшой задержкой
+                new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+                    ((com.example.fitnesapp.ui.home.HomeFragment) currentFragment).showTutorialPart2();
+                }, 500);
+            }
+        }
+    }
+    // ==========================================
+
 
     private void showAddSleepDialog() {
         android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this);
@@ -165,7 +195,6 @@ public class MainActivity extends AppCompatActivity {
         View btnCancel = customView.findViewById(R.id.btnCancel);
         View btnSave = customView.findViewById(R.id.btnSave);
 
-        // --- УСТАНАВЛИВАЕМ УМНЫЕ ДЕФОЛТЫ ---
         java.util.Calendar wakeCalendar = java.util.Calendar.getInstance();
         java.util.Calendar bedCalendar = java.util.Calendar.getInstance();
         bedCalendar.add(java.util.Calendar.HOUR_OF_DAY, -8);
@@ -183,7 +212,6 @@ public class MainActivity extends AppCompatActivity {
             dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
         }
 
-        // --- 1. ВЫБОР ДАТЫ СНА ---
         tvBedDate.setOnClickListener(v -> {
             new android.app.DatePickerDialog(this, (view, year, month, day) -> {
                 bedCalendar.set(java.util.Calendar.YEAR, year);
@@ -193,7 +221,6 @@ public class MainActivity extends AppCompatActivity {
             }, bedCalendar.get(java.util.Calendar.YEAR), bedCalendar.get(java.util.Calendar.MONTH), bedCalendar.get(java.util.Calendar.DAY_OF_MONTH)).show();
         });
 
-        // --- 2. ВЫБОР ВРЕМЕНИ СНА ---
         tvBedTime.setOnClickListener(v -> {
             new android.app.TimePickerDialog(this, (view, hour, minute) -> {
                 bedCalendar.set(java.util.Calendar.HOUR_OF_DAY, hour);
@@ -202,7 +229,6 @@ public class MainActivity extends AppCompatActivity {
             }, bedCalendar.get(java.util.Calendar.HOUR_OF_DAY), bedCalendar.get(java.util.Calendar.MINUTE), true).show();
         });
 
-        // --- 3. ВЫБОР ДАТЫ ПРОБУЖДЕНИЯ ---
         tvWakeDate.setOnClickListener(v -> {
             new android.app.DatePickerDialog(this, (view, year, month, day) -> {
                 wakeCalendar.set(java.util.Calendar.YEAR, year);
@@ -212,7 +238,6 @@ public class MainActivity extends AppCompatActivity {
             }, wakeCalendar.get(java.util.Calendar.YEAR), wakeCalendar.get(java.util.Calendar.MONTH), wakeCalendar.get(java.util.Calendar.DAY_OF_MONTH)).show();
         });
 
-        // --- 4. ВЫБОР ВРЕМЕНИ ПРОБУЖДЕНИЯ ---
         tvWakeTime.setOnClickListener(v -> {
             new android.app.TimePickerDialog(this, (view, hour, minute) -> {
                 wakeCalendar.set(java.util.Calendar.HOUR_OF_DAY, hour);
@@ -221,7 +246,6 @@ public class MainActivity extends AppCompatActivity {
             }, wakeCalendar.get(java.util.Calendar.HOUR_OF_DAY), wakeCalendar.get(java.util.Calendar.MINUTE), true).show();
         });
 
-        // --- КНОПКИ ---
         btnCancel.setOnClickListener(v -> dialog.dismiss());
 
         btnSave.setOnClickListener(v -> {

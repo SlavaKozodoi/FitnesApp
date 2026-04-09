@@ -661,4 +661,79 @@
     <string name="col_year_of_health_desc">Collect achievements for yearly streaks (steps and perfect sleep).</string>
 
 
+    <string name="tutorial_welcome_title">Welcome!</string>
+    <string name="tutorial_welcome_text">Your personal fitness assistant is ready. Let\'s take a quick tour!</string>
+
+    <string name="tutorial_hc1_title">Health Connect</string>
+    <string name="tutorial_hc1_text">To provide the most accurate metrics, we sync data directly with your device.</string>
+
+    <string name="tutorial_hc2_title">Important Step</string>
+    <string name="tutorial_hc2_text">For the app to work flawlessly, please grant all required permissions on the next screen.</string>
+
+    <string name="tutorial_day_activity_title">Daily Activity</string>
+    <string name="tutorial_day_activity_text">Tap here to see your detailed daily progress: burned calories, steps, and nutrition.</string>
+
+    <string name="tutorial_health_cards_title">Health Metrics</string>
+    <string name="tutorial_health_cards_text">Use these cards to easily track your sleep, heart rate, weight, and blood oxygen levels.</string>
+
+    <string name="tutorial_calendar_title">History &amp; Calendar</string>
+    <string name="tutorial_calendar_text">Track your success! Rings show your progress, and tapping any day reveals detailed workout analytics.</string>
+
+    <string name="tutorial_water_title">Water Balance</string>
+    <string name="tutorial_water_text">Stay hydrated! Tap here to easily log your water intake throughout the day.</string>
+
+    <string name="tutorial_finish_title">All Set! 🎉</string>
+    <string name="tutorial_finish_text">The tutorial is complete. You now know the basics. Explore the app, build healthy habits, and reach your goals!</string>
+
+    <string name="tutorial_day_stat_title">Detailed Statistics</string>
+    <string name="tutorial_day_stat_text">All your key metrics for the selected day are gathered right here.</string>
+
+    <string name="tutorial_day_history_title">History &amp; Calendar</string>
+    <string name="tutorial_day_history_text">Tap any date to view past data. Swipe left to scroll through previous weeks.</string>
+
+    <string name="tutorial_day_goals_title">Customize Goals</string>
+    <string name="tutorial_day_goals_text">Tap on your daily goals (steps, calories, nutrition) to easily adjust them to your needs.</string>
+
+    <string name="tutorial_day_charts_title">Activity Charts</string>
+    <string name="tutorial_day_charts_text">Visually track your movement and burned calories throughout the entire day.</string>
+
+    <string name="tutorial_analytics_welcome_title">Analytics Hub</string>
+    <string name="tutorial_analytics_welcome_text">This is your personal hub for analytics and smart insights.</string>
+
+    <string name="tutorial_analytics_list_title">Smart Insights</string>
+    <string name="tutorial_analytics_list_text">Throughout the day, AI-driven notifications and analysis of your metrics will appear right here.</string>
+
+    <string name="tutorial_analytics_filters_title">Filters</string>
+    <string name="tutorial_analytics_filters_text">Easily sort your insights by categories: activity, sleep, nutrition, or recovery.</string>
+
+    <string name="tutorial_ach_welcome_title">Your Achievements!</string>
+    <string name="tutorial_ach_welcome_text">This is where all your hard-earned rewards and badges are stored.</string>
+
+    <string name="tutorial_ach_xp_title">Rewards &amp; Experience</string>
+    <string name="tutorial_ach_xp_text">Complete challenges to earn XP points and unlock unique icons for your collection.</string>
+
+    <string name="tutorial_ach_details_title">How to Unlock?</string>
+    <string name="tutorial_ach_details_text">Just tap on any achievement card to see the exact requirements to complete it.</string>
+
+    <string name="tutorial_ach_tabs_title">Categories</string>
+    <string name="tutorial_ach_tabs_text">Use these tabs to easily filter and browse through the 4 different types of achievements.</string>
+
+    <string name="tutorial_ach_collection_title">Your Collection</string>
+    <string name="tutorial_ach_collection_text">You can always view your fully collected badges in the top menu. Keep up the great work!</string>
+
+    <string name="tutorial_water_balance_title">Water Balance</string>
+    <string name="tutorial_water_balance_text">Track your daily hydration easily with this visual indicator.</string>
+
+    <string name="tutorial_water_add_title">Quick Add</string>
+    <string name="tutorial_water_add_text">Use these shortcuts to instantly log the water you\'ve just drank.</string>
+
+    <string name="tutorial_water_undo_title">Undo Action</string>
+    <string name="tutorial_water_undo_text">Added too much by mistake? Just long-press the silhouette to undo your last entry.</string>
+
+    <string name="tutorial_water_goal_title">Your Goal</string>
+    <string name="tutorial_water_goal_text">Tap here to easily adjust your daily water intake goal.</string>
+
+    <string name="tutorial_water_advice_title">Smart Tips</string>
+    <string name="tutorial_water_advice_text">These personalized tips update throughout the day based on your hydration level.</string>
+
 </resources>

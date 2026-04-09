@@ -52,6 +52,7 @@ android {
 }
 
 dependencies {
+    implementation("com.github.faruktoptas:FancyShowCaseView:1.3.9")
     implementation("com.airbnb.android:lottie:6.4.0")
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
 

@@ -621,4 +621,80 @@
     <string name="col_ultimate_athlete_desc">Відкрийте Легендарні рівні в усіх категоріях активності.</string>
     <string name="col_year_of_health_title">Рік Здоров\'я</string>
     <string name="col_year_of_health_desc">Зберіть досягнення за річні серії (кроки та ідеальний сон).</string>
+
+    <string name="tutorial_welcome_title">Ласкаво просимо!</string>
+    <string name="tutorial_welcome_text">Твій персональний фітнес-помічник готовий до роботи. Почнемо невеличку екскурсію!</string>
+
+    <string name="tutorial_hc1_title">Синхронізація Health Connect</string>
+    <string name="tutorial_hc1_text">Щоб твої показники були максимально точними, ми синхронізуємо дані з твоїм пристроєм.</string>
+
+    <string name="tutorial_hc2_title">Важливий крок</string>
+    <string name="tutorial_hc2_text">Для правильної роботи всіх функцій додатка, будь ласка, надай усі необхідні дозволи на наступному екрані.</string>
+
+    <string name="tutorial_day_activity_title">Денна активність</string>
+    <string name="tutorial_day_activity_text">Натисни сюди, щоб переглянути детальний прогрес: спалені калорії, пройдені кроки та харчування за сьогодні.</string>
+
+    <string name="tutorial_health_cards_title">Показники здоров\'я</string>
+    <string name="tutorial_health_cards_text">На цих картках зручно відстежувати дані про твій сон, пульс, вагу та рівень кисню у крові.</string>
+
+    <string name="tutorial_calendar_title">Історія та Календар</string>
+    <string name="tutorial_calendar_text">Відстежуй свої успіхи! Кільця показують прогрес, а натиснувши на день, ти побачиш детальну аналітику тренувань.</string>
+
+    <string name="tutorial_water_title">Водний баланс</string>
+    <string name="tutorial_water_text">Підтримуй організм у тонусі! Натисни сюди, щоб зручно додавати випиту воду протягом дня.</string>
+
+    <string name="tutorial_finish_title">Готово! 🎉</string>
+    <string name="tutorial_finish_text">Навчання завершено. Тепер ти знаєш усе необхідне. Формуй корисні звички та досягай своїх цілей!</string>
+
+    <string name="tutorial_day_stat_title">Детальна статистика</string>
+    <string name="tutorial_day_stat_text">Усі твої ключові показники за обраний день зібрані саме тут.</string>
+
+    <string name="tutorial_day_history_title">Історія та Календар</string>
+    <string name="tutorial_day_history_text">Натисни на будь-яку дату, щоб переглянути минулі дані. Свайпни вліво, щоб побачити попередні тижні.</string>
+
+    <string name="tutorial_day_goals_title">Налаштування цілей</string>
+    <string name="tutorial_day_goals_text">Натискай на свої цілі (кроки, калорії, харчування), щоб легко змінити їх під себе.</string>
+
+    <string name="tutorial_day_charts_title">Графіки активності</string>
+    <string name="tutorial_day_charts_text">Наочно відстежуй свою активність та спалені калорії протягом усього дня.</string>
+
+    <string name="tutorial_analytics_welcome_title">Аналітика</string>
+    <string name="tutorial_analytics_welcome_text">Це твоє персональне місце для перегляду аналітики та отримання порад.</string>
+
+    <string name="tutorial_analytics_list_title">Розумні підказки</string>
+    <string name="tutorial_analytics_list_text">Протягом дня тут з\'являтимуться корисні повідомлення та аналіз твоїх показників на основі штучного інтелекту.</string>
+
+    <string name="tutorial_analytics_filters_title">Фільтри</string>
+    <string name="tutorial_analytics_filters_text">Зручно сортуй підказки за категоріями: активність, сон, харчування або відновлення.</string>
+
+    <string name="tutorial_ach_welcome_title">Твої досягнення!</string>
+    <string name="tutorial_ach_welcome_text">Тут зберігаються всі твої нагороди за фітнес-активність.</string>
+
+    <string name="tutorial_ach_xp_title">Досвід та Нагороди</string>
+    <string name="tutorial_ach_xp_text">Виконуй завдання, щоб отримувати бали досвіду (XP) та відкривати унікальні іконки для своєї колекції.</string>
+
+    <string name="tutorial_ach_details_title">Детальна інформація</string>
+    <string name="tutorial_ach_details_text">Щоб дізнатися умови отримання досягнення, просто натисни на його картку.</string>
+
+    <string name="tutorial_ach_tabs_title">Категорії</string>
+    <string name="tutorial_ach_tabs_text">Перемикайся між цими вкладками, щоб переглядати різні типи досягнень (їх всього 4).</string>
+
+    <string name="tutorial_ach_collection_title">Твоя колекція</string>
+    <string name="tutorial_ach_collection_text">Усі зібрані нагороди можна переглянути у відповідному розділі зверху. Продовжуй в тому ж дусі!</string>
+
+    <string name="tutorial_water_balance_title">Водний баланс</string>
+    <string name="tutorial_water_balance_text">Слідкуй за своєю щоденною нормою води за допомогою цього силуету.</string>
+
+    <string name="tutorial_water_add_title">Швидке додавання</string>
+    <string name="tutorial_water_add_text">Використовуй ці кнопки, щоб миттєво записати випиту воду.</string>
+
+    <string name="tutorial_water_undo_title">Скасування дії</string>
+    <string name="tutorial_water_undo_text">Випадково додав зайвого? Просто затисни силует, щоб скасувати останню дію.</string>
+
+    <string name="tutorial_water_goal_title">Твоя ціль</string>
+    <string name="tutorial_water_goal_text">Натисни сюди, щоб легко змінити свою щоденну норму води.</string>
+
+    <string name="tutorial_water_advice_title">Корисні підказки</string>
+    <string name="tutorial_water_advice_text">Вони автоматично оновлюються протягом дня залежно від твого прогресу.</string>
+
 </resources>

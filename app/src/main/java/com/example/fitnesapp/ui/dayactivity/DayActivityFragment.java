@@ -1,7 +1,11 @@
 package com.example.fitnesapp.ui.dayactivity;
 
 import android.app.AlertDialog;
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -40,6 +44,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+
+import me.toptas.fancyshowcase.FancyShowCaseQueue;
+import me.toptas.fancyshowcase.FancyShowCaseView;
+import me.toptas.fancyshowcase.FocusShape;
 
 public class DayActivityFragment extends BaseLoadingFragment {
 
@@ -86,10 +94,80 @@ public class DayActivityFragment extends BaseLoadingFragment {
         setupClickListeners();
         startFakeLoading(view, 200);
 
+        // --- ЗАПУСК ОБУЧЕНИЯ (ЛОВИМ ШАГ 1) ---
+        SharedPreferences prefs = requireActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
+        if (prefs.getInt("tutorial_step", 0) == 1) {
+            view.postDelayed(this::showTutorial, 600);
+        }
+    }
+
+    // Вспомогательный метод для склейки заголовка и текста из ресурсов
+    private String getTutorialText(int titleResId, int descResId) {
+        return getString(titleResId) + "\n\n" + getString(descResId);
+    }
+
+    // ==========================================
+    // ОБУЧЕНИЕ НА ЭКРАНЕ АКТИВНОСТИ
+    // ==========================================
+    private void showTutorial() {
+        if (binding == null) return; // Защита, если пользователь успел закрыть экран
+
+        // Слайд 1: Приветствие экрана
+        FancyShowCaseView step1 = new FancyShowCaseView.Builder(requireActivity())
+                .title(getTutorialText(R.string.tutorial_day_stat_title, R.string.tutorial_day_stat_text))
+                .titleStyle(0, Gravity.CENTER)
+                .fitSystemWindows(true)
+                .backgroundColor(Color.parseColor("#CC000000"))
+                .build();
+
+        // Слайд 2: История/Календарь
+        FancyShowCaseView step2 = new FancyShowCaseView.Builder(requireActivity())
+                .focusOn(binding.recyclerViewDayActivity)
+                .focusShape(FocusShape.ROUNDED_RECTANGLE)
+                .fitSystemWindows(true)
+                .title(getTutorialText(R.string.tutorial_day_history_title, R.string.tutorial_day_history_text))
+                .backgroundColor(Color.parseColor("#CC000000"))
+                .build();
+
+        // Слайд 3: Изменение целей
+        FancyShowCaseView step3 = new FancyShowCaseView.Builder(requireActivity())
+                .focusOn(binding.tvStepsGoal)
+                .focusShape(FocusShape.CIRCLE)
+                .fitSystemWindows(true)
+                .roundRectRadius(20)
+                .title(getTutorialText(R.string.tutorial_day_goals_title, R.string.tutorial_day_goals_text))
+                .backgroundColor(Color.parseColor("#CC000000"))
+                .build();
+
+        // Слайд 4: Графики
+        FancyShowCaseView step4 = new FancyShowCaseView.Builder(requireActivity())
+                .focusOn(binding.chartStepsinfo)
+                .focusShape(FocusShape.ROUNDED_RECTANGLE)
+                .fitSystemWindows(true)
+                .roundRectRadius(30)
+                .title(getTutorialText(R.string.tutorial_day_charts_title, R.string.tutorial_day_charts_text))
+                .backgroundColor(Color.parseColor("#CC000000"))
+                .build();
+
+        // Собираем всё в очередь
+        FancyShowCaseQueue queue = new FancyShowCaseQueue()
+                .add(step1)
+                .add(step2)
+                .add(step3)
+                .add(step4);
+
+        queue.setCompleteListener(() -> {
+            // Передаем эстафету дальше (Шаг 2)
+            requireActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
+                    .edit()
+                    .putInt("tutorial_step", 2)
+                    .apply();
+        });
+
+        queue.show();
     }
 
     private void setupClickListeners() {
-        // Используем строки из strings.xml
         binding.tvStepsGoal.setOnClickListener(v -> showEditGoalDialog(getString(R.string.edit_goal_steps_goal), "stepsGoal"));
         binding.tvCaloriesGoal.setOnClickListener(v -> showEditGoalDialog(getString(R.string.edit_goal_burn_calories_goal), "caloriesGoal"));
         binding.tvNutritionMax.setOnClickListener(v -> showEditGoalDialog(getString(R.string.edit_goal_nutrition_max_goal), "nutrition/maxCalories"));
@@ -98,19 +176,16 @@ public class DayActivityFragment extends BaseLoadingFragment {
     private void updateUI(DailyData data) {
         if (data == null) {
             clearUI();
-            // Принудительно рисуем пустые графики
             updateCharts(new DailyData());
             return;
         }
 
-        // --- БЛОК 1: ШАГИ И КАЛОРИИ ---
         binding.tvStepsScore.setText(String.valueOf(data.steps));
         binding.tvStepsGoal.setText(getString(R.string.day_activity_goal, data.stepsGoal >= 0 ? data.stepsGoal : 10000));
 
         binding.tvCaloriesScore.setText(String.valueOf((int) data.caloriesBurned));
         binding.tvCaloriesGoal.setText(getString(R.string.day_activity_goal, data.caloriesGoal >= 0 ? data.caloriesGoal : 2000));
 
-        // --- БЛОК 2: ПИТАНИЕ ---
         if (data.nutrition != null) {
             binding.tvNutritionScore.setText(String.valueOf((int) data.nutrition.totalCalories));
             binding.tvNutritionMax.setText(getString(R.string.day_activity_max, data.nutrition.maxCalories));
@@ -125,10 +200,7 @@ public class DayActivityFragment extends BaseLoadingFragment {
             binding.tvNutritionAllFats.setText(getString(R.string.day_activity_fats_val, 0));
         }
 
-        // --- БЛОК 3: СПИСОК ЕДЫ ---
         updateNutritionList(data.meals);
-
-        // --- БЛОК 4: ГРАФИКИ ---
         updateCharts(data);
     }
 
@@ -167,7 +239,6 @@ public class DayActivityFragment extends BaseLoadingFragment {
 
     private void setup30MinCharts(Map<String, HourlyActivityItem> hourlyMap) {
 
-        // 1. ОПРЕДЕЛЯЕМ ВРЕМЯ (Будущее, Сегодня, Прошлое)
         Calendar today = Calendar.getInstance();
         today.set(Calendar.HOUR_OF_DAY, 0); today.set(Calendar.MINUTE, 0); today.set(Calendar.SECOND, 0); today.set(Calendar.MILLISECOND, 0);
 
@@ -183,7 +254,6 @@ public class DayActivityFragment extends BaseLoadingFragment {
         ArrayList<String> labels = new ArrayList<>();
 
         if (isFuture) {
-            // === ЕСЛИ ЭТО БУДУЩЕЕ: РИСУЕМ СТРОГИЕ НУЛИ ===
             stepsEntries.add(new Entry(0, 0f));
             stepsEntries.add(new Entry(1, 0f));
             calEntries.add(new Entry(0, 0f));
@@ -191,7 +261,6 @@ public class DayActivityFragment extends BaseLoadingFragment {
             labels.add("00:00");
             labels.add("23:59");
         } else {
-            // === ЕСЛИ СЕГОДНЯ ИЛИ ПРОШЛОЕ: РАССЧИТЫВАЕМ ДАННЫЕ ===
             int limitIndex = isToday ?
                     (Calendar.getInstance().get(Calendar.HOUR_OF_DAY) * 2) + (Calendar.getInstance().get(Calendar.MINUTE) >= 30 ? 1 : 0)
                     : 47;
@@ -217,7 +286,6 @@ public class DayActivityFragment extends BaseLoadingFragment {
             for (int i = 0; i <= limitIndex; i++) {
                 stepsEntries.add(new Entry(i, stepsBuckets[i]));
 
-                // Рисуем на графике ТОЛЬКО активные калории
                 float activeCals = (float) (stepsBuckets[i] * calsPerStep);
                 calEntries.add(new Entry(i, activeCals));
 
@@ -229,7 +297,6 @@ public class DayActivityFragment extends BaseLoadingFragment {
 
         String[] labelsArr = labels.toArray(new String[0]);
 
-        // ПОЛ ДЛЯ ОБОИХ ГРАФИКОВ - СТРОГИЙ НОЛЬ (0f)
         drawChart(binding.chartStepsinfo, stepsEntries, labelsArr, R.color.steps_start, R.color.steps_end, 0f);
         drawChart(binding.chartCaloriesnfo, calEntries, labelsArr, R.color.calories_start, R.color.calories_end, 0f);
     }
@@ -290,7 +357,6 @@ public class DayActivityFragment extends BaseLoadingFragment {
                 ? FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
         if (uid == null) return;
 
-        // ИСПОЛЬЗУЕМ ВЫБРАННУЮ ДАТУ
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
         String dateKey = sdf.format(selectedDate);
 
@@ -328,7 +394,7 @@ public class DayActivityFragment extends BaseLoadingFragment {
                 requireContext(),
                 binding.recyclerViewDayActivity,
                 date -> {
-                    selectedDate = date.getDate(); // ЗАПОМИНАЕМ ВЫБРАННУЮ ДАТУ
+                    selectedDate = date.getDate();
                     mViewModel.loadDataForDate(selectedDate);
                 }
         );

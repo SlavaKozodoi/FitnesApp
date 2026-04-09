@@ -1,6 +1,10 @@
 package com.example.fitnesapp.ui.analytics;
 
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,6 +23,10 @@ import com.example.fitnesapp.models.InsightItem;
 import java.util.ArrayList;
 import java.util.List;
 
+import me.toptas.fancyshowcase.FancyShowCaseQueue;
+import me.toptas.fancyshowcase.FancyShowCaseView;
+import me.toptas.fancyshowcase.FocusShape;
+
 public class AnalyticsFragment extends Fragment {
 
     private FragmentAnalyticsBinding binding;
@@ -33,7 +41,6 @@ public class AnalyticsFragment extends Fragment {
         analyticsViewModel = new ViewModelProvider(this).get(AnalyticsViewModel.class);
         binding = FragmentAnalyticsBinding.inflate(inflater, container, false);
         return binding.getRoot();
-
     }
 
     @Override
@@ -41,20 +48,11 @@ public class AnalyticsFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         // 1. Настраиваем список (RecyclerView)
-        // ВАЖНО: Убедитесь, что в fragment_analytics.xml есть <androidx.recyclerview.widget.RecyclerView android:id="@+id/recyclerViewInsights" ... />
         adapter = new InsightsAdapter(new ArrayList<>());
         binding.recyclerViewInsights.setLayoutManager(new LinearLayoutManager(getContext()));
         binding.recyclerViewInsights.setAdapter(adapter);
 
-        // 2. Слушаем изменения из нейросети
-        analyticsViewModel.getInsights().observe(getViewLifecycleOwner(), insights -> {
-            if (insights != null) {
-                // Отправляем новые карточки в адаптер
-                adapter.updateData(insights);
-            }
-        });
-
-        // 2. Слушаем изменения данных из ViewModel
+        // 2. Слушаем изменения данных из ViewModel (Объединили два вызова в один)
         analyticsViewModel.getInsights().observe(getViewLifecycleOwner(), insights -> {
             if (insights != null) {
                 allInsights = insights; // Сохраняем полный список
@@ -67,6 +65,62 @@ public class AnalyticsFragment extends Fragment {
         binding.chipGroupFilters.setOnCheckedChangeListener((group, checkedId) -> {
             filterAndDisplayInsights(checkedId);
         });
+
+        // --- ЗАПУСК ОБУЧЕНИЯ ---
+        SharedPreferences prefs = requireActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
+        int tutorialStep = prefs.getInt("tutorial_step_anality", 0);
+
+        if (tutorialStep == 0) {
+            // Самый первый запуск
+            view.postDelayed(() -> showTutorial(view), 500);
+        }
+    }
+
+    // Вспомогательный метод для склейки заголовка и текста из ресурсов
+    private String getTutorialText(int titleResId, int descResId) {
+        return getString(titleResId) + "\n\n" + getString(descResId);
+    }
+
+    private void showTutorial(View rootFragmentView) {
+        if (binding == null) return;
+
+        FancyShowCaseView welcomeStep = new FancyShowCaseView.Builder(requireActivity())
+                .title(getTutorialText(R.string.tutorial_analytics_welcome_title, R.string.tutorial_analytics_welcome_text))
+                .titleStyle(0, Gravity.CENTER)
+                .fitSystemWindows(true)
+                .backgroundColor(Color.parseColor("#CC000000"))
+                .build();
+
+        FancyShowCaseView healthStep = new FancyShowCaseView.Builder(requireActivity())
+                .title(getTutorialText(R.string.tutorial_analytics_list_title, R.string.tutorial_analytics_list_text))
+                .focusOn(binding.recyclerViewInsights)
+                .titleStyle(0, Gravity.BOTTOM)
+                .focusShape(FocusShape.ROUNDED_RECTANGLE)
+                .fitSystemWindows(true)
+                .backgroundColor(Color.parseColor("#CC000000"))
+                .build();
+
+        FancyShowCaseView healthStep2 = new FancyShowCaseView.Builder(requireActivity())
+                .title(getTutorialText(R.string.tutorial_analytics_filters_title, R.string.tutorial_analytics_filters_text))
+                .focusOn(binding.chipGroupFilters)
+                .focusShape(FocusShape.ROUNDED_RECTANGLE)
+                .fitSystemWindows(true)
+                .backgroundColor(Color.parseColor("#CC000000"))
+                .build();
+
+        FancyShowCaseQueue queue = new FancyShowCaseQueue()
+                .add(welcomeStep)
+                .add(healthStep)
+                .add(healthStep2);
+
+        queue.setCompleteListener(() -> {
+            requireActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
+                    .edit()
+                    .putInt("tutorial_step_anality", 1)
+                    .apply();
+        });
+
+        queue.show();
     }
 
     // 4. Метод фильтрации
@@ -94,14 +148,13 @@ public class AnalyticsFragment extends Fragment {
             }
         }
 
-        // Если после фильтрации список пуст, можно показать сообщение-заглушку
+        // Если после фильтрации список пуст, показываем заглушку
         if (filteredList.isEmpty()) {
             filteredList.add(new InsightItem(InsightItem.Type.TIP, InsightItem.Category.GENERAL,
-                    getString(R.string.analytics_nodata) , getString(R.string.analytics_nodata_dec) ));
+                    getString(R.string.analytics_nodata), getString(R.string.analytics_nodata_dec)));
         }
 
-        // Передаем отфильтрованный список в ваш адаптер!
-        // (Например: insightsAdapter.setItems(filteredList); insightsAdapter.notifyDataSetChanged(); )
+        // Передаем отфильтрованный список в адаптер
         adapter.updateData(filteredList);
     }
 
