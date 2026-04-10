@@ -1,4 +1,4 @@
-package com.example.fitnesapp.utils;
+package com.example.fitnesapp.utils.analytics;
 
 import android.content.Context;
 
@@ -22,7 +22,7 @@ public class AnalyticsEngine {
         this.context = context;
     }
 
-    public List<InsightItem> generate(DailyData data, UserProfile profile, UserGoals goals, List<DailyData> weekHistory) {
+    public List<InsightItem> generate(DailyData data, UserProfile profile, UserGoals goals, List<DailyData> history) {
         List<InsightItem> insights = new ArrayList<>();
 
         if (data == null) {
@@ -58,8 +58,54 @@ public class AnalyticsEngine {
                     context.getString(R.string.analytics_all_good_desc)));
         }
 
+        /// ==========================================
+        // ГЛУБОКАЯ АНАЛИТИКА ЗА НЕДЕЛЮ (Сон, Шаги, Питание)
+        // ==========================================
+        if (history != null && !history.isEmpty()) {
+            List<Integer> sleepHistoryMinutes = new ArrayList<>();
+            List<Integer> stepsHistory = new ArrayList<>();
+            List<Integer> nutritionHistory = new ArrayList<>(); // <-- Создали список для еды
+
+            for (DailyData pastDay : history) {
+                // Сон
+                if (pastDay.sleep != null && pastDay.sleep.durationMinutes > 0) {
+                    sleepHistoryMinutes.add(pastDay.sleep.durationMinutes);
+                }
+                // Шаги
+                if (pastDay.steps > 0) {
+                    stepsHistory.add((int) pastDay.steps);
+                }
+                // Питание
+                if (pastDay.nutrition != null) {
+                    nutritionHistory.add((int) pastDay.nutrition.totalCalories);
+                } else {
+                    nutritionHistory.add(0);
+                }
+            }
+
+            // Генерируем подсказку по питанию (передаем историю и ЦЕЛИ пользователя)
+            InsightItem weeklyNutrInsight = NutritionAnalyticsEngine.generateWeeklyNutritionInsight(nutritionHistory, goals, context);
+            if (weeklyNutrInsight != null) {
+                insights.add(weeklyNutrInsight);
+            }
+
+            // Генерируем подсказку по сну
+            InsightItem weeklySleepInsight = SleepAnalyticsEngine.generateWeeklySleepInsight(sleepHistoryMinutes, context);
+            if (weeklySleepInsight != null) {
+                insights.add(weeklySleepInsight);
+            }
+
+            // Генерируем подсказку по шагам
+            InsightItem weeklyStepsInsight = ActivityAnalyticsEngine.generateWeeklyStepsInsight(stepsHistory, context);
+            if (weeklyStepsInsight != null) {
+                insights.add(weeklyStepsInsight);
+            }
+        }
+
         return insights;
     }
+
+
 
     // ==========================================
     // ГЛОБАЛЬНЫЙ КАЛЬКУЛЯТОР СНА

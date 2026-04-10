@@ -348,6 +348,42 @@
     <string name="analytics_sleep_frag_title">Фрагментований сон</string>
     <string name="analytics_sleep_frag_desc">Судячи з графіка, ви прокидалися %1$d разів. Перевірте рівень шуму та світла у спальні.</string>
 
+    <string name="analytics_sleep_perfect_week_title">Ідеальний тиждень сну 🌟</string>
+    <string name="analytics_sleep_perfect_week_desc">Ваш середній сон цього тижня — %1$s. Відмінне відновлення! Імунітет та м\'язи працюють на 100%%.</string>
+
+    <string name="analytics_sleep_debt_title">Кисневий борг сну ⚠️</string>
+    <string name="analytics_sleep_debt_desc">Ваш середній показник лише %1$s. Ви накопичуєте недосип. Це уповільнює метаболізм і підвищує стрес. Спробуйте лягти на 30 хв раніше.</string>
+
+    <string name="analytics_sleep_oversleep_title">Млявість від пересипання 💤</string>
+    <string name="analytics_sleep_oversleep_desc">Ви спали в середньому %1$s. Регулярний сон понад 9 годин викликає млявість і втому. Спробуйте ставити чіткий будильник.</string>
+
+    <string name="analytics_sleep_unstable_title">Соціальний джетлаг 🎢</string>
+    <string name="analytics_sleep_unstable_desc">Ваш час сну сильно стрибає з дня на день. Це збиває циркадні ритми. Намагайтеся лягати в один і той самий час навіть у вихідні.</string>
+
+    <string name="analytics_sleep_monthly_good_title">Тренд місяця: Покращення 📈</string>
+    <string name="analytics_sleep_monthly_good_desc">Чудова робота! Цього місяця ви спите краще і стабільніше. Режим — це ключ до довголіття.</string>
+
+    <string name="analytics_steps_low_title">Низька активність ⚠️</string>
+    <string name="analytics_steps_low_desc">Ваш середній показник цього тижня — лише %1$s кроків. Спробуйте додати коротку 30-хвилинну прогулянку до свого графіку.</string>
+
+    <string name="analytics_steps_high_title">Активний спосіб життя! 🔥</string>
+    <string name="analytics_steps_high_desc">Чудова робота! Ви проходили в середньому %1$s кроків цього тижня. Ваша серцево-судинна система вам вдячна.</string>
+
+    <string name="analytics_steps_unstable_title">Нестабільна активність 📊</string>
+    <string name="analytics_steps_unstable_desc">Кількість ваших кроків сильно стрибає (від %1$s до %2$s). Намагайтеся розподіляти прогулянки більш рівномірно, щоб не перевантажувати суглоби.</string>
+
+    <string name="analytics_nutr_starvation_title">Небезпечно мало калорій ⚠️</string>
+    <string name="analytics_nutr_starvation_desc">Ваш середній показник лише %1$s ккал. Таке харчування уповільнює метаболізм і змушує організм спалювати м\'язи замість жиру.</string>
+
+    <string name="analytics_nutr_over_cut_title">Профіцит калорій 📊</string>
+    <string name="analytics_nutr_over_cut_desc">Ваша ціль — схуднення, але середній калораж (%1$s ккал) вищий за цільовий. Зверніть увагу на рідкі калорії, олії та дрібні перекуси.</string>
+
+    <string name="analytics_nutr_under_bulk_title">Недостатньо палива 🍽️</string>
+    <string name="analytics_nutr_under_bulk_desc">Для росту м\'язів потрібен профіцит. Ваш середній показник (%1$s ккал) занадто низький. Додайте калорійні продукти: горіхи або арахісову пасту.</string>
+
+    <string name="analytics_nutr_perfect_title">Ідеальний раціон! 🍏</string>
+    <string name="analytics_nutr_perfect_desc">Ваш тижневий калораж (%1$s ккал) ідеально відповідає вашій цілі. Стабільність — головний ключ до успіху!</string>
+
     <string name="advice_history_workout_finished">Тренування завершено!</string>
     <string name="advice_history_workout_finished_desc">Тренування успішно збережено у вашій історії. Так тримати!</string>
 

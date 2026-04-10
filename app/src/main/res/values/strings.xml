@@ -348,6 +348,42 @@
     <string name="analytics_sleep_frag_title">Fragmented sleep</string>
     <string name="analytics_sleep_frag_desc">According to the chart, you woke up %1$d times. Check noise and light levels in your bedroom.</string>
 
+    <string name="analytics_sleep_perfect_week_title">Perfect Sleep Week 🌟</string>
+    <string name="analytics_sleep_perfect_week_desc">Your average sleep this week is %1$s. Excellent recovery! Your immune system and muscles are functioning at 100%%.</string>
+
+    <string name="analytics_sleep_debt_title">High Sleep Debt ⚠️</string>
+    <string name="analytics_sleep_debt_desc">Your weekly average is only %1$s. You are accumulating sleep debt. This slows down metabolism and increases stress levels. Try to add 30 mins of sleep tonight.</string>
+
+    <string name="analytics_sleep_oversleep_title">Oversleeping Lethargy 💤</string>
+    <string name="analytics_sleep_oversleep_desc">You averaged %1$s of sleep this week. Sleeping more than 9 hours regularly can cause grogginess and low energy. Try setting a strict wake-up alarm.</string>
+
+    <string name="analytics_sleep_unstable_title">Social Jetlag 🎢</string>
+    <string name="analytics_sleep_unstable_desc">Your sleep duration jumps wildly from day to day. This disrupts your circadian rhythms. Try going to bed at the same time, even on weekends.</string>
+
+    <string name="analytics_sleep_monthly_good_title">Monthly Trend: Improving 📈</string>
+    <string name="analytics_sleep_monthly_good_desc">Great job! This month your average sleep is better than before. A stable routine is the key to longevity.</string>
+
+    <string name="analytics_steps_low_title">Low Weekly Activity ⚠️</string>
+    <string name="analytics_steps_low_desc">Your average this week is only %1$s steps. Try to add a short 30-minute walk to your daily routine.</string>
+
+    <string name="analytics_steps_high_title">Active Lifestyle! 🔥</string>
+    <string name="analytics_steps_high_desc">Great job! You averaged %1$s steps this week. Your cardiovascular system is thanking you.</string>
+
+    <string name="analytics_steps_unstable_title">Inconsistent Activity 📊</string>
+    <string name="analytics_steps_unstable_desc">Your step count fluctuates heavily (from %1$s to %2$s). Try to distribute your daily walks more evenly to avoid overstraining your joints.</string>
+
+    <string name="analytics_nutr_starvation_title">Dangerously Low Calories ⚠️</string>
+    <string name="analytics_nutr_starvation_desc">Your logged average is only %1$s kcal. Eating this little slows down your metabolism and forces the body to burn muscle instead of fat.</string>
+
+    <string name="analytics_nutr_over_cut_title">Calorie Surplus 📊</string>
+    <string name="analytics_nutr_over_cut_desc">Your goal is to lose weight, but your weekly average (%1$s kcal) is higher than your target. Watch out for hidden liquid calories, oils, and snacks.</string>
+
+    <string name="analytics_nutr_under_bulk_title">Not Enough Fuel 🍽️</string>
+    <string name="analytics_nutr_under_bulk_desc">To gain muscle, you need a surplus. Your average is %1$s kcal, which is too low. Try adding calorie-dense foods like nuts or peanut butter.</string>
+
+    <string name="analytics_nutr_perfect_title">Perfect Diet! 🍏</string>
+    <string name="analytics_nutr_perfect_desc">Your weekly average (%1$s kcal) perfectly matches your goal. Consistency is the main key to success!</string>
+
     <string name="advice_history_workout_finished">Workout Finished!</string>
     <string name="advice_history_workout_finished_desc">The workout has been successfully saved to your history. Keep it up!</string>
 
